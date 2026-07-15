@@ -66,6 +66,33 @@ const draftItemTitle = document.getElementById("draftItemTitle");
 const draftItemKicker = document.getElementById("draftItemKicker");
 const saveDraftItemButton = document.getElementById("saveDraftItemButton");
 const draftItemsTableBody = document.getElementById("draftItemsTableBody");
+const serviceItemBackdrop = document.getElementById("serviceItemBackdrop");
+const serviceItemCard = serviceItemBackdrop?.querySelector(".modal-card");
+const serviceItemForm = document.getElementById("serviceItemForm");
+const openServiceItemModalButton = document.getElementById("openServiceItemModal");
+const closeServiceItemModal = document.getElementById("closeServiceItemModal");
+const cancelServiceItemModal = document.getElementById("cancelServiceItemModal");
+const serviceItemTitle = document.getElementById("serviceItemTitle");
+const serviceItemKicker = document.getElementById("serviceItemKicker");
+const saveServiceItemButton = document.getElementById("saveServiceItemButton");
+const serviceItemsTableBody = document.getElementById("serviceItemsTableBody");
+const quoteItemBackdrop = document.getElementById("quoteItemBackdrop");
+const quoteItemCard = quoteItemBackdrop?.querySelector(".modal-card");
+const quoteItemForm = document.getElementById("quoteItemForm");
+const openQuoteItemModalButton = document.getElementById("openQuoteItemModal");
+const closeQuoteItemModal = document.getElementById("closeQuoteItemModal");
+const cancelQuoteItemModal = document.getElementById("cancelQuoteItemModal");
+const quoteItemTitle = document.getElementById("quoteItemTitle");
+const quoteItemKicker = document.getElementById("quoteItemKicker");
+const saveQuoteItemButton = document.getElementById("saveQuoteItemButton");
+const quoteItemsTableBody = document.getElementById("quoteItemsTableBody");
+const requestPickerBackdrop = document.getElementById("requestPickerBackdrop");
+const requestPickerCard = requestPickerBackdrop?.querySelector(".modal-card");
+const openRequestPickerModalButton = document.getElementById("openRequestPickerModal");
+const closeRequestPickerModal = document.getElementById("closeRequestPickerModal");
+const cancelRequestPickerModal = document.getElementById("cancelRequestPickerModal");
+const requestPickerSearch = document.getElementById("requestPickerSearch");
+const requestPickerList = document.getElementById("requestPickerList");
 
 const quickItemBackdrop = document.getElementById("quickItemBackdrop");
 const quickItemCard = quickItemBackdrop?.querySelector(".modal-card");
@@ -78,13 +105,19 @@ const masterItemsDataNode = document.getElementById("masterItemsData");
 let masterItems = parseJsonNode(masterItemsDataNode, []);
 let draftRequestItems = [];
 let draftItemEditIndex = -1;
+let draftServiceItems = [];
+let serviceItemEditIndex = -1;
+let draftQuoteItems = [];
+let quoteItemEditIndex = -1;
 let activeDetailCode = "";
+let selectedRequestNeed = "";
 
 const roleOptions = [
   { value: "pemohon", label: "Pemohon" },
   { value: "kepala_divisi", label: "Kadiv" },
   { value: "kepala_akunting", label: "Ka. Akunting" },
   { value: "purchasing", label: "Purchasing" },
+  { value: "kepala_purchasing", label: "Ka. Purchasing" },
   { value: "admin", label: "Admin" }
 ];
 const storedRole = localStorage.getItem("procurement-active-role");
@@ -194,12 +227,25 @@ detailModalBackdrop?.addEventListener("click", (event) => {
 });
 
 detailModalCard?.addEventListener("click", (event) => {
+  const quoteSelectButton = event.target.closest("[data-toggle-detail-quote-selected]");
+  if (quoteSelectButton && detailViewType === "procurement-penawaran") {
+    toggleDetailQuoteSelected(quoteSelectButton.dataset.approvalCode, Number(quoteSelectButton.dataset.toggleDetailQuoteSelected));
+    return;
+  }
+
   const approvalButton = event.target.closest("[data-approval-action]");
   if (!approvalButton) {
     return;
   }
 
-  handlePengajuanApprovalAction(approvalButton.dataset.approvalAction, approvalButton.dataset.approvalCode);
+  if (["pengajuan-barang", "pengajuan-jasa"].includes(detailViewType)) {
+    handlePengajuanApprovalAction(approvalButton.dataset.approvalAction, approvalButton.dataset.approvalCode);
+    return;
+  }
+
+  if (detailViewType === "procurement-penawaran") {
+    handlePenawaranApprovalAction(approvalButton.dataset.approvalAction, approvalButton.dataset.approvalCode);
+  }
 });
 
 itemPickerBackdrop?.addEventListener("click", (event) => {
@@ -211,6 +257,24 @@ itemPickerBackdrop?.addEventListener("click", (event) => {
 draftItemBackdrop?.addEventListener("click", (event) => {
   if (event.target === draftItemBackdrop) {
     closeDraftItemDialog();
+  }
+});
+
+serviceItemBackdrop?.addEventListener("click", (event) => {
+  if (event.target === serviceItemBackdrop) {
+    closeServiceItemDialog();
+  }
+});
+
+quoteItemBackdrop?.addEventListener("click", (event) => {
+  if (event.target === quoteItemBackdrop) {
+    closeQuoteItemDialog();
+  }
+});
+
+requestPickerBackdrop?.addEventListener("click", (event) => {
+  if (event.target === requestPickerBackdrop) {
+    closeManagedModal(requestPickerBackdrop, requestPickerCard, null, { resetForm: false });
   }
 });
 
@@ -325,6 +389,94 @@ draftItemsTableBody?.addEventListener("click", (event) => {
 draftItemForm?.addEventListener("submit", (event) => {
   event.preventDefault();
   saveDraftItem();
+});
+
+openServiceItemModalButton?.addEventListener("click", () => {
+  openServiceItemDialog();
+});
+
+serviceItemsTableBody?.addEventListener("click", (event) => {
+  const editButton = event.target.closest("[data-edit-service-item]");
+  if (editButton) {
+    openServiceItemDialog(Number(editButton.dataset.editServiceItem));
+    return;
+  }
+
+  const deleteButton = event.target.closest("[data-remove-service-item]");
+  if (deleteButton) {
+    removeServiceItem(Number(deleteButton.dataset.removeServiceItem));
+  }
+});
+
+serviceItemForm?.addEventListener("submit", (event) => {
+  event.preventDefault();
+  saveServiceItem();
+});
+
+closeServiceItemModal?.addEventListener("click", closeServiceItemDialog);
+cancelServiceItemModal?.addEventListener("click", closeServiceItemDialog);
+
+openQuoteItemModalButton?.addEventListener("click", () => {
+  openQuoteItemDialog();
+});
+
+quoteItemsTableBody?.addEventListener("click", (event) => {
+  const taxToggle = event.target.closest("[data-toggle-quote-tax]");
+  if (taxToggle) {
+    toggleQuoteTax(Number(taxToggle.dataset.toggleQuoteTax));
+    return;
+  }
+
+  const selectedToggle = event.target.closest("[data-toggle-quote-selected]");
+  if (selectedToggle) {
+    toggleQuoteSelected(Number(selectedToggle.dataset.toggleQuoteSelected));
+    return;
+  }
+
+  const editButton = event.target.closest("[data-edit-quote-item]");
+  if (editButton) {
+    openQuoteItemDialog(Number(editButton.dataset.editQuoteItem));
+    return;
+  }
+
+  const deleteButton = event.target.closest("[data-remove-quote-item]");
+  if (deleteButton) {
+    removeQuoteItem(Number(deleteButton.dataset.removeQuoteItem));
+  }
+});
+
+quoteItemForm?.addEventListener("submit", (event) => {
+  event.preventDefault();
+  saveQuoteItem();
+});
+
+closeQuoteItemModal?.addEventListener("click", closeQuoteItemDialog);
+cancelQuoteItemModal?.addEventListener("click", closeQuoteItemDialog);
+
+openRequestPickerModalButton?.addEventListener("click", () => {
+  filterRequestPicker("");
+  openManagedModal(requestPickerBackdrop, requestPickerCard, requestPickerSearch);
+});
+
+[closeRequestPickerModal, cancelRequestPickerModal].forEach((button) => {
+  button?.addEventListener("click", () => {
+    closeManagedModal(requestPickerBackdrop, requestPickerCard, null, { resetForm: false });
+  });
+});
+
+requestPickerSearch?.addEventListener("input", (event) => {
+  filterRequestPicker(event.target.value);
+});
+
+requestPickerList?.addEventListener("click", (event) => {
+  const selectedRow = event.target.closest("[data-select-request]");
+  if (!selectedRow) {
+    return;
+  }
+
+  setFieldValue(getField("requestCode"), selectedRow.dataset.selectRequest || "");
+  selectedRequestNeed = selectedRow.dataset.need || "";
+  closeManagedModal(requestPickerBackdrop, requestPickerCard, null, { resetForm: false });
 });
 
 dismissAlert?.addEventListener("click", () => {
@@ -454,6 +606,11 @@ function setCreateMode() {
   formFields.forEach(resetField);
   draftRequestItems = [];
   draftItemEditIndex = -1;
+  draftServiceItems = [];
+  serviceItemEditIndex = -1;
+  draftQuoteItems = [];
+  quoteItemEditIndex = -1;
+  selectedRequestNeed = "";
   clearSelectedItem();
   populateContextDefaults();
 
@@ -463,6 +620,8 @@ function setCreateMode() {
 
   applyCreateDefaults();
   renderDraftItems();
+  renderServiceItems();
+  renderQuoteItems();
 }
 
 function setEditMode(data) {
@@ -524,7 +683,7 @@ function populateContextDefaults() {
     autoSubmitDateField.value = formatDateDisplay(today);
   }
 
-  if (primaryField && primaryField.placeholder.includes("/PP/")) {
+  if (primaryField && String(primaryField.getAttribute("placeholder") || "").includes("/PP/")) {
     primaryField.placeholder = referenceExample;
   }
 
@@ -662,6 +821,25 @@ function renderItemPicker(query = "") {
     .join("");
 }
 
+function filterRequestPicker(query = "") {
+  if (!requestPickerList) {
+    return;
+  }
+
+  const normalizedQuery = String(query || "").trim().toLowerCase();
+  Array.from(requestPickerList.querySelectorAll("[data-select-request]")).forEach((row) => {
+    const haystack = [
+      row.dataset.selectRequest,
+      row.dataset.need,
+      row.dataset.division,
+      row.dataset.date
+    ]
+      .join(" ")
+      .toLowerCase();
+    row.hidden = Boolean(normalizedQuery && !haystack.includes(normalizedQuery));
+  });
+}
+
 function submitPengajuanBarang() {
   const code = String(primaryField?.value || "").trim();
   const targetDateValue = String(getField("targetDate")?.value || "").trim();
@@ -746,26 +924,34 @@ function submitPengajuanJasa() {
     return;
   }
 
+  if (!draftServiceItems.length) {
+    showAlert(
+      "error",
+      "Detail jasa masih kosong",
+      "Tambahkan minimal satu detail jasa sebelum menyimpan pengajuan."
+    );
+    openServiceItemModalButton?.focus();
+    return;
+  }
+
   const record = {
     header: {
       code,
       division: String(getField("division")?.value || activeDivisionCode),
       requestType: String(getField("requestType")?.value || "jasa"),
+      serviceProcurementType: String(getField("serviceProcurementType")?.value || ""),
       priority: String(getField("priority")?.value || ""),
       submitDate: formatDateDisplay(new Date()),
       targetDate: formatDateInput(targetDateValue),
       reason: String(getField("reason")?.value || "").trim(),
+      serviceNeed: String(getField("serviceNeed")?.value || "").trim(),
       status: "draft",
       statusKind: "waiting"
     },
-    detail: {
-      itemCode: String(getField("itemCode")?.value || "").trim() || "-",
-      qty: String(getField("qty")?.value || "").trim() || "1",
-      unit: String(getField("unit")?.value || "").trim() || "Paket",
-      estimate: String(getField("estimate")?.value || "").trim(),
-      notes: String(getField("notes")?.value || "").trim() || "-",
-      attachment: String(getField("attachment")?.value || "").trim() || "-"
-    },
+    services: draftServiceItems.map((item, index) => ({
+      ...item,
+      no: `${code}-J${String(index + 1).padStart(2, "0")}`
+    })),
     approval: [
       {
         kind: "warning",
@@ -819,24 +1005,31 @@ function submitGenericForm() {
   }
 
   if (detailViewType === "procurement-penawaran") {
-    const status = String(formData.get("status") || "").trim() || "draft";
+    if (!savedRef || savedRef === "Draft baru") {
+      primaryField?.focus();
+      return;
+    }
+
+    if (detailRecords[savedRef]) {
+      showAlert("error", "Pengajuan sudah punya penawaran", "Gunakan pengajuan lain atau buka detail penawaran yang sudah ada.");
+      primaryField?.focus();
+      return;
+    }
+
+    if (!draftQuoteItems.length) {
+      showAlert("error", "Detail penawaran masih kosong", "Tambahkan minimal satu penawaran vendor sebelum menyimpan.");
+      openQuoteItemModalButton?.focus();
+      return;
+    }
+
+    const status = "proses_penawaran";
     const record = {
       header: {
-        code: savedRef,
-        procurementCode: String(formData.get("procurementCode") || "").trim() || "-",
-        requestCode: "-",
-        need: String(formData.get("quantity") || "").trim() || "-",
+        requestCode: savedRef,
+        need: selectedRequestNeed || "-",
         status
       },
-      quotes: [
-        {
-          vendor: String(formData.get("vendor") || "").trim() || "-",
-          amount: String(formData.get("amount") || "").trim() || "-",
-          eta: String(formData.get("eta") || "").trim() || "-",
-          attachment: String(formData.get("attachment") || "").trim() || "-",
-          note: String(formData.get("notes") || "").trim() || "-"
-        }
-      ]
+      quotes: draftQuoteItems.map((item) => ({ ...item }))
     };
 
     detailRecords[savedRef] = record;
@@ -877,7 +1070,7 @@ function submitGenericForm() {
     "Data berhasil disimpan",
     `${entityPlural} telah disimpan dan siap dipakai oleh modul terkait.`
   );
-  requestForm?.reset();
+  resetCreateState();
 }
 
 function prependRequestRow({ code, division, priority, submitDate, targetDate, status }) {
@@ -990,6 +1183,70 @@ function showPengajuanActionResult(code, title, message) {
   showAlert("success", title, message);
 }
 
+function handlePenawaranApprovalAction(action, code) {
+  if (detailViewType !== "procurement-penawaran" || !code) {
+    return;
+  }
+
+  const record = detailRecords[code];
+  if (!record || !canRunPenawaranAction(action, record.header.status)) {
+    showAlert("warning", "Akses dibatasi", `${getActiveRoleLabel()} tidak dapat menjalankan aksi ini.`);
+    return;
+  }
+
+  if (action === "submit_purchasing") {
+    record.header.status = "menunggu_persetujuan_purchasing";
+    showPenawaranActionResult(code, "Penawaran diajukan", `${code} masuk ke approval Kepala Purchasing.`);
+    return;
+  }
+
+  if (action === "approve_purchasing") {
+    const selectedIndex = (record.quotes || []).findIndex((quote) => quote.selected);
+    if (selectedIndex < 0) {
+      showAlert("error", "Vendor belum dipilih", "Kepala Purchasing harus memilih satu barang/vendor sebelum approve.");
+      return;
+    }
+
+    record.header.status = "disetujui";
+    record.quotes = record.quotes.map((quote, index) => ({
+      ...quote,
+      status: index === selectedIndex ? "disetujui" : "ditolak"
+    }));
+    showPenawaranActionResult(code, "Penawaran disetujui", `${code} siap menjadi dasar pembuatan PO.`);
+    return;
+  }
+
+  if (action === "reject_purchasing") {
+    record.header.status = "proses_penawaran";
+    record.quotes = (record.quotes || []).map((quote) => ({
+      ...quote,
+      status: "direview"
+    }));
+    showPenawaranActionResult(code, "Penawaran dikembalikan", `${code} kembali ke Purchasing untuk penyusunan ulang.`);
+  }
+}
+
+function canRunPenawaranAction(action, status) {
+  if (activeRole === "admin") {
+    return true;
+  }
+
+  const actionRules = {
+    submit_purchasing: activeRole === "purchasing" && status === "proses_penawaran",
+    approve_purchasing: activeRole === "kepala_purchasing" && status === "menunggu_persetujuan_purchasing",
+    reject_purchasing: activeRole === "kepala_purchasing" && status === "menunggu_persetujuan_purchasing"
+  };
+
+  return Boolean(actionRules[action]);
+}
+
+function showPenawaranActionResult(code, title, message) {
+  const record = detailRecords[code];
+  updateRequestRowStatus(code, record.header.status);
+  renderDetailModal(record, code);
+  showAlert("success", title, message);
+}
+
 function updateRequestRowStatus(code, status) {
   if (!mainTableBody) {
     return;
@@ -1052,20 +1309,18 @@ function prependProcurementPenawaranRow(record) {
   });
 
   const { header } = record;
-  const primaryQuote = record.quotes?.[0] || {};
+  const quotes = record.quotes || [];
+  const bestQuote = quotes[0] || {};
   const row = document.createElement("tr");
   row.className = "master-slave-row is-active";
   row.innerHTML = `
-    <td>${escapeHtml(header.code)}</td>
-    <td>${escapeHtml(header.procurementCode)}</td>
-    <td>${escapeHtml(primaryQuote.vendor || "-")}</td>
-    <td>${escapeHtml(primaryQuote.amount || "-")}</td>
-    <td>${escapeHtml(primaryQuote.eta || "-")}</td>
+    <td>${escapeHtml(header.requestCode)}</td>
+    <td>${escapeHtml(header.need)}</td>
+    <td>${escapeHtml(`${quotes.length} vendor`)}</td>
+    <td>${escapeHtml(bestQuote.unitPrice || "-")}</td>
     <td><span class="status-chip ${getStatusChipClass(header.status)}">${escapeHtml(header.status)}</span></td>
     <td>
-      <button class="table-action" type="button" data-detail="true" data-code="${escapeHtml(header.code)}" data-status="${escapeHtml(
-        header.status
-      )}">
+      <button class="table-action" type="button" data-detail="true" data-code="${escapeHtml(header.requestCode)}" data-status="${escapeHtml(header.status)}">
         View
       </button>
     </td>
@@ -1112,10 +1367,17 @@ function resetCreateState() {
   formFields.forEach(resetField);
   draftRequestItems = [];
   draftItemEditIndex = -1;
+  draftServiceItems = [];
+  serviceItemEditIndex = -1;
+  draftQuoteItems = [];
+  quoteItemEditIndex = -1;
+  selectedRequestNeed = "";
   clearSelectedItem();
   populateContextDefaults();
   applyCreateDefaults();
   renderDraftItems();
+  renderServiceItems();
+  renderQuoteItems();
 }
 
 function openManagedModal(backdrop, card, focusTarget) {
@@ -1154,14 +1416,24 @@ function closeAllModals(options = {}) {
   closeManagedModal(createModalBackdrop, createModalCard, requestForm, options);
   closeManagedModal(detailModalBackdrop, detailModalCard, null, { resetForm: false });
   closeManagedModal(draftItemBackdrop, draftItemCard, draftItemForm, options);
+  closeManagedModal(serviceItemBackdrop, serviceItemCard, serviceItemForm, options);
+  closeManagedModal(quoteItemBackdrop, quoteItemCard, quoteItemForm, options);
+  closeManagedModal(requestPickerBackdrop, requestPickerCard, null, { resetForm: false });
   closeManagedModal(itemPickerBackdrop, itemPickerCard, null, { resetForm: false });
   closeManagedModal(quickItemBackdrop, quickItemCard, quickItemForm, options);
 }
 
 function areAllModalsClosed() {
-  return [createModalBackdrop, detailModalBackdrop, draftItemBackdrop, itemPickerBackdrop, quickItemBackdrop].every(
-    (backdrop) => !backdrop || backdrop.hidden
-  );
+  return [
+    createModalBackdrop,
+    detailModalBackdrop,
+    draftItemBackdrop,
+    serviceItemBackdrop,
+    quoteItemBackdrop,
+    requestPickerBackdrop,
+    itemPickerBackdrop,
+    quickItemBackdrop
+  ].every((backdrop) => !backdrop || backdrop.hidden);
 }
 
 function isModalOpen(backdrop) {
@@ -1271,6 +1543,7 @@ function renderDetailModal(record, code) {
 
   if (detailViewType === "procurement-penawaran") {
     detailModalBody.innerHTML = buildProcurementPenawaranMarkup(record);
+    renderPenawaranApprovalActions(record);
     return;
   }
 
@@ -1346,7 +1619,7 @@ function buildBarangDetailMarkup(record) {
           </div>
           <div class="detail-row">
             <div class="detail-label">Jenis Pengajuan</div>
-            <div class="detail-value">${escapeHtml(record.header.requestType || "jasa")}</div>
+            <div class="detail-value">${escapeHtml(record.header.requestType || "barang")}</div>
           </div>
           <div class="detail-row">
             <div class="detail-label">Prioritas</div>
@@ -1500,6 +1773,85 @@ function getPengajuanActionsForRole(status) {
   };
 
   return (allActions[status] || []).filter((action) => canRunPengajuanAction(action.action, status));
+}
+
+function renderPenawaranApprovalActions(record) {
+  if (!detailStatusActions) {
+    return;
+  }
+
+  const status = String(record?.header?.status || "");
+  const actions = getPenawaranActionsForRole(status);
+  if (!actions.length) {
+    detailStatusActions.innerHTML = "";
+    return;
+  }
+
+  detailStatusActions.innerHTML = actions
+    .map(
+      (action) => `
+        <button
+          class="${escapeHtml(action.variant)}"
+          type="button"
+          data-approval-action="${escapeHtml(action.action)}"
+          data-approval-code="${escapeHtml(record.header.requestCode)}"
+        >
+          ${escapeHtml(action.label)}
+        </button>
+      `
+    )
+    .join("");
+}
+
+function getPenawaranActionsForRole(status) {
+  const allActions = {
+    proses_penawaran: [
+      { action: "submit_purchasing", label: "ajukan approval", variant: "primary-button" }
+    ],
+    menunggu_persetujuan_purchasing: [
+      { action: "reject_purchasing", label: "tolak", variant: "secondary-button danger-button" },
+      { action: "approve_purchasing", label: "approve", variant: "primary-button" }
+    ]
+  };
+
+  return (allActions[status] || []).filter((action) => canRunPenawaranAction(action.action, status));
+}
+
+function getPenawaranApprovalSteps(record) {
+  const status = String(record?.header?.status || "");
+
+  if (status === "proses_penawaran") {
+    return [
+      { kind: "warning", title: "Purchasing", text: "Proses" },
+      { kind: "", title: "Kepala Purchasing", text: "Menunggu" }
+    ];
+  }
+
+  if (status === "menunggu_persetujuan_purchasing") {
+    return [
+      { kind: "success", title: "Purchasing", text: "Diajukan" },
+      { kind: "warning", title: "Kepala Purchasing", text: "Pending" }
+    ];
+  }
+
+  if (status === "disetujui") {
+    return [
+      { kind: "success", title: "Purchasing", text: "Diajukan" },
+      { kind: "success", title: "Kepala Purchasing", text: "Approved" }
+    ];
+  }
+
+  if (status === "ditolak") {
+    return [
+      { kind: "success", title: "Purchasing", text: "Diajukan" },
+      { kind: "error", title: "Kepala Purchasing", text: "Ditolak" }
+    ];
+  }
+
+  return [
+    { kind: "review", title: "Purchasing", text: status || "-" },
+    { kind: "", title: "Kepala Purchasing", text: "-" }
+  ];
 }
 
 function openDraftItemDialog(index = -1) {
@@ -1677,8 +2029,380 @@ function renderDraftItems() {
     .join("");
 }
 
+function getServiceField(name) {
+  return serviceItemForm?.querySelector(`[data-service-field="${name}"]`);
+}
+
+function openServiceItemDialog(index = -1) {
+  serviceItemEditIndex = Number.isInteger(index) ? index : -1;
+  serviceItemForm?.reset();
+
+  if (serviceItemEditIndex >= 0 && draftServiceItems[serviceItemEditIndex]) {
+    const item = draftServiceItems[serviceItemEditIndex];
+    setFieldValue(getServiceField("description"), item.description || "");
+    setFieldValue(getServiceField("cost"), item.cost || "");
+    setFieldValue(getServiceField("vendor"), item.vendor || "");
+    setFieldValue(getServiceField("location"), item.location || "");
+    setFieldValue(getServiceField("notes"), item.notes || "");
+
+    if (serviceItemKicker) {
+      serviceItemKicker.textContent = "Edit Detail";
+    }
+
+    if (serviceItemTitle) {
+      serviceItemTitle.textContent = "Edit Detail Jasa";
+    }
+
+    if (saveServiceItemButton) {
+      saveServiceItemButton.textContent = "Update Detail";
+    }
+  } else {
+    serviceItemEditIndex = -1;
+
+    if (serviceItemKicker) {
+      serviceItemKicker.textContent = "Tambah Detail";
+    }
+
+    if (serviceItemTitle) {
+      serviceItemTitle.textContent = "Detail Jasa";
+    }
+
+    if (saveServiceItemButton) {
+      saveServiceItemButton.textContent = "Simpan Detail";
+    }
+  }
+
+  openManagedModal(serviceItemBackdrop, serviceItemCard, getServiceField("description"));
+}
+
+function closeServiceItemDialog(options = {}) {
+  serviceItemEditIndex = -1;
+  closeManagedModal(serviceItemBackdrop, serviceItemCard, serviceItemForm, options);
+}
+
+function saveServiceItem() {
+  if (serviceItemForm && !serviceItemForm.reportValidity()) {
+    return;
+  }
+
+  const item = {
+    description: String(getServiceField("description")?.value || "").trim(),
+    cost: String(getServiceField("cost")?.value || "").trim(),
+    vendor: String(getServiceField("vendor")?.value || "").trim() || "-",
+    location: String(getServiceField("location")?.value || "").trim() || "-",
+    notes: String(getServiceField("notes")?.value || "").trim() || "-"
+  };
+
+  if (serviceItemEditIndex >= 0) {
+    draftServiceItems[serviceItemEditIndex] = item;
+  } else {
+    draftServiceItems.push(item);
+  }
+
+  renderServiceItems();
+  closeServiceItemDialog();
+}
+
+function removeServiceItem(index) {
+  if (!Number.isInteger(index) || !draftServiceItems[index]) {
+    return;
+  }
+
+  draftServiceItems.splice(index, 1);
+  renderServiceItems();
+}
+
+function renderServiceItems() {
+  if (!serviceItemsTableBody) {
+    return;
+  }
+
+  if (!draftServiceItems.length) {
+    serviceItemsTableBody.innerHTML = `
+      <tr>
+        <td colspan="7" class="empty-table-cell">Belum ada detail jasa.</td>
+      </tr>
+    `;
+    return;
+  }
+
+  serviceItemsTableBody.innerHTML = draftServiceItems
+    .map(
+      (item, index) => `
+        <tr>
+          <td>${index + 1}</td>
+          <td>${escapeHtml(item.description)}</td>
+          <td>${escapeHtml(item.cost)}</td>
+          <td>${escapeHtml(item.vendor)}</td>
+          <td>${escapeHtml(item.location)}</td>
+          <td>${escapeHtml(item.notes)}</td>
+          <td>
+            <div class="table-action-group">
+              <button class="table-action" type="button" data-edit-service-item="${index}">Edit</button>
+              <button class="table-action" type="button" data-remove-service-item="${index}">Hapus</button>
+            </div>
+          </td>
+        </tr>
+      `
+    )
+    .join("");
+}
+
+function getQuoteField(name) {
+  return quoteItemForm?.querySelector(`[data-quote-field="${name}"]`);
+}
+
+function openQuoteItemDialog(index = -1) {
+  quoteItemEditIndex = Number.isInteger(index) ? index : -1;
+  quoteItemForm?.reset();
+
+  if (quoteItemEditIndex >= 0 && draftQuoteItems[quoteItemEditIndex]) {
+    const item = draftQuoteItems[quoteItemEditIndex];
+    setFieldValue(getQuoteField("code"), item.code || "");
+    setFieldValue(getQuoteField("vendor"), item.vendor || "");
+    setFieldValue(getQuoteField("unitPrice"), item.unitPrice || "");
+    setFieldValue(getQuoteField("paymentMethod"), item.paymentMethod || "");
+    setFieldValue(getQuoteField("delivery"), item.delivery || "");
+    setFieldValue(getQuoteField("leadTime"), item.leadTime || "");
+
+    if (quoteItemKicker) {
+      quoteItemKicker.textContent = "Edit Penawaran";
+    }
+
+    if (quoteItemTitle) {
+      quoteItemTitle.textContent = "Edit Penawaran Vendor";
+    }
+
+    if (saveQuoteItemButton) {
+      saveQuoteItemButton.textContent = "Update Penawaran";
+    }
+  } else {
+    quoteItemEditIndex = -1;
+    setFieldValue(getQuoteField("code"), getNextQuoteReference());
+
+    if (quoteItemKicker) {
+      quoteItemKicker.textContent = "Tambah Penawaran";
+    }
+
+    if (quoteItemTitle) {
+      quoteItemTitle.textContent = "Detail Penawaran Vendor";
+    }
+
+    if (saveQuoteItemButton) {
+      saveQuoteItemButton.textContent = "Simpan Penawaran";
+    }
+  }
+
+  openManagedModal(quoteItemBackdrop, quoteItemCard, getQuoteField("vendor"));
+}
+
+function closeQuoteItemDialog(options = {}) {
+  quoteItemEditIndex = -1;
+  closeManagedModal(quoteItemBackdrop, quoteItemCard, quoteItemForm, options);
+}
+
+function parseCurrencyValue(value) {
+  const normalized = String(value || "")
+    .replace(/[^\d,.-]/g, "")
+    .replace(/\./g, "")
+    .replace(",", ".");
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function formatRupiah(value) {
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    maximumFractionDigits: 0
+  }).format(value || 0);
+}
+
+function getQuotePriceIncludePpn(item) {
+  const price = parseCurrencyValue(item.unitPrice);
+  return item.taxIncluded ? formatRupiah(Math.round(price * 1.11)) : item.unitPrice;
+}
+
+function saveQuoteItem() {
+  if (quoteItemForm && !quoteItemForm.reportValidity()) {
+    return;
+  }
+
+  const item = {
+    code: String(getQuoteField("code")?.value || "").trim(),
+    vendor: String(getQuoteField("vendor")?.value || "").trim(),
+    unitPrice: String(getQuoteField("unitPrice")?.value || "").trim(),
+    taxIncluded: draftQuoteItems[quoteItemEditIndex]?.taxIncluded || false,
+    tax: draftQuoteItems[quoteItemEditIndex]?.taxIncluded ? "hitung_ppn_11" : "harga_sudah_include_ppn",
+    paymentMethod: String(getQuoteField("paymentMethod")?.value || "").trim(),
+    delivery: String(getQuoteField("delivery")?.value || "").trim() || "-",
+    leadTime: String(getQuoteField("leadTime")?.value || "").trim() || "-",
+    selected: Boolean(draftQuoteItems[quoteItemEditIndex]?.selected)
+  };
+
+  const duplicateIndex = draftQuoteItems.findIndex((quote) => quote.code === item.code);
+  if (duplicateIndex >= 0 && duplicateIndex !== quoteItemEditIndex) {
+    showAlert("error", "No penawaran sudah ada", "Gunakan nomor penawaran lain.");
+    getQuoteField("code")?.focus();
+    return;
+  }
+
+  if (quoteItemEditIndex >= 0) {
+    draftQuoteItems[quoteItemEditIndex] = item;
+  } else {
+    draftQuoteItems.push(item);
+  }
+
+  renderQuoteItems();
+  closeQuoteItemDialog();
+}
+
+function toggleQuoteTax(index) {
+  if (!Number.isInteger(index) || !draftQuoteItems[index]) {
+    return;
+  }
+
+  draftQuoteItems[index].taxIncluded = !draftQuoteItems[index].taxIncluded;
+  draftQuoteItems[index].tax = draftQuoteItems[index].taxIncluded ? "hitung_ppn_11" : "harga_sudah_include_ppn";
+  renderQuoteItems();
+}
+
+function toggleQuoteSelected(index) {
+  if (!["kepala_purchasing", "admin"].includes(activeRole)) {
+    showAlert("warning", "Akses dibatasi", `${getActiveRoleLabel()} tidak dapat memilih barang/vendor penawaran.`);
+    return;
+  }
+
+  if (!Number.isInteger(index) || !draftQuoteItems[index]) {
+    return;
+  }
+
+  const nextValue = !draftQuoteItems[index].selected;
+  draftQuoteItems = draftQuoteItems.map((quote, quoteIndex) => ({
+    ...quote,
+    selected: quoteIndex === index ? nextValue : false
+  }));
+  renderQuoteItems();
+}
+
+function toggleDetailQuoteSelected(code, index) {
+  if (!["kepala_purchasing", "admin"].includes(activeRole)) {
+    showAlert("warning", "Akses dibatasi", `${getActiveRoleLabel()} tidak dapat memilih barang/vendor penawaran.`);
+    return;
+  }
+
+  const record = detailRecords[code];
+  if (!record || record.header.status !== "menunggu_persetujuan_purchasing") {
+    showAlert("warning", "Status tidak valid", "Vendor hanya dapat dipilih saat menunggu approval Kepala Purchasing.");
+    return;
+  }
+
+  if (!Number.isInteger(index) || !record.quotes?.[index]) {
+    return;
+  }
+
+  const nextValue = !record.quotes[index].selected;
+  record.quotes = record.quotes.map((quote, quoteIndex) => ({
+    ...quote,
+    selected: quoteIndex === index ? nextValue : false
+  }));
+  renderDetailModal(record, code);
+}
+
+function removeQuoteItem(index) {
+  if (!Number.isInteger(index) || !draftQuoteItems[index]) {
+    return;
+  }
+
+  draftQuoteItems.splice(index, 1);
+  renderQuoteItems();
+}
+
+function renderQuoteItems() {
+  if (!quoteItemsTableBody) {
+    return;
+  }
+
+  if (!draftQuoteItems.length) {
+    quoteItemsTableBody.innerHTML = `
+      <tr>
+        <td colspan="12" class="empty-table-cell">Belum ada penawaran vendor.</td>
+      </tr>
+    `;
+    return;
+  }
+
+  quoteItemsTableBody.innerHTML = draftQuoteItems
+    .map(
+      (item, index) => {
+        const canSelectQuote = ["kepala_purchasing", "admin"].includes(activeRole);
+
+        return `
+          <tr>
+            <td>${escapeHtml(item.code)}</td>
+            <td>${escapeHtml(item.vendor)}</td>
+            <td>${escapeHtml(item.unitPrice)}</td>
+            <td>
+              <button
+                class="mini-toggle"
+                data-active="${item.taxIncluded ? "true" : "false"}"
+                data-toggle-quote-tax="${index}"
+                type="button"
+                aria-label="Toggle PPN ${escapeHtml(item.code)}"
+              >
+                <span></span>
+              </button>
+            </td>
+            <td>${escapeHtml(getQuotePriceIncludePpn(item))}</td>
+            <td>${escapeHtml(item.paymentMethod)}</td>
+            <td>${escapeHtml(item.delivery)}</td>
+            <td>${escapeHtml(item.leadTime)}</td>
+            <td>
+              ${
+                canSelectQuote
+                  ? `<button
+                      class="choice-toggle"
+                      data-active="${item.selected ? "true" : "false"}"
+                      data-toggle-quote-selected="${index}"
+                      type="button"
+                      aria-label="Pilih vendor ${escapeHtml(item.code)}"
+                    ></button>`
+                  : `<span class="choice-toggle is-readonly" data-active="${item.selected ? "true" : "false"}"></span>`
+              }
+            </td>
+            <td>
+              <div class="table-action-group">
+                <button class="table-action" type="button" data-edit-quote-item="${index}">Edit</button>
+                <button class="table-action" type="button" data-remove-quote-item="${index}">Hapus</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }
+    )
+    .join("");
+}
+
 function buildJasaDetailMarkup(record) {
   const status = String(record.header.status || "");
+  const serviceRows = (record.services || [])
+    .map(
+      (item, index) => `
+        <tr>
+          <td>${escapeHtml(item.no || index + 1)}</td>
+          <td>${escapeHtml(item.description)}</td>
+          <td>${escapeHtml(item.cost)}</td>
+          <td>${escapeHtml(item.vendor || "-")}</td>
+          <td>${escapeHtml(item.location || "-")}</td>
+          <td>${escapeHtml(item.notes || "-")}</td>
+        </tr>
+      `
+    )
+    .join("") || `
+      <tr>
+        <td colspan="6" class="empty-table-cell">Belum ada detail jasa.</td>
+      </tr>
+    `;
   const approvalRows = getPengajuanApprovalSteps(record)
     .map(
       (step) => `
@@ -1713,6 +2437,14 @@ function buildJasaDetailMarkup(record) {
             <div class="detail-value">${escapeHtml(record.header.division)}</div>
           </div>
           <div class="detail-row">
+            <div class="detail-label">Jenis Pengajuan</div>
+            <div class="detail-value">${escapeHtml(record.header.requestType || "jasa")}</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">Jenis Pengadaan</div>
+            <div class="detail-value">${escapeHtml(record.header.serviceProcurementType || "-")}</div>
+          </div>
+          <div class="detail-row">
             <div class="detail-label">Prioritas</div>
             <div class="detail-value">${escapeHtml(record.header.priority)}</div>
           </div>
@@ -1734,6 +2466,10 @@ function buildJasaDetailMarkup(record) {
             <div class="detail-label">Alasan</div>
             <div class="detail-value">${escapeHtml(record.header.reason)}</div>
           </div>
+          <div class="detail-row">
+            <div class="detail-label">Kebutuhan Jasa</div>
+            <div class="detail-value">${escapeHtml(record.header.serviceNeed || "-")}</div>
+          </div>
         </div>
       </section>
 
@@ -1741,31 +2477,20 @@ function buildJasaDetailMarkup(record) {
         <div class="form-section-head">
           <strong>Detail Jasa</strong>
         </div>
-        <div class="detail-list">
-          <div class="detail-row">
-            <div class="detail-label">Kode Barang</div>
-            <div class="detail-value">${escapeHtml(record.detail.itemCode || record.detail.kode_barang || "-")}</div>
-          </div>
-          <div class="detail-row">
-            <div class="detail-label">Qty</div>
-            <div class="detail-value">${escapeHtml(record.detail.qty || "1")}</div>
-          </div>
-          <div class="detail-row">
-            <div class="detail-label">Satuan</div>
-            <div class="detail-value">${escapeHtml(record.detail.unit || "Paket")}</div>
-          </div>
-          <div class="detail-row">
-            <div class="detail-label">Estimasi Harga</div>
-            <div class="detail-value">${escapeHtml(record.detail.estimate)}</div>
-          </div>
-          <div class="detail-row">
-            <div class="detail-label">Catatan</div>
-            <div class="detail-value">${escapeHtml(record.detail.notes || "-")}</div>
-          </div>
-          <div class="detail-row">
-            <div class="detail-label">Lampiran</div>
-            <div class="detail-value">${escapeHtml(record.detail.attachment)}</div>
-          </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>No Detail</th>
+                <th>Uraian Jasa / Pekerjaan</th>
+                <th>Biaya</th>
+                <th>Vendor / Penyedia</th>
+                <th>Lokasi</th>
+                <th>Keterangan</th>
+              </tr>
+            </thead>
+            <tbody>${serviceRows}</tbody>
+          </table>
         </div>
       </section>
     </div>
@@ -1823,37 +2548,74 @@ function buildProcurementPembelianMarkup(record) {
 }
 
 function buildProcurementPenawaranMarkup(record) {
-  const quoteRows = (record.quotes || [])
+  const canSelectQuote =
+    ["kepala_purchasing", "admin"].includes(activeRole) &&
+    record.header.status === "menunggu_persetujuan_purchasing";
+  const approvalRows = getPenawaranApprovalSteps(record)
     .map(
-      (quote) => `
-        <tr>
-          <td>${escapeHtml(quote.vendor)}</td>
-          <td>${escapeHtml(quote.amount)}</td>
-          <td>${escapeHtml(quote.eta)}</td>
-          <td>${escapeHtml(quote.attachment)}</td>
-          <td>${escapeHtml(quote.note)}</td>
-        </tr>
+      (step) => `
+        <div class="approval-step" data-kind="${escapeHtml(step.kind || "pending")}">
+          <div class="approval-person">${escapeHtml(step.title)}</div>
+          <div class="approval-track"><span class="approval-dot"></span></div>
+          <div class="approval-state">${escapeHtml(step.text)}</div>
+        </div>
       `
     )
     .join("");
+  const quoteRows = (record.quotes || [])
+    .map(
+      (quote, index) => `
+        <tr>
+          <td>${escapeHtml(quote.code || "-")}</td>
+          <td>${escapeHtml(quote.vendor)}</td>
+          <td>${escapeHtml(quote.unitPrice || "-")}</td>
+          <td>
+            <span class="mini-toggle" data-active="${quote.taxIncluded ? "true" : "false"}">
+              <span></span>
+            </span>
+          </td>
+          <td>${escapeHtml(getQuotePriceIncludePpn(quote))}</td>
+          <td>${escapeHtml(quote.paymentMethod || "-")}</td>
+          <td>${escapeHtml(quote.delivery || "-")}</td>
+          <td>${escapeHtml(quote.leadTime || "-")}</td>
+          <td>
+            ${
+              canSelectQuote
+                ? `<button
+                    class="choice-toggle"
+                    data-active="${quote.selected ? "true" : "false"}"
+                    data-toggle-detail-quote-selected="${index}"
+                    data-approval-code="${escapeHtml(record.header.requestCode)}"
+                    type="button"
+                    aria-label="Pilih vendor ${escapeHtml(quote.code || "-")}"
+                  ></button>`
+                : `<span class="choice-toggle is-readonly" data-active="${quote.selected ? "true" : "false"}"></span>`
+            }
+          </td>
+        </tr>
+      `
+    )
+    .join("") || `
+      <tr>
+        <td colspan="10" class="empty-table-cell">Belum ada penawaran vendor.</td>
+      </tr>
+    `;
 
   return `
     <div class="modal-detail-stack">
+      <section class="approval-strip" aria-label="Alur approval">
+        <div class="approval-flow approval-flow-horizontal approval-flow-compact">
+          ${approvalRows}
+        </div>
+      </section>
+
       <section class="form-section">
         <div class="form-section-head">
           <strong>Data Penawaran</strong>
         </div>
         <div class="detail-list">
           <div class="detail-row">
-            <div class="detail-label">No Penawaran</div>
-            <div class="detail-value">${escapeHtml(record.header.code)}</div>
-          </div>
-          <div class="detail-row">
-            <div class="detail-label">Ref Procurement</div>
-            <div class="detail-value">${escapeHtml(record.header.procurementCode)}</div>
-          </div>
-          <div class="detail-row">
-            <div class="detail-label">Ref Pengajuan</div>
+            <div class="detail-label">No Pengajuan</div>
             <div class="detail-value">${escapeHtml(record.header.requestCode)}</div>
           </div>
           <div class="detail-row">
@@ -1875,11 +2637,15 @@ function buildProcurementPenawaranMarkup(record) {
           <table>
             <thead>
               <tr>
-                <th>Vendor</th>
-                <th>Nilai</th>
-                <th>Estimasi</th>
-                <th>Lampiran</th>
-                <th>Catatan</th>
+                <th>No Penawaran</th>
+                <th>Nama Toko</th>
+                <th>Harga (Rp)</th>
+                <th>PPN</th>
+                <th>Harga Include PPN</th>
+                <th>Pembayaran</th>
+                <th>Pengiriman</th>
+                <th>Lead Time</th>
+                <th>Barang Dipilih</th>
               </tr>
             </thead>
             <tbody>${quoteRows}</tbody>
@@ -1984,7 +2750,7 @@ function getPrimaryDraftValue() {
   }
 
   if (detailViewType === "procurement-penawaran") {
-    return getNextWorkflowReference("PNW");
+    return "";
   }
 
   if (detailViewType === "procurement-po") {
@@ -2001,17 +2767,16 @@ function getPrimaryDraftValue() {
 function applyCreateDefaults() {
   const statusField = getField("status");
 
+  if (detailViewType === "procurement-penawaran") {
+    setFieldValue(getField("quoteDate"), formatDateDisplay(new Date()));
+  }
+
   if (detailViewType === "procurement-penawaran" && statusField) {
     statusField.value = "draft";
   }
 
   if (detailViewType === "procurement-po" && statusField) {
     statusField.value = "draft";
-  }
-
-  if (detailViewType === "pengajuan-jasa") {
-    setFieldValue(getField("qty"), "1");
-    setFieldValue(getField("unit"), "Paket");
   }
 
   if (entitySingular.toLowerCase() !== "barang") {
@@ -2081,6 +2846,26 @@ function getNextWorkflowReference(prefix) {
       .reduce((max, value) => Math.max(max, value), 0) + 1;
 
   return `${prefix}-${year}-${String(nextNumber).padStart(4, "0")}`;
+}
+
+function getNextQuoteReference() {
+  const year = String(new Date().getFullYear());
+  const matcher = new RegExp(`^PNW-${year}-(\\d+)$`, "i");
+  const quoteCodes = [
+    ...draftQuoteItems.map((quote) => quote.code),
+    ...Object.values(detailRecords).flatMap((record) => (record.quotes || []).map((quote) => quote.code))
+  ];
+
+  const nextNumber =
+    quoteCodes
+      .map((code) => {
+        const matched = String(code || "").match(matcher);
+        return matched ? Number(matched[1]) : NaN;
+      })
+      .filter((value) => Number.isFinite(value))
+      .reduce((max, value) => Math.max(max, value), 0) + 1;
+
+  return `PNW-${year}-${String(nextNumber).padStart(4, "0")}`;
 }
 
 function formatDateDisplay(date) {
