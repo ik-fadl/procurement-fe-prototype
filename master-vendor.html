@@ -1,0 +1,539 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Master Vendor - Procurement UI Prototype</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body
+    data-theme="light"
+    data-entity-singular="Vendor"
+    data-entity-plural="Master Vendor"
+  >
+    <div class="app-shell">
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+          <div class="brand-word">Procurement</div>
+          <button class="collapse-button" type="button" aria-label="Collapse sidebar">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M10 7.4 8.6 6 2.6 12l6 6 1.4-1.4L6.4 13H22v-2H6.4L10 7.4Z" />
+            </svg>
+          </button>
+        </div>
+
+        <nav class="sidebar-nav">
+          <div class="nav-module">
+            <button class="nav-module-head" type="button" aria-expanded="false">
+              <span class="nav-module-title">
+                <span class="nav-module-icon">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M6 4h12v4H6V4Zm0 6h12v10H6V10Zm2 2v2h3v-2H8Zm0 4v2h8v-2H8Z" />
+                  </svg>
+                </span>
+                Dashboard
+              </span>
+              <span class="nav-module-arrow">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="m7 10 5 5 5-5H7Z" />
+                </svg>
+              </span>
+            </button>
+            <div class="nav-submenu" hidden>
+              <a class="nav-sublink is-disabled" href="#">Ringkas</a>
+              <a class="nav-sublink is-disabled" href="#">Inbox</a>
+            </div>
+          </div>
+          <div class="nav-module">
+            <button class="nav-module-head" type="button" aria-expanded="true">
+              <span class="nav-module-title">
+                <span class="nav-module-icon">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M6 3h8l5 5v13H6V3Zm8 1.5V9h4.5L14 4.5Z" />
+                  </svg>
+                </span>
+                Master
+              </span>
+              <span class="nav-module-arrow">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="m7 10 5 5 5-5H7Z" />
+                </svg>
+              </span>
+            </button>
+            <div class="nav-submenu">
+              <a class="nav-sublink" href="./index.html">Barang</a>
+              <a class="nav-sublink active" href="./master-vendor.html">Vendor</a>
+              <a class="nav-sublink" href="./master-divisi-role.html">Divisi</a>
+              <a class="nav-sublink" href="./master-divisi-role.html">Role & User</a>
+            </div>
+          </div>
+          <div class="nav-module">
+            <button class="nav-module-head" type="button" aria-expanded="false">
+              <span class="nav-module-title">
+                <span class="nav-module-icon">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M6 3h8l5 5v13H6V3Zm8 1.5V9h4.5L14 4.5Z" />
+                  </svg>
+                </span>
+                Pengajuan
+              </span>
+              <span class="nav-module-arrow">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="m7 10 5 5 5-5H7Z" />
+                </svg>
+              </span>
+            </button>
+            <div class="nav-submenu" hidden>
+              <a class="nav-sublink" href="./pengajuan-barang.html">Barang</a>
+              <a class="nav-sublink" href="./pengajuan-jasa.html">Jasa</a>
+            </div>
+          </div>
+          <div class="nav-module">
+            <button class="nav-module-head" type="button" aria-expanded="false">
+              <span class="nav-module-title">
+                <span class="nav-module-icon">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M5 4h14v3H5V4Zm0 5h14v11H5V9Zm2 2v2h10v-2H7Zm0 4v2h7v-2H7Z" />
+                  </svg>
+                </span>
+                Approval
+              </span>
+              <span class="nav-module-arrow">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="m7 10 5 5 5-5H7Z" />
+                </svg>
+              </span>
+            </button>
+            <div class="nav-submenu" hidden>
+              <a class="nav-sublink is-disabled" href="#">Approval Divisi</a>
+              <a class="nav-sublink is-disabled" href="#">Review</a>
+              <a class="nav-sublink is-disabled" href="#">Approval Akun</a>
+              <a class="nav-sublink is-disabled" href="#">Approval Purchasing</a>
+              <a class="nav-sublink is-disabled" href="#">Approval Dir.</a>
+            </div>
+          </div>
+          <div class="nav-module">
+            <button class="nav-module-head" type="button" aria-expanded="false">
+              <span class="nav-module-title">
+                <span class="nav-module-icon">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 5h16v3H4V5Zm2 5h12v9H6v-9Zm2 2v5h8v-5H8Z" />
+                  </svg>
+                </span>
+                Penawaran & PO
+              </span>
+              <span class="nav-module-arrow">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="m7 10 5 5 5-5H7Z" />
+                </svg>
+              </span>
+            </button>
+            <div class="nav-submenu" hidden>
+              <a class="nav-sublink" href="./procurement-penawaran.html">Penawaran</a>
+              <a class="nav-sublink" href="./procurement-po.html">Buat PO</a>
+            </div>
+          </div>
+          <div class="nav-module">
+            <button class="nav-module-head" type="button" aria-expanded="false">
+              <span class="nav-module-title">
+                <span class="nav-module-icon">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M5 4h14v4H5V4Zm0 6h14v10H5V10Zm2 2v6h4v-6H7Z" />
+                  </svg>
+                </span>
+                Terima & Retur
+              </span>
+              <span class="nav-module-arrow">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="m7 10 5 5 5-5H7Z" />
+                </svg>
+              </span>
+            </button>
+            <div class="nav-submenu" hidden>
+              <a class="nav-sublink is-disabled" href="#">Penerimaan</a>
+              <a class="nav-sublink is-disabled" href="#">Retur</a>
+            </div>
+          </div>
+          <div class="nav-module">
+            <a class="nav-module-link is-disabled" href="#">
+              <span class="nav-module-title">
+                <span class="nav-module-icon">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 6h16v12H4V6Zm2 2v8h12V8H6Zm2 2h8v2H8v-2Z" />
+                  </svg>
+                </span>
+                Monitor Jasa
+              </span>
+            </a>
+          </div>
+          <div class="nav-module">
+            <a class="nav-module-link is-disabled" href="#">
+              <span class="nav-module-title">
+                <span class="nav-module-icon">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M5 5h14v14H5V5Zm2 2v10h10V7H7Zm2 2h6v2H9V9Zm0 4h6v2H9v-2Z" />
+                  </svg>
+                </span>
+                Tagihan
+              </span>
+            </a>
+          </div>
+          <div class="nav-module">
+            <button class="nav-module-head" type="button" aria-expanded="false">
+              <span class="nav-module-title">
+                <span class="nav-module-icon">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 5h16v4H4V5Zm0 6h16v8H4v-8Zm2 2v4h5v-4H6Z" />
+                  </svg>
+                </span>
+                AP & Pay
+              </span>
+              <span class="nav-module-arrow">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="m7 10 5 5 5-5H7Z" />
+                </svg>
+              </span>
+            </button>
+            <div class="nav-submenu" hidden>
+              <a class="nav-sublink is-disabled" href="#">Anggaran</a>
+              <a class="nav-sublink is-disabled" href="#">Bayar</a>
+            </div>
+          </div>
+          <div class="nav-module">
+            <button class="nav-module-head" type="button" aria-expanded="false">
+              <span class="nav-module-title">
+                <span class="nav-module-icon">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M7 3h10l4 4v14H3V3h4Zm1 2v14h10V8.5L15.5 5H8Zm2 4h6v2h-6V9Zm0 4h6v2h-6v-2Z" />
+                  </svg>
+                </span>
+                Aset
+              </span>
+              <span class="nav-module-arrow">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="m7 10 5 5 5-5H7Z" />
+                </svg>
+              </span>
+            </button>
+            <div class="nav-submenu" hidden>
+              <a class="nav-sublink is-disabled" href="#">Item Aset</a>
+              <a class="nav-sublink is-disabled" href="#">Aktivasi</a>
+            </div>
+          </div>
+          <div class="nav-module">
+            <button class="nav-module-head" type="button" aria-expanded="false">
+              <span class="nav-module-title">
+                <span class="nav-module-icon">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M5 4h14v16H5V4Zm2 2v12h10V6H7Zm2 2h6v2H9V8Zm0 4h6v2H9v-2Z" />
+                  </svg>
+                </span>
+                Laporan
+              </span>
+              <span class="nav-module-arrow">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="m7 10 5 5 5-5H7Z" />
+                </svg>
+              </span>
+            </button>
+            <div class="nav-submenu" hidden>
+              <a class="nav-sublink is-disabled" href="#">Histori</a>
+              <a class="nav-sublink is-disabled" href="#">Arsip</a>
+              <a class="nav-sublink is-disabled" href="#">Ringkas</a>
+            </div>
+          </div>
+        </nav>
+      </aside>
+
+      <main class="main-panel">
+        <header class="topbar">
+          <div class="topbar-left">
+            <button class="icon-button mobile-only" id="sidebarToggle" type="button" aria-label="Toggle sidebar">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 7h16v2H4V7Zm0 8h16v2H4v-2Zm0-4h16v2H4v-2Z" />
+              </svg>
+            </button>
+            <label class="search-shell" aria-label="Search">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="m15.5 14 5 5-1.5 1.5-5-5v-.8l-.3-.3A6 6 0 1 1 15.5 14ZM10 14a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" />
+              </svg>
+              <input type="text" placeholder="Cari vendor, NPWP, email, atau kota" />
+            </label>
+          </div>
+
+          <div class="topbar-right">
+            <button class="utility-button" type="button" aria-label="Apps">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M5 5h5v5H5V5Zm9 0h5v5h-5V5ZM5 14h5v5H5v-5Zm9 0h5v5h-5v-5Z" />
+              </svg>
+            </button>
+            <button class="utility-button" type="button" aria-label="Notifications">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 22a2.5 2.5 0 0 0 2.4-2H9.6A2.5 2.5 0 0 0 12 22Zm7-6V11a7 7 0 1 0-14 0v5L3 18v1h18v-1l-2-2Z" />
+              </svg>
+            </button>
+            <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle theme">
+              <svg class="theme-icon theme-icon-sun" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12Zm0-16h1v3h-1V2Zm0 17h1v3h-1v-3ZM2 11h3v1H2v-1Zm17 0h3v1h-3v-1ZM4.9 18.4l.7.7 2.1-2.1-.7-.7-2.1 2.1Zm11.2-11.2.7.7 2.1-2.1-.7-.7-2.1 2.1ZM4.9 5.6l2.1 2.1.7-.7-2.1-2.1-.7.7Zm11.2 11.2 2.1 2.1.7-.7-2.1-2.1-.7.7Z" />
+              </svg>
+              <svg class="theme-icon theme-icon-moon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M14.7 2.2A8.8 8.8 0 1 0 21.8 15 7.4 7.4 0 0 1 14.7 2.2Z" />
+              </svg>
+            </button>
+            <button class="avatar-button" type="button" aria-label="Profile">
+              <span class="avatar-photo">IF</span>
+            </button>
+          </div>
+        </header>
+
+        <section class="page-head">
+          <div>
+            <p class="eyebrow">Head-Detail Page</p>
+            <h2>Master Vendor</h2>
+            <p class="page-copy">
+              <strong>Head</strong> halaman ini adalah tabel vendor aktif,
+              review, dan nonaktif. <strong>Detail</strong> vendor diturunkan ke
+              modal untuk pengelolaan kontak, NPWP, dan status vendor yang akan
+              dipakai oleh procurement dan payment.
+            </p>
+          </div>
+          <div class="page-actions">
+            <button class="secondary-button" type="button">Export Vendor</button>
+            <button class="primary-button" id="openCreateModal" type="button">Tambah Vendor</button>
+          </div>
+        </section>
+
+        <section class="panel panel-table">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Head</p>
+              <h3>Tabel Master Vendor</h3>
+            </div>
+            <div class="toolbar">
+              <span class="filter-chip">Vendor aktif</span>
+              <span class="filter-chip">Semua kategori</span>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Kode</th>
+                  <th>Nama Vendor</th>
+                  <th>Kontak</th>
+                  <th>NPWP</th>
+                  <th>Status</th>
+                  <th>Kota</th>
+                  <th>Detail</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>VND-001</td>
+                  <td>PT Lintas Data</td>
+                  <td>vendor@lintasdata.co.id</td>
+                  <td>01.234.567.8-901.000</td>
+                  <td><span class="status-chip success">aktif</span></td>
+                  <td>Jakarta Selatan</td>
+                  <td>
+                    <button
+                      class="table-action"
+                      type="button"
+                      data-edit="true"
+                      data-code="VND-001"
+                      data-name="PT Lintas Data"
+                      data-npwp="01.234.567.8-901.000"
+                      data-email="vendor@lintasdata.co.id"
+                      data-phone="021-7888-9900"
+                      data-address="Jl. TB Simatupang No. 18, Jakarta Selatan"
+                      data-status="Aktif"
+                    >
+                      Detail
+                    </button>
+                  </td>
+                </tr>
+                <tr>
+                  <td>VND-002</td>
+                  <td>PT Metro Office</td>
+                  <td>sales@metrooffice.id</td>
+                  <td>09.876.543.2-111.000</td>
+                  <td><span class="status-chip review">review</span></td>
+                  <td>Bandung</td>
+                  <td>
+                    <button
+                      class="table-action"
+                      type="button"
+                      data-edit="true"
+                      data-code="VND-002"
+                      data-name="PT Metro Office"
+                      data-npwp="09.876.543.2-111.000"
+                      data-email="sales@metrooffice.id"
+                      data-phone="022-4555-7711"
+                      data-address="Jl. Setiabudi No. 52, Bandung"
+                      data-status="Review"
+                    >
+                      Detail
+                    </button>
+                  </td>
+                </tr>
+                <tr>
+                  <td>VND-003</td>
+                  <td>CV Prima Teknik</td>
+                  <td>admin@primateknik.com</td>
+                  <td>02.111.222.3-444.000</td>
+                  <td><span class="status-chip danger">nonaktif</span></td>
+                  <td>Bekasi</td>
+                  <td>
+                    <button
+                      class="table-action"
+                      type="button"
+                      data-edit="true"
+                      data-code="VND-003"
+                      data-name="CV Prima Teknik"
+                      data-npwp="02.111.222.3-444.000"
+                      data-email="admin@primateknik.com"
+                      data-phone="021-6644-1188"
+                      data-address="Jl. Industri Raya No. 4, Bekasi"
+                      data-status="Nonaktif"
+                    >
+                      Detail
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div class="modal-backdrop" id="modalBackdrop" hidden aria-hidden="true">
+      <div class="modal-card" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="modalTitle">
+        <div class="modal-head">
+          <div>
+            <p class="eyebrow" id="modalKicker">Detail Data</p>
+            <h3 id="modalTitle">Detail Vendor</h3>
+          </div>
+          <button class="icon-button tiny" id="closeModal" type="button" aria-label="Close modal">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m18.3 5.7-1-1L12 10 6.7 4.7l-1 1L11 11l-5.3 5.3 1 1L12 12l5.3 5.3 1-1L13 11l5.3-5.3Z" />
+            </svg>
+          </button>
+        </div>
+
+        <form class="modal-form" id="requestForm">
+          <section class="form-section">
+            <div class="form-section-head">
+              <strong>Data Vendor</strong>
+              <p>
+                Mengikuti entitas `vendor`: kode vendor, nama, NPWP, email,
+                telepon, alamat, URL, dan status vendor.
+              </p>
+            </div>
+
+            <div class="form-grid">
+              <label>
+                <span>Kode Vendor</span>
+                <input
+                  data-field="code"
+                  data-primary-field
+                  name="code"
+                  type="text"
+                  placeholder="VND-004"
+                />
+              </label>
+              <label>
+                <span>Nama Vendor</span>
+                <input
+                  data-field="name"
+                  name="name"
+                  type="text"
+                  placeholder="PT Vendor Baru"
+                />
+              </label>
+            </div>
+
+            <div class="form-grid">
+              <label>
+                <span>NPWP</span>
+                <input
+                  data-field="npwp"
+                  name="npwp"
+                  type="text"
+                  placeholder="00.000.000.0-000.000"
+                />
+              </label>
+              <label>
+                <span>Email Vendor</span>
+                <input
+                  data-field="email"
+                  name="email"
+                  type="email"
+                  placeholder="sales@vendor.id"
+                />
+              </label>
+            </div>
+
+            <div class="form-grid">
+              <label>
+                <span>Telepon</span>
+                <input
+                  data-field="phone"
+                  name="phone"
+                  type="text"
+                  placeholder="021-5555-1234"
+                />
+              </label>
+              <label>
+                <span>Status Vendor</span>
+                <select data-field="status" name="status">
+                  <option value="Aktif">Aktif</option>
+                  <option value="Review">Review</option>
+                  <option value="Nonaktif">Nonaktif</option>
+                </select>
+              </label>
+            </div>
+
+            <label class="field-span-2">
+              <span>Alamat / Catatan Vendor</span>
+              <textarea
+                data-field="address"
+                name="address"
+                rows="5"
+                placeholder="Alamat vendor sesuai dokumen legal"
+              ></textarea>
+            </label>
+          </section>
+
+          <div class="modal-actions">
+            <button class="secondary-button" id="cancelModal" type="button">Tutup</button>
+            <button class="primary-button" type="submit">Simpan</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="inline-alert" id="inlineAlert" hidden>
+      <div class="inline-alert-icon"></div>
+      <div>
+        <strong id="inlineAlertTitle">Status</strong>
+        <p id="inlineAlertText">Alert detail</p>
+      </div>
+      <button class="icon-button tiny" id="dismissAlert" type="button" aria-label="Dismiss alert">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="m18.3 5.7-1-1L12 10 6.7 4.7l-1 1L11 11l-5.3 5.3 1 1L12 12l5.3 5.3 1-1L13 11l5.3-5.3Z" />
+        </svg>
+      </button>
+    </div>
+
+    <script src="./script.js"></script>
+  </body>
+</html>
+

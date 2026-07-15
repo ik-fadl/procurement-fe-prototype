@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pengajuan Barang - Procurement UI Prototype</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body
+    data-theme="light"
+    data-entity-singular="Pengajuan Barang"
+    data-entity-plural="Pengajuan Barang"
+    data-detail-view="pengajuan-barang"
+    data-active-division="General Affairs"
+    data-active-division-code="GA"
+    data-active-user-code="USR-GA-001"
+  >
+    <div class="app-shell">
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+          <div class="brand-word">bold</div>
+          <button class="collapse-button" type="button" aria-label="Collapse sidebar">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M10 7.4 8.6 6 2.6 12l6 6 1.4-1.4L6.4 13H22v-2H6.4L10 7.4Z" />
+            </svg>
+          </button>
+        </div>
+
+        <nav class="sidebar-nav">
+          <div class="nav-module">
+            <button class="nav-module-head" type="button" aria-expanded="false">
+              <span class="nav-module-title">
+                <span class="nav-module-icon">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M6 3h8l5 5v13H6V3Zm8 1.5V9h4.5L14 4.5Z" />
+                  </svg>
+                </span>
+                Dashboard
+              </span>
+              <span class="nav-module-arrow">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="m7 10 5 5 5-5H7Z" />
+                </svg>
+              </span>
+            </button>
+            <div class="nav-submenu" hidden>
+              <a class="nav-sublink is-disabled" href="#">Ringkas</a>
+              <a class="nav-sublink is-disabled" href="#">Inbox</a>
+            </div>
+          </div>
+          <div class="nav-module">
+            <button class="nav-module-head" type="button" aria-expanded="false">
+              <span class="nav-module-title">
+                <span class="nav-module-icon">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M6 3h8l5 5v13H6V3Zm8 1.5V9h4.5L14 4.5Z" />
+                  </svg>
+                </span>
+                Master
+              </span>
+              <span class="nav-module-arrow">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="m7 10 5 5 5-5H7Z" />
+                </svg>
+              </span>
+            </button>
+            <div class="nav-submenu" hidden>
+              <a class="nav-sublink" href="./index.html">Barang</a>
+              <a class="nav-sublink" href="./master-vendor.html">Vendor</a>
+              <a class="nav-sublink" href="./master-divisi-role.html">Divisi</a>
+              <a class="nav-sublink" href="./master-divisi-role.html">Role & User</a>
+            </div>
+          </div>
+          <div class="nav-module">
+            <button class="nav-module-head" type="button" aria-expanded="true">
+              <span class="nav-module-title">
+                <span class="nav-module-icon">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M6 4h12v4H6V4Zm0 6h12v10H6V10Zm2 2v2h3v-2H8Zm0 4v2h8v-2H8Z" />
+                  </svg>
+                </span>
+                Pengajuan
+              </span>
+              <span class="nav-module-arrow">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="m7 10 5 5 5-5H7Z" />
+                </svg>
+              </span>
+            </button>
+            <div class="nav-submenu">
+              <a class="nav-sublink active" href="./pengajuan-barang.html">Barang</a>
+              <a class="nav-sublink" href="./pengajuan-jasa.html">Jasa</a>
+            </div>
+          </div>
+          <div class="nav-module">
+            <button class="nav-module-head" type="button" aria-expanded="false">
+              <span class="nav-module-title">
+                <span class="nav-module-icon">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M5 4h14v3H5V4Zm0 5h14v11H5V9Zm2 2v2h10v-2H7Zm0 4v2h7v-2H7Z" />
+                  </svg>
+                </span>
+                Approval
+              </span>
+              <span class="nav-module-arrow">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="m7 10 5 5 5-5H7Z" />
+                </svg>
+              </span>
+            </button>
+            <div class="nav-submenu" hidden>
+              <a class="nav-sublink is-disabled" href="#">Approval Divisi</a>
+              <a class="nav-sublink is-disabled" href="#">Review</a>
+              <a class="nav-sublink is-disabled" href="#">Approval Akun</a>
+              <a class="nav-sublink is-disabled" href="#">Approval Purchasing</a>
+              <a class="nav-sublink is-disabled" href="#">Approval Dir.</a>
+            </div>
+          </div>
+          <div class="nav-module">
+            <button class="nav-module-head" type="button" aria-expanded="false">
+              <span class="nav-module-title">
+                <span class="nav-module-icon">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 5h16v3H4V5Zm2 5h12v9H6v-9Zm2 2v5h8v-5H8Z" />
+                  </svg>
+                </span>
+                Penawaran & PO
+              </span>
+              <span class="nav-module-arrow">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="m7 10 5 5 5-5H7Z" />
+                </svg>
+              </span>
+            </button>
+            <div class="nav-submenu" hidden>
+              <a class="nav-sublink" href="./procurement-penawaran.html">Penawaran</a>
+              <a class="nav-sublink" href="./procurement-po.html">Buat PO</a>
+            </div>
+          </div>
+          <div class="nav-module">
+            <button class="nav-module-head" type="button" aria-expanded="false">
+              <span class="nav-module-title">
+                <span class="nav-module-icon">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M5 4h14v4H5V4Zm0 6h14v10H5V10Zm2 2v6h4v-6H7Z" />
+                  </svg>
+                </span>
+                Terima & Retur
+              </span>
+              <span class="nav-module-arrow">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="m7 10 5 5 5-5H7Z" />
+                </svg>
+              </span>
+            </button>
+            <div class="nav-submenu" hidden>
+              <a class="nav-sublink is-disabled" href="#">Penerimaan</a>
+              <a class="nav-sublink is-disabled" href="#">Retur</a>
+            </div>
+          </div>
+          <div class="nav-module">
+            <a class="nav-module-link is-disabled" href="#">
+              <span class="nav-module-title">
+                <span class="nav-module-icon">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 6h16v12H4V6Zm2 2v8h12V8H6Zm2 2h8v2H8v-2Z" />
+                  </svg>
+                </span>
+                Monitor Jasa
+              </span>
+            </a>
+          </div>
+          <div class="nav-module">
+            <a class="nav-module-link is-disabled" href="#">
+              <span class="nav-module-title">
+                <span class="nav-module-icon">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M5 5h14v14H5V5Zm2 2v10h10V7H7Zm2 2h6v2H9V9Zm0 4h6v2H9v-2Z" />
+                  </svg>
+                </span>
+                Tagihan
+              </span>
+            </a>
+          </div>
+          <div class="nav-module">
+            <button class="nav-module-head" type="button" aria-expanded="false">
+              <span class="nav-module-title">
+                <span class="nav-module-icon">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 5h16v4H4V5Zm0 6h16v8H4v-8Zm2 2v4h5v-4H6Z" />
+                  </svg>
+                </span>
+                AP & Pay
+              </span>
+              <span class="nav-module-arrow">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="m7 10 5 5 5-5H7Z" />
+                </svg>
+              </span>
+            </button>
+            <div class="nav-submenu" hidden>
+              <a class="nav-sublink is-disabled" href="#">Anggaran</a>
+              <a class="nav-sublink is-disabled" href="#">Bayar</a>
+            </div>
+          </div>
+          <div class="nav-module">
+            <button class="nav-module-head" type="button" aria-expanded="false">
+              <span class="nav-module-title">
+                <span class="nav-module-icon">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M7 3h10l4 4v14H3V3h4Zm1 2v14h10V8.5L15.5 5H8Zm2 4h6v2h-6V9Zm0 4h6v2h-6v-2Z" />
+                  </svg>
+                </span>
+                Aset
+              </span>
+              <span class="nav-module-arrow">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="m7 10 5 5 5-5H7Z" />
+                </svg>
+              </span>
+            </button>
+            <div class="nav-submenu" hidden>
+              <a class="nav-sublink is-disabled" href="#">Item Aset</a>
+              <a class="nav-sublink is-disabled" href="#">Aktivasi</a>
+            </div>
+          </div>
+          <div class="nav-module">
+            <button class="nav-module-head" type="button" aria-expanded="false">
+              <span class="nav-module-title">
+                <span class="nav-module-icon">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M5 4h14v16H5V4Zm2 2v12h10V6H7Zm2 2h6v2H9V8Zm0 4h6v2H9v-2Z" />
+                  </svg>
+                </span>
+                Laporan
+              </span>
+              <span class="nav-module-arrow">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="m7 10 5 5 5-5H7Z" />
+                </svg>
+              </span>
+            </button>
+            <div class="nav-submenu" hidden>
+              <a class="nav-sublink is-disabled" href="#">Histori</a>
+              <a class="nav-sublink is-disabled" href="#">Arsip</a>
+              <a class="nav-sublink is-disabled" href="#">Ringkas</a>
+            </div>
+          </div>
+        </nav>
+      </aside>
+
+      <main class="main-panel">
+        <header class="topbar">
+          <div class="topbar-left">
+            <button class="icon-button mobile-only" id="sidebarToggle" type="button" aria-label="Toggle sidebar">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 7h16v2H4V7Zm0 8h16v2H4v-2Zm0-4h16v2H4v-2Z" />
+              </svg>
+            </button>
+            <label class="search-shell" aria-label="Search">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="m15.5 14 5 5-1.5 1.5-5-5v-.8l-.3-.3A6 6 0 1 1 15.5 14ZM10 14a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" />
+              </svg>
+              <input type="text" placeholder="Cari no pengajuan barang, divisi, atau status" />
+            </label>
+          </div>
+
+          <div class="topbar-right">
+            <button class="utility-button" type="button" aria-label="Apps">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M5 5h5v5H5V5Zm9 0h5v5h-5V5ZM5 14h5v5H5v-5Zm9 0h5v5h-5v-5Z" />
+              </svg>
+            </button>
+            <button class="utility-button" type="button" aria-label="Notifications">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 22a2.5 2.5 0 0 0 2.4-2H9.6A2.5 2.5 0 0 0 12 22Zm7-6V11a7 7 0 1 0-14 0v5L3 18v1h18v-1l-2-2Z" />
+              </svg>
+            </button>
+            <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle theme">
+              <svg class="theme-icon theme-icon-sun" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12Zm0-16h1v3h-1V2Zm0 17h1v3h-1v-3ZM2 11h3v1H2v-1Zm17 0h3v1h-3v-1ZM4.9 18.4l.7.7 2.1-2.1-.7-.7-2.1 2.1Zm11.2-11.2.7.7 2.1-2.1-.7-.7-2.1 2.1ZM4.9 5.6l2.1 2.1.7-.7-2.1-2.1-.7.7Zm11.2 11.2 2.1 2.1.7-.7-2.1-2.1-.7.7Z" />
+              </svg>
+              <svg class="theme-icon theme-icon-moon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M14.7 2.2A8.8 8.8 0 1 0 21.8 15 7.4 7.4 0 0 1 14.7 2.2Z" />
+              </svg>
+            </button>
+            <button class="avatar-button" type="button" aria-label="Profile">
+              <span class="avatar-photo">MS</span>
+            </button>
+          </div>
+        </header>
+
+        <section class="page-head">
+          <div>
+            <h2>Pengajuan Barang</h2>
+          </div>
+          <div class="page-actions">
+            <button class="secondary-button" type="button">Filter Status</button>
+            <button class="primary-button" id="openCreateModal" type="button">Tambah Pengajuan</button>
+          </div>
+        </section>
+
+        <section class="panel panel-table">
+          <div class="panel-head">
+            <div>
+              <h3>Daftar Pengajuan Barang</h3>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>No Pengajuan</th>
+                  <th>Divisi</th>
+                  <th>Prioritas</th>
+                  <th>Tgl Pengajuan</th>
+                  <th>Max Tgl Beli</th>
+                  <th>Status</th>
+                  <th>View</th>
+                </tr>
+              </thead>
+              <tbody id="requestTableBody">
+                <tr class="master-slave-row is-active">
+                  <td>2026/PP/GA/07/0015</td>
+                  <td>General Affairs</td>
+                  <td>normal</td>
+                  <td>10 Jul 2026</td>
+                  <td>20 Jul 2026</td>
+                  <td><span class="status-chip waiting">draft</span></td>
+                  <td>
+                    <button
+                      class="table-action"
+                      type="button"
+                      data-detail="true"
+                      data-code="2026/PP/GA/07/0015"
+                      data-status="draft"
+                    >
+                      View
+                    </button>
+                  </td>
+                </tr>
+                <tr class="master-slave-row">
+                  <td>2026/PP/GA/07/0013</td>
+                  <td>General Affairs</td>
+                  <td>urgent</td>
+                  <td>09 Jul 2026</td>
+                  <td>15 Jul 2026</td>
+                  <td><span class="status-chip waiting">menunggu_persetujuan_divisi</span></td>
+                  <td>
+                    <button
+                      class="table-action"
+                      type="button"
+                      data-detail="true"
+                      data-code="2026/PP/GA/07/0013"
+                      data-status="menunggu_persetujuan_divisi"
+                    >
+                      View
+                    </button>
+                  </td>
+                </tr>
+                <tr class="master-slave-row">
+                  <td>2026/PP/GA/07/0008</td>
+                  <td>General Affairs</td>
+                  <td>urgent</td>
+                  <td>05 Jul 2026</td>
+                  <td>10 Jul 2026</td>
+                  <td><span class="status-chip danger">ditolak</span></td>
+                  <td>
+                    <button
+                      class="table-action"
+                      type="button"
+                      data-detail="true"
+                      data-code="2026/PP/GA/07/0008"
+                      data-status="ditolak"
+                    >
+                      View
+                    </button>
+                  </td>
+                </tr>
+                <tr class="master-slave-row">
+                  <td>2026/PP/GA/07/0006</td>
+                  <td>General Affairs</td>
+                  <td>normal</td>
+                  <td>03 Jul 2026</td>
+                  <td>12 Jul 2026</td>
+                  <td><span class="status-chip success">siap_procurement</span></td>
+                  <td>
+                    <button
+                      class="table-action"
+                      type="button"
+                      data-detail="true"
+                      data-code="2026/PP/GA/07/0006"
+                      data-status="siap_procurement"
+                    >
+                      View
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div class="modal-backdrop" id="createModalBackdrop" hidden aria-hidden="true">
+      <div class="modal-card modal-card-wide" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="createModalTitle">
+        <div class="modal-head">
+          <div>
+            <p class="eyebrow" id="createModalKicker">Tambah Pengajuan</p>
+            <h3 id="createModalTitle">Tambah Pengajuan Barang</h3>
+          </div>
+          <button class="icon-button tiny" id="closeCreateModal" type="button" aria-label="Close modal">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m18.3 5.7-1-1L12 10 6.7 4.7l-1 1L11 11l-5.3 5.3 1 1L12 12l5.3 5.3 1-1L13 11l5.3-5.3Z" />
+            </svg>
+          </button>
+        </div>
+
+        <form class="modal-form" id="requestForm">
+          <section class="form-section">
+            <div class="form-section-head">
+              <strong>Data Pengajuan</strong>
+            </div>
+
+            <div class="form-grid">
+              <label>
+                <span>No Pengajuan</span>
+                <input
+                  data-field="code"
+                  data-primary-field
+                  name="code"
+                  type="text"
+                  required
+                  pattern="\d{4}/PP/[A-Z]{2,5}/\d{2}/\d{4}"
+                  placeholder="2026/PP/GA/07/0015"
+                />
+              </label>
+              <label>
+                <span>Divisi Pemohon</span>
+                <input data-field="division" data-auto-division name="division" type="text" readonly />
+              </label>
+            </div>
+
+            <div class="form-grid">
+              <label>
+                <span>Prioritas</span>
+                <select data-field="priority" name="priority" required>
+                  <option value="">Pilih prioritas</option>
+                  <option value="normal">normal</option>
+                  <option value="urgent">urgent</option>
+                </select>
+              </label>
+              <label>
+                <span>Tanggal Pengajuan</span>
+                <input
+                  data-field="submitDate"
+                  data-auto-submit-date
+                  name="submitDate"
+                  type="text"
+                  readonly
+                />
+              </label>
+            </div>
+
+            <label>
+              <span>Max Tgl Beli</span>
+              <input data-field="targetDate" name="targetDate" type="date" required />
+            </label>
+
+            <label class="field-span-2">
+              <span>Alasan Kebutuhan</span>
+              <textarea
+                data-field="reason"
+                name="reason"
+                rows="4"
+                required
+                placeholder="Jelaskan alasan pembelian barang secara ringkas dan operasional."
+              ></textarea>
+            </label>
+          </section>
+
+          <section class="form-section">
+            <div class="form-section-head">
+              <strong>Item Pengajuan</strong>
+            </div>
+
+            <div class="modal-actions modal-actions-inline">
+              <button class="secondary-button" id="openDraftItemModal" type="button">Tambah Item</button>
+            </div>
+
+            <div class="draft-items-shell">
+              <div class="table-wrap">
+                <table class="draft-items-table">
+                  <thead>
+                    <tr>
+                      <th>Barang</th>
+                      <th>Kategori</th>
+                      <th>Qty</th>
+                      <th>Satuan</th>
+                      <th>Merk</th>
+                      <th>Tipe</th>
+                      <th>Klasifikasi</th>
+                      <th>Lampiran</th>
+                      <th>Catatan</th>
+                      <th>Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody id="draftItemsTableBody">
+                    <tr id="draftItemsEmptyRow">
+                      <td colspan="10" class="draft-empty-cell">
+                        Belum ada item di daftar. Pilih barang lalu klik
+                        <strong>Tambah Item</strong>.
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <div class="modal-actions">
+            <button class="secondary-button" id="cancelCreateModal" type="button">Batal</button>
+            <button class="primary-button" type="submit">Simpan Pengajuan</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="modal-backdrop" id="draftItemBackdrop" hidden aria-hidden="true">
+      <div class="modal-card modal-card-wide" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="draftItemTitle">
+        <div class="modal-head">
+          <div>
+            <p class="eyebrow" id="draftItemKicker">Tambah Item</p>
+            <h3 id="draftItemTitle">Detail Item Pengajuan</h3>
+          </div>
+          <button class="icon-button tiny" id="closeDraftItemModal" type="button" aria-label="Close modal">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m18.3 5.7-1-1L12 10 6.7 4.7l-1 1L11 11l-5.3 5.3 1 1L12 12l5.3 5.3 1-1L13 11l5.3-5.3Z" />
+            </svg>
+          </button>
+        </div>
+
+        <form class="modal-form" id="draftItemForm">
+          <section class="form-section">
+            <div class="form-section-head">
+              <strong>Detail Item</strong>
+            </div>
+
+            <label class="field-span-2">
+              <span>Nama Barang</span>
+              <div class="field-with-action">
+                <input
+                  data-field="itemName"
+                  name="itemName"
+                  type="text"
+                  placeholder="Pilih barang dari master"
+                  readonly
+                />
+                <button class="secondary-button" id="openItemPicker" type="button">Pilih Barang</button>
+              </div>
+            </label>
+
+            <div class="form-grid">
+              <label>
+                <span>Kode Barang</span>
+                <input data-field="itemCode" name="itemCode" type="text" readonly />
+              </label>
+              <label>
+                <span>Kategori</span>
+                <input data-field="itemCategory" name="itemCategory" type="text" readonly />
+              </label>
+            </div>
+
+            <div class="form-grid">
+              <label>
+                <span>Satuan</span>
+                <input data-field="itemUnit" name="itemUnit" type="text" readonly />
+              </label>
+              <label>
+                <span>Klasifikasi</span>
+                <input data-field="itemClassification" name="itemClassification" type="text" readonly />
+              </label>
+            </div>
+
+            <div class="form-grid">
+              <label>
+                <span>Merk</span>
+                <input data-field="itemBrand" name="itemBrand" type="text" readonly />
+              </label>
+              <label>
+                <span>Tipe</span>
+                <input data-field="itemType" name="itemType" type="text" readonly />
+              </label>
+            </div>
+
+            <div class="form-grid">
+              <label>
+                <span>Qty</span>
+                <input data-field="qty" name="qty" type="number" min="1" placeholder="1" required />
+              </label>
+              <label>
+                <span>Lampiran</span>
+                <input
+                  data-field="attachment"
+                  name="attachment"
+                  type="text"
+                  placeholder="spesifikasi-laptop.pdf"
+                />
+              </label>
+            </div>
+
+            <label class="field-span-2">
+              <span>Catatan</span>
+              <textarea
+                data-field="notes"
+                name="notes"
+                rows="3"
+                placeholder="Catatan tambahan pengajuan item."
+              ></textarea>
+            </label>
+          </section>
+
+          <div class="modal-actions">
+            <button class="secondary-button" id="cancelDraftItemModal" type="button">Batal</button>
+            <button class="primary-button" type="submit" id="saveDraftItemButton">Simpan Item</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="modal-backdrop" id="itemPickerBackdrop" hidden aria-hidden="true">
+      <div class="modal-card modal-card-picker" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="itemPickerTitle">
+        <div class="modal-head">
+          <div>
+            <p class="eyebrow">Referensi Master</p>
+            <h3 id="itemPickerTitle">Pilih Barang</h3>
+          </div>
+          <button class="icon-button tiny" id="closeItemPicker" type="button" aria-label="Close modal">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m18.3 5.7-1-1L12 10 6.7 4.7l-1 1L11 11l-5.3 5.3 1 1L12 12l5.3 5.3 1-1L13 11l5.3-5.3Z" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="modal-form">
+          <section class="form-section">
+            <div class="form-section-head">
+              <strong>Referensi Barang</strong>
+            </div>
+
+            <div class="reference-shell">
+              <div class="reference-toolbar">
+                <label class="reference-search" aria-label="Cari barang">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="m15.5 14 5 5-1.5 1.5-5-5v-.8l-.3-.3A6 6 0 1 1 15.5 14ZM10 14a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" />
+                  </svg>
+                  <input id="itemPickerSearch" type="text" placeholder="Cari kode, nama, atau kategori barang" />
+                </label>
+                <button class="primary-button" id="openQuickItemModal" type="button">Tambah Barang Baru</button>
+              </div>
+              <div class="reference-list" id="itemPickerList"></div>
+            </div>
+          </section>
+
+          <div class="modal-actions">
+            <button class="secondary-button" id="cancelItemPicker" type="button">Tutup</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-backdrop" id="quickItemBackdrop" hidden aria-hidden="true">
+      <div class="modal-card" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="quickItemTitle">
+        <div class="modal-head">
+          <div>
+            <p class="eyebrow">Shortcut Master</p>
+            <h3 id="quickItemTitle">Tambah Barang Baru</h3>
+          </div>
+          <button class="icon-button tiny" id="closeQuickItemModal" type="button" aria-label="Close modal">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m18.3 5.7-1-1L12 10 6.7 4.7l-1 1L11 11l-5.3 5.3 1 1L12 12l5.3 5.3 1-1L13 11l5.3-5.3Z" />
+            </svg>
+          </button>
+        </div>
+
+        <form class="modal-form" id="quickItemForm">
+          <section class="form-section">
+            <div class="form-section-head">
+              <strong>Barang Baru</strong>
+            </div>
+
+            <div class="form-grid">
+              <label>
+                <span>Nama Barang</span>
+                <input name="name" type="text" placeholder="Access Point Outdoor" required />
+              </label>
+            </div>
+
+            <div class="form-grid">
+              <label>
+                <span>Kategori</span>
+                <input name="category" type="text" placeholder="Jaringan" required />
+              </label>
+              <label>
+                <span>Satuan</span>
+                <select name="unit" required>
+                  <option value="">Pilih satuan</option>
+                  <option value="Unit">Unit</option>
+                  <option value="Pcs">Pcs</option>
+                  <option value="Set">Set</option>
+                  <option value="Box">Box</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="form-grid">
+              <label>
+                <span>Merk</span>
+                <input name="brand" type="text" placeholder="MikroTik" />
+              </label>
+              <label>
+                <span>Tipe</span>
+                <input name="type" type="text" placeholder="cAP ax" />
+              </label>
+            </div>
+          </section>
+
+          <div class="modal-actions">
+            <button class="secondary-button" id="cancelQuickItemModal" type="button">Batal</button>
+            <button class="primary-button" type="submit">Simpan Barang</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="modal-backdrop" id="detailModalBackdrop" hidden aria-hidden="true">
+      <div class="modal-card modal-card-wide" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="modalTitle">
+        <div class="modal-head">
+          <div>
+            <p class="eyebrow" id="modalKicker">View Pengajuan</p>
+            <h3 id="modalTitle">Detail Pengajuan Barang</h3>
+          </div>
+          <button class="icon-button tiny" id="closeModal" type="button" aria-label="Close modal">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m18.3 5.7-1-1L12 10 6.7 4.7l-1 1L11 11l-5.3 5.3 1 1L12 12l5.3 5.3 1-1L13 11l5.3-5.3Z" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="modal-form" id="detailModalBody"></div>
+        <div class="modal-actions">
+          <div class="detail-status-actions" id="detailStatusActions"></div>
+          <button class="secondary-button" id="cancelDetailModal" type="button">Tutup</button>
+        </div>
+      </div>
+    </div>
+
+    <script id="detailRecordsData" type="application/json">
+      {
+        "2026/PP/GA/07/0015": {
+          "header": {
+            "code": "2026/PP/GA/07/0015",
+            "division": "General Affairs",
+            "priority": "normal",
+            "submitDate": "10 Jul 2026",
+            "targetDate": "20 Jul 2026",
+            "reason": "Pengadaan monitor tambahan untuk tim administrasi cabang.",
+            "status": "draft",
+            "statusKind": "waiting"
+          },
+          "items": [
+            {
+              "no": "2026/PP/GA/07/0015-01",
+              "code": "BRG-0002",
+              "name": "Monitor LED 24 Inch",
+              "category": "Elektronik",
+              "qty": "3",
+              "unit": "Unit",
+              "brand": "Dell",
+              "type": "P2422H",
+              "classification": "Aset",
+              "estimate": "Rp7.500.000",
+              "attachment": "kebutuhan-monitor-admin.pdf",
+              "notes": "Draft pemohon, belum masuk approval."
+            }
+          ],
+          "approval": [
+            {
+              "kind": "warning",
+              "title": "Pemohon",
+              "text": "Draft belum dikirim ke Kepala Divisi."
+            }
+          ]
+        },
+        "2026/PP/GA/07/0013": {
+          "header": {
+            "code": "2026/PP/GA/07/0013",
+            "division": "General Affairs",
+            "priority": "urgent",
+            "submitDate": "09 Jul 2026",
+            "targetDate": "15 Jul 2026",
+            "reason": "Penggantian laptop operasional dan access point cabang karena perangkat lama sudah tidak stabil untuk kebutuhan kerja harian.",
+            "status": "menunggu_persetujuan_divisi",
+            "statusKind": "waiting"
+          },
+          "items": [
+            {
+              "no": "2026/PP/GA/07/0013-01",
+              "code": "BRG-0001",
+              "name": "Laptop Operasional",
+              "category": "Elektronik",
+              "qty": "4",
+              "unit": "Unit",
+              "brand": "Lenovo",
+              "type": "ThinkPad E14",
+              "classification": "Aset",
+              "estimate": "Rp58.000.000",
+              "attachment": "memo-kebutuhan-laptop.pdf",
+              "notes": "Item master untuk user cabang baru."
+            },
+            {
+              "no": "2026/PP/GA/07/0013-02",
+              "code": "BRG-0091",
+              "name": "Access Point Outdoor",
+              "category": "Jaringan",
+              "qty": "2",
+              "unit": "Unit",
+              "brand": "Ruijie",
+              "type": "RG-AP680",
+              "classification": "Non Aset",
+              "estimate": "Rp8.500.000",
+              "attachment": "scope-ap-outdoor.pdf",
+              "notes": "Item tambahan untuk cabang relokasi."
+            }
+          ],
+          "approval": [
+            {
+              "kind": "warning",
+              "title": "Kepala Divisi",
+              "text": "Tahap pertama sebelum approval Kepala Akunting."
+            },
+            {
+              "kind": "review",
+              "title": "Kepala Akunting",
+              "text": "Approval akhir pengajuan dan penetapan klasifikasi aset atau non-aset."
+            }
+          ]
+        },
+        "2026/PP/GA/07/0008": {
+          "header": {
+            "code": "2026/PP/GA/07/0008",
+            "division": "General Affairs",
+            "priority": "urgent",
+            "submitDate": "05 Jul 2026",
+            "targetDate": "10 Jul 2026",
+            "reason": "Pengajuan penggantian printer tidak disetujui karena justifikasi kebutuhan belum memenuhi prioritas pembelian.",
+            "status": "ditolak",
+            "statusKind": "danger",
+            "rejectedStage": "kepala_divisi"
+          },
+          "items": [
+            {
+              "no": "2026/PP/GA/07/0008-01",
+              "code": "BRG-0004",
+              "name": "Printer Label Gudang",
+              "category": "Perangkat Gudang",
+              "qty": "2",
+              "unit": "Unit",
+              "brand": "Zebra",
+              "type": "ZD421",
+              "classification": "Aset",
+              "estimate": "Rp8.400.000",
+              "attachment": "printer-label.pdf",
+              "notes": "Pengajuan dihentikan oleh approver."
+            }
+          ],
+          "approval": [
+            {
+              "kind": "review",
+              "title": "Kepala Divisi",
+              "text": "Pengajuan dikembalikan untuk melengkapi alasan kebutuhan dan lampiran awal."
+            }
+          ]
+        },
+        "2026/PP/GA/07/0006": {
+          "header": {
+            "code": "2026/PP/GA/07/0006",
+            "division": "General Affairs",
+            "priority": "normal",
+            "submitDate": "03 Jul 2026",
+            "targetDate": "12 Jul 2026",
+            "reason": "Pengadaan kursi kerja untuk tambahan seat back office.",
+            "status": "siap_procurement",
+            "statusKind": "success"
+          },
+          "items": [
+            {
+              "no": "2026/PP/GA/07/0006-01",
+              "code": "BRG-0003",
+              "name": "Kursi Kerja Ergonomis",
+              "category": "Furniture",
+              "qty": "6",
+              "unit": "Pcs",
+              "brand": "Ergo",
+              "type": "Mesh Adjustable",
+              "classification": "Non Aset",
+              "estimate": "Rp7.200.000",
+              "attachment": "layout-seat-backoffice.pdf",
+              "notes": "Sudah lolos approval awal dan siap diteruskan ke procurement."
+            }
+          ],
+          "approval": [
+            {
+              "kind": "success",
+              "title": "Kepala Divisi",
+              "text": "Disetujui dan diteruskan ke Kepala Akunting."
+            },
+            {
+              "kind": "success",
+              "title": "Kepala Akunting",
+              "text": "Pengajuan approved dan siap procurement."
+            }
+          ]
+        }
+      }
+    </script>
+
+    <script id="masterItemsData" type="application/json">
+      [
+        {
+          "code": "BRG-0001",
+          "name": "Laptop Operasional",
+          "category": "Elektronik",
+          "unit": "Unit",
+          "brand": "Lenovo",
+          "type": "ThinkPad E14",
+          "classification": "aset",
+          "status": "aktif"
+        },
+        {
+          "code": "BRG-0002",
+          "name": "Access Point Dual Band",
+          "category": "Jaringan",
+          "unit": "Pcs",
+          "brand": "MikroTik",
+          "type": "cAP ax",
+          "classification": "non_aset",
+          "status": "usulan"
+        },
+        {
+          "code": "BRG-0003",
+          "name": "Kursi Kerja Ergonomis",
+          "category": "Furniture",
+          "unit": "Pcs",
+          "brand": "Ergo",
+          "type": "Mesh Adjustable",
+          "classification": "non_aset",
+          "status": "aktif"
+        },
+        {
+          "code": "BRG-0004",
+          "name": "Printer Label Gudang",
+          "category": "Perangkat Gudang",
+          "unit": "Unit",
+          "brand": "Zebra",
+          "type": "ZD421",
+          "classification": "aset",
+          "status": "nonaktif"
+        }
+      ]
+    </script>
+
+    <div class="inline-alert" id="inlineAlert" hidden>
+      <div class="inline-alert-icon"></div>
+      <div>
+        <strong id="inlineAlertTitle">Status</strong>
+        <p id="inlineAlertText">Alert detail</p>
+      </div>
+      <button class="icon-button tiny" id="dismissAlert" type="button" aria-label="Dismiss alert">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="m18.3 5.7-1-1L12 10 6.7 4.7l-1 1L11 11l-5.3 5.3 1 1L12 12l5.3 5.3 1-1L13 11l5.3-5.3Z" />
+        </svg>
+      </button>
+    </div>
+
+    <script src="./script.js"></script>
+  </body>
+</html>
+
