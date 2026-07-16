@@ -314,9 +314,10 @@
             <table>
               <thead>
                 <tr>
+                  <th>No Penawaran</th>
                   <th>No Pengajuan</th>
                   <th>Kebutuhan</th>
-                  <th>Jumlah Penawaran</th>
+                  <th>Item / Vendor</th>
                   <th>Nilai Terbaik</th>
                   <th>Status</th>
                   <th>View</th>
@@ -324,9 +325,10 @@
               </thead>
               <tbody id="requestTableBody">
                 <tr class="master-slave-row is-active">
+                  <td>PNW-2026-0040</td>
                   <td>2026/PP/GA/07/0016</td>
                   <td>Kursi kerja ergonomis back office</td>
-                  <td>2 vendor</td>
+                  <td>1 item / 2 vendor</td>
                   <td>Rp7.150.000</td>
                   <td><span class="status-chip waiting">menunggu_persetujuan_purchasing</span></td>
                   <td>
@@ -336,9 +338,10 @@
                   </td>
                 </tr>
                 <tr class="master-slave-row">
+                  <td>PNW-2026-0037</td>
                   <td>2026/PP/PUR/07/0009</td>
                   <td>Maintenance jaringan berkala</td>
-                  <td>2 vendor</td>
+                  <td>1 item / 2 vendor</td>
                   <td>Rp44.800.000</td>
                   <td><span class="status-chip info">proses_penawaran</span></td>
                   <td>
@@ -348,9 +351,10 @@
                   </td>
                 </tr>
                 <tr class="master-slave-row">
+                  <td>PNW-2026-0033</td>
                   <td>2026/PP/IT/07/0004</td>
                   <td>Access point dan switch cabang baru</td>
-                  <td>2 vendor</td>
+                  <td>2 item / 3 vendor</td>
                   <td>Rp32.600.000</td>
                   <td><span class="status-chip success">disetujui</span></td>
                   <td>
@@ -395,6 +399,13 @@
                 </div>
               </label>
               <label>
+                <span>No Penawaran</span>
+                <input data-field="quoteCode" name="no_penawaran" type="text" required placeholder="PNW-2026-0042" />
+              </label>
+            </div>
+
+            <div class="form-grid">
+              <label>
                 <span>Tanggal</span>
                 <input data-field="quoteDate" name="tgl_penawaran_info" type="text" readonly />
               </label>
@@ -411,8 +422,8 @@
               <table>
                 <thead>
                   <tr>
-                    <th>No Penawaran</th>
-                    <th>Nama Toko</th>
+                    <th>Barang</th>
+                    <th>Vendor</th>
                     <th>Harga (Rp)</th>
                     <th>PPN</th>
                     <th>Harga Include PPN</th>
@@ -425,7 +436,7 @@
                 </thead>
                 <tbody id="quoteItemsTableBody">
                   <tr>
-                    <td colspan="10" class="empty-table-cell">Belum ada penawaran vendor.</td>
+                    <td colspan="10" class="empty-table-cell">Belum ada item penawaran.</td>
                   </tr>
                 </tbody>
               </table>
@@ -540,8 +551,10 @@
 
             <div class="form-grid">
               <label>
-                <span>No Penawaran</span>
-                <input data-quote-field="code" name="no_penawaran" type="text" required placeholder="PNW-2026-0042" />
+                <span>Barang Pengajuan</span>
+                <select data-quote-field="requestItem" name="detail_pengajuan" required>
+                  <option value="">Pilih barang dari detail pengajuan</option>
+                </select>
               </label>
               <label>
                 <span>Nama Toko</span>
@@ -625,13 +638,17 @@
       {
         "2026/PP/GA/07/0016": {
           "header": {
+            "quoteCode": "PNW-2026-0040",
             "requestCode": "2026/PP/GA/07/0016",
             "need": "Kursi kerja ergonomis back office",
             "status": "menunggu_persetujuan_purchasing"
           },
           "quotes": [
             {
-              "code": "PNW-2026-0041",
+              "itemCode": "BRG-0021",
+              "itemName": "Kursi Kerja Ergonomis",
+              "itemQty": "6",
+              "itemUnit": "Pcs",
               "vendor": "PT Sarana Office",
               "unitPrice": "Rp1.191.667",
               "taxIncluded": true,
@@ -642,7 +659,10 @@
               "selected": true
             },
             {
-              "code": "PNW-2026-0042",
+              "itemCode": "BRG-0021",
+              "itemName": "Kursi Kerja Ergonomis",
+              "itemQty": "6",
+              "itemUnit": "Pcs",
               "vendor": "PT Furni Jaya",
               "unitPrice": "Rp1.246.667",
               "taxIncluded": true,
@@ -656,13 +676,17 @@
         },
         "2026/PP/PUR/07/0009": {
           "header": {
+            "quoteCode": "PNW-2026-0037",
             "requestCode": "2026/PP/PUR/07/0009",
             "need": "Maintenance jaringan berkala",
             "status": "proses_penawaran"
           },
           "quotes": [
             {
-              "code": "PNW-2026-0038",
+              "itemCode": "JASA-0009",
+              "itemName": "Maintenance Jaringan Berkala",
+              "itemQty": "1",
+              "itemUnit": "Paket",
               "vendor": "PT Infra Solusi",
               "unitPrice": "Rp44.800.000",
               "taxIncluded": true,
@@ -673,7 +697,10 @@
               "selected": true
             },
             {
-              "code": "PNW-2026-0039",
+              "itemCode": "JASA-0009",
+              "itemName": "Maintenance Jaringan Berkala",
+              "itemQty": "1",
+              "itemUnit": "Paket",
               "vendor": "PT NetCare",
               "unitPrice": "Rp46.250.000",
               "taxIncluded": true,
@@ -687,13 +714,17 @@
         },
         "2026/PP/IT/07/0004": {
           "header": {
+            "quoteCode": "PNW-2026-0033",
             "requestCode": "2026/PP/IT/07/0004",
             "need": "Access point dan switch cabang baru",
             "status": "disetujui"
           },
           "quotes": [
             {
-              "code": "PNW-2026-0034",
+              "itemCode": "BRG-0044",
+              "itemName": "Access Point Dual Band",
+              "itemQty": "4",
+              "itemUnit": "Unit",
               "vendor": "PT NetCom",
               "unitPrice": "Rp32.600.000",
               "taxIncluded": true,
@@ -704,7 +735,10 @@
               "selected": true
             },
             {
-              "code": "PNW-2026-0035",
+              "itemCode": "BRG-0044",
+              "itemName": "Access Point Dual Band",
+              "itemQty": "4",
+              "itemUnit": "Unit",
               "vendor": "PT Jaringan Prima",
               "unitPrice": "Rp34.100.000",
               "taxIncluded": true,
@@ -713,6 +747,20 @@
               "delivery": "dikirim_vendor",
               "leadTime": "2026-07-21",
               "selected": false
+            },
+            {
+              "itemCode": "BRG-0045",
+              "itemName": "Managed Switch 24 Port",
+              "itemQty": "2",
+              "itemUnit": "Unit",
+              "vendor": "PT NetCom",
+              "unitPrice": "Rp3.300.000",
+              "taxIncluded": true,
+              "tax": "hitung_ppn_11",
+              "paymentMethod": "TOP-030",
+              "delivery": "dikirim_vendor",
+              "leadTime": "2026-07-22",
+              "selected": true
             }
           ]
         }

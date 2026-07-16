@@ -93,6 +93,24 @@ const closeRequestPickerModal = document.getElementById("closeRequestPickerModal
 const cancelRequestPickerModal = document.getElementById("cancelRequestPickerModal");
 const requestPickerSearch = document.getElementById("requestPickerSearch");
 const requestPickerList = document.getElementById("requestPickerList");
+const poRequestPickerBackdrop = document.getElementById("poRequestPickerBackdrop");
+const poRequestPickerCard = poRequestPickerBackdrop?.querySelector(".modal-card");
+const openPoRequestPickerModalButton = document.getElementById("openPoRequestPickerModal");
+const closePoRequestPickerModal = document.getElementById("closePoRequestPickerModal");
+const cancelPoRequestPickerModal = document.getElementById("cancelPoRequestPickerModal");
+const poRequestPickerSearch = document.getElementById("poRequestPickerSearch");
+const poRequestPickerList = document.getElementById("poRequestPickerList");
+const poItemPickerBackdrop = document.getElementById("poItemPickerBackdrop");
+const poItemPickerCard = poItemPickerBackdrop?.querySelector(".modal-card");
+const openPoItemModalButton = document.getElementById("openPoItemModal");
+const closePoItemPickerModal = document.getElementById("closePoItemPickerModal");
+const cancelPoItemPickerModal = document.getElementById("cancelPoItemPickerModal");
+const confirmPoItemPickerModal = document.getElementById("confirmPoItemPickerModal");
+const poOfferPickerList = document.getElementById("poOfferPickerList");
+const poOfferPickerSearch = document.getElementById("poOfferPickerSearch");
+const poOfferPaymentFilter = document.getElementById("poOfferPaymentFilter");
+const poItemsTableBody = document.getElementById("poItemsTableBody");
+const poItemsSubtotal = document.getElementById("poItemsSubtotal");
 
 const quickItemBackdrop = document.getElementById("quickItemBackdrop");
 const quickItemCard = quickItemBackdrop?.querySelector(".modal-card");
@@ -111,6 +129,11 @@ let draftQuoteItems = [];
 let quoteItemEditIndex = -1;
 let activeDetailCode = "";
 let selectedRequestNeed = "";
+let selectedRequestItems = [];
+let selectedPoOffers = [];
+let draftPoItems = [];
+let selectedPoOfferIndexes = new Set();
+let editingRecordCode = "";
 
 const roleOptions = [
   { value: "pemohon", label: "Pemohon" },
@@ -227,6 +250,12 @@ detailModalBackdrop?.addEventListener("click", (event) => {
 });
 
 detailModalCard?.addEventListener("click", (event) => {
+  const editDraftButton = event.target.closest("[data-edit-draft-record]");
+  if (editDraftButton) {
+    startDraftEdit(editDraftButton.dataset.editDraftRecord);
+    return;
+  }
+
   const quoteSelectButton = event.target.closest("[data-toggle-detail-quote-selected]");
   if (quoteSelectButton && detailViewType === "procurement-penawaran") {
     toggleDetailQuoteSelected(quoteSelectButton.dataset.approvalCode, Number(quoteSelectButton.dataset.toggleDetailQuoteSelected));
@@ -245,6 +274,11 @@ detailModalCard?.addEventListener("click", (event) => {
 
   if (detailViewType === "procurement-penawaran") {
     handlePenawaranApprovalAction(approvalButton.dataset.approvalAction, approvalButton.dataset.approvalCode);
+    return;
+  }
+
+  if (detailViewType === "procurement-po") {
+    handlePoApprovalAction(approvalButton.dataset.approvalAction, approvalButton.dataset.approvalCode);
   }
 });
 
@@ -275,6 +309,20 @@ quoteItemBackdrop?.addEventListener("click", (event) => {
 requestPickerBackdrop?.addEventListener("click", (event) => {
   if (event.target === requestPickerBackdrop) {
     closeManagedModal(requestPickerBackdrop, requestPickerCard, null, { resetForm: false });
+  }
+});
+
+poRequestPickerBackdrop?.addEventListener("click", (event) => {
+  if (event.target === poRequestPickerBackdrop) {
+    closeManagedModal(poRequestPickerBackdrop, poRequestPickerCard, null, { resetForm: false });
+  }
+});
+
+poItemPickerBackdrop?.addEventListener("click", (event) => {
+  if (event.target === poItemPickerBackdrop) {
+    selectedPoOfferIndexes = new Set();
+    renderPoOfferPicker();
+    closeManagedModal(poItemPickerBackdrop, poItemPickerCard, null, { resetForm: false });
   }
 });
 
@@ -417,6 +465,12 @@ closeServiceItemModal?.addEventListener("click", closeServiceItemDialog);
 cancelServiceItemModal?.addEventListener("click", closeServiceItemDialog);
 
 openQuoteItemModalButton?.addEventListener("click", () => {
+  if (detailViewType === "procurement-penawaran" && !String(getField("requestCode")?.value || "").trim()) {
+    showAlert("warning", "Pilih pengajuan dulu", "Pilih no pengajuan sebelum menambahkan item penawaran.");
+    openRequestPickerModalButton?.focus();
+    return;
+  }
+
   openQuoteItemDialog();
 });
 
@@ -476,7 +530,92 @@ requestPickerList?.addEventListener("click", (event) => {
 
   setFieldValue(getField("requestCode"), selectedRow.dataset.selectRequest || "");
   selectedRequestNeed = selectedRow.dataset.need || "";
+  selectedRequestItems = getRequestDetailItems(selectedRow.dataset.selectRequest || "");
+  draftQuoteItems = [];
+  renderQuoteItems();
   closeManagedModal(requestPickerBackdrop, requestPickerCard, null, { resetForm: false });
+});
+
+openPoRequestPickerModalButton?.addEventListener("click", () => {
+  filterPoRequestPicker("");
+  openManagedModal(poRequestPickerBackdrop, poRequestPickerCard, poRequestPickerSearch);
+});
+
+[closePoRequestPickerModal, cancelPoRequestPickerModal].forEach((button) => {
+  button?.addEventListener("click", () => {
+    closeManagedModal(poRequestPickerBackdrop, poRequestPickerCard, null, { resetForm: false });
+  });
+});
+
+poRequestPickerSearch?.addEventListener("input", (event) => {
+  filterPoRequestPicker(event.target.value);
+});
+
+poRequestPickerList?.addEventListener("click", (event) => {
+  const selectedRow = event.target.closest("[data-select-po-offer-source]");
+  if (!selectedRow) {
+    return;
+  }
+
+  setFieldValue(getField("offerCode"), selectedRow.dataset.selectPoOfferSource || "");
+  setFieldValue(getField("vendor"), selectedRow.dataset.vendor || "");
+  selectedPoOffers = getPoOffersForRequest(selectedRow);
+  selectedPoOfferIndexes = new Set();
+  draftPoItems = [];
+  renderPoItems();
+  renderPoOfferPicker();
+  closeManagedModal(poRequestPickerBackdrop, poRequestPickerCard, null, { resetForm: false });
+});
+
+openPoItemModalButton?.addEventListener("click", () => {
+  selectedPoOffers = getSelectedPoOffers();
+  selectedPoOfferIndexes = new Set();
+  setFieldValue(poOfferPickerSearch, "");
+  setFieldValue(poOfferPaymentFilter, "");
+  renderPoOfferPicker();
+  openManagedModal(poItemPickerBackdrop, poItemPickerCard, null);
+});
+
+[closePoItemPickerModal, cancelPoItemPickerModal].forEach((button) => {
+  button?.addEventListener("click", () => {
+    selectedPoOfferIndexes = new Set();
+    renderPoOfferPicker();
+    closeManagedModal(poItemPickerBackdrop, poItemPickerCard, null, { resetForm: false });
+  });
+});
+
+poOfferPickerList?.addEventListener("change", (event) => {
+  const checkbox = event.target.closest("[data-toggle-po-offer]");
+  if (!checkbox) {
+    return;
+  }
+
+  const index = Number(checkbox.dataset.togglePoOffer);
+  if (!Number.isInteger(index)) {
+    return;
+  }
+
+  if (checkbox.checked) {
+    selectedPoOfferIndexes.add(index);
+  } else {
+    selectedPoOfferIndexes.delete(index);
+  }
+});
+
+poOfferPickerSearch?.addEventListener("input", renderPoOfferPicker);
+poOfferPaymentFilter?.addEventListener("change", renderPoOfferPicker);
+
+confirmPoItemPickerModal?.addEventListener("click", () => {
+  if (addSelectedPoOffers()) {
+    closeManagedModal(poItemPickerBackdrop, poItemPickerCard, null, { resetForm: false });
+  }
+});
+
+poItemsTableBody?.addEventListener("click", (event) => {
+  const deleteButton = event.target.closest("[data-remove-po-item]");
+  if (deleteButton) {
+    removePoItem(Number(deleteButton.dataset.removePoItem));
+  }
 });
 
 dismissAlert?.addEventListener("click", () => {
@@ -594,6 +733,8 @@ function registerDetailButton(button) {
 }
 
 function setCreateMode() {
+  editingRecordCode = "";
+
   if (createModalKicker) {
     createModalKicker.textContent = "Tambah";
   }
@@ -611,6 +752,10 @@ function setCreateMode() {
   draftQuoteItems = [];
   quoteItemEditIndex = -1;
   selectedRequestNeed = "";
+  selectedRequestItems = [];
+  selectedPoOffers = [];
+  draftPoItems = [];
+  selectedPoOfferIndexes = new Set();
   clearSelectedItem();
   populateContextDefaults();
 
@@ -622,6 +767,7 @@ function setCreateMode() {
   renderDraftItems();
   renderServiceItems();
   renderQuoteItems();
+  renderPoItems();
 }
 
 function setEditMode(data) {
@@ -639,6 +785,129 @@ function setEditMode(data) {
   });
 
   populateContextDefaults();
+}
+
+function startDraftEdit(code) {
+  const record = detailRecords[code];
+  if (!record || !canEditDraftRecord(record)) {
+    showAlert("warning", "Tidak bisa diedit", "Data hanya bisa diubah saat status masih draft.");
+    return;
+  }
+
+  editingRecordCode = code;
+  prepareCreateModalForEdit(record, code);
+  closeManagedModal(detailModalBackdrop, detailModalCard, null, { resetForm: false });
+  openManagedModal(createModalBackdrop, createModalCard, primaryField || requestForm);
+}
+
+function canEditDraftRecord(record) {
+  if (String(record?.header?.status || "") !== "draft") {
+    return false;
+  }
+
+  if (activeRole === "admin") {
+    return true;
+  }
+
+  if (detailViewType === "pengajuan-barang" || detailViewType === "pengajuan-jasa") {
+    return activeRole === "pemohon";
+  }
+
+  if (detailViewType === "procurement-pembelian" || detailViewType === "procurement-penawaran" || detailViewType === "procurement-po") {
+    return activeRole === "purchasing";
+  }
+
+  return false;
+}
+
+function prepareCreateModalForEdit(record, code) {
+  requestForm?.reset();
+  formFields.forEach(resetField);
+  draftRequestItems = [];
+  draftItemEditIndex = -1;
+  draftServiceItems = [];
+  serviceItemEditIndex = -1;
+  draftQuoteItems = [];
+  quoteItemEditIndex = -1;
+  selectedRequestNeed = "";
+  selectedRequestItems = [];
+  selectedPoOffers = [];
+  draftPoItems = [];
+  selectedPoOfferIndexes = new Set();
+  clearSelectedItem();
+
+  if (createModalKicker) {
+    createModalKicker.textContent = "Edit Draft";
+  }
+
+  if (createModalTitle) {
+    createModalTitle.textContent = `Edit ${entitySingular}`;
+  }
+
+  fillDraftEditForm(record, code);
+  renderDraftItems();
+  renderServiceItems();
+  renderQuoteItems();
+  renderPoItems();
+}
+
+function fillDraftEditForm(record, code) {
+  const { header } = record;
+
+  if (detailViewType === "pengajuan-barang") {
+    setFieldValue(getField("code"), header.code || code);
+    setFieldValue(getField("division"), header.division || activeDivisionCode);
+    setFieldValue(getField("priority"), header.priority || "");
+    setFieldValue(getField("submitDate"), header.submitDate || formatDateDisplay(new Date()));
+    setFieldValue(getField("targetDate"), parseDisplayDateToInput(header.targetDate));
+    setFieldValue(getField("reason"), header.reason || "");
+    draftRequestItems = (record.items || []).map((item) => ({ ...item }));
+    return;
+  }
+
+  if (detailViewType === "pengajuan-jasa") {
+    setFieldValue(getField("code"), header.code || code);
+    setFieldValue(getField("division"), header.division || activeDivisionCode);
+    setFieldValue(getField("requestType"), header.requestType || "jasa");
+    setFieldValue(getField("serviceProcurementType"), header.serviceProcurementType || "");
+    setFieldValue(getField("priority"), header.priority || "");
+    setFieldValue(getField("submitDate"), header.submitDate || formatDateDisplay(new Date()));
+    setFieldValue(getField("targetDate"), parseDisplayDateToInput(header.targetDate));
+    setFieldValue(getField("reason"), header.reason || "");
+    setFieldValue(getField("serviceNeed"), header.serviceNeed || "");
+    draftServiceItems = (record.services || []).map((item) => ({ ...item }));
+    return;
+  }
+
+  if (detailViewType === "procurement-pembelian") {
+    setFieldValue(getField("code"), header.code || code);
+    setFieldValue(getField("requestCode"), header.requestCode || "");
+    setFieldValue(getField("division"), header.division || "");
+    setFieldValue(getField("pic"), header.pic || "");
+    setFieldValue(getField("orderType"), header.orderType || "");
+    setFieldValue(getField("targetDate"), parseDisplayDateToInput(header.targetDate));
+    setFieldValue(getField("need"), header.need || "");
+    setFieldValue(getField("notes"), header.notes || "");
+    return;
+  }
+
+  if (detailViewType === "procurement-penawaran") {
+    setFieldValue(getField("requestCode"), header.requestCode || code);
+    setFieldValue(getField("quoteCode"), header.quoteCode || "");
+    setFieldValue(getField("quoteDate"), header.quoteDate || formatDateDisplay(new Date()));
+    selectedRequestNeed = header.need || "";
+    selectedRequestItems = getRequestDetailItems(header.requestCode || code);
+    draftQuoteItems = (record.quotes || []).map((item) => ({ ...item }));
+    return;
+  }
+
+  if (detailViewType === "procurement-po") {
+    setFieldValue(getField("code"), header.code || code);
+    setFieldValue(getField("vendor"), header.vendor || "");
+    setFieldValue(getField("poDate"), header.poDate || formatDateDisplay(new Date()));
+    setFieldValue(getField("notes"), header.notes || "");
+    draftPoItems = (record.items || []).map((item) => ({ ...item }));
+  }
 }
 
 function setFieldValue(field, value) {
@@ -840,16 +1109,158 @@ function filterRequestPicker(query = "") {
   });
 }
 
+function getRequestDetailItems(requestCode) {
+  const detailMap = {
+    "2026/PP/GA/07/0016": [
+      { code: "BRG-0021", name: "Kursi Kerja Ergonomis", qty: "6", unit: "Pcs" }
+    ],
+    "2026/PP/PUR/07/0009": [
+      { code: "JASA-0009", name: "Maintenance Jaringan Berkala", qty: "1", unit: "Paket" }
+    ],
+    "2026/PP/IT/07/0004": [
+      { code: "BRG-0044", name: "Access Point Dual Band", qty: "4", unit: "Unit" },
+      { code: "BRG-0045", name: "Managed Switch 24 Port", qty: "2", unit: "Unit" }
+    ],
+    "2026/PP/OPS/07/0020": [
+      { code: "BRG-0001", name: "Laptop Operasional", qty: "3", unit: "Unit" }
+    ]
+  };
+
+  return detailMap[requestCode] || [];
+}
+
+function filterPoRequestPicker(query = "") {
+  if (!poRequestPickerList) {
+    return;
+  }
+
+  const normalizedQuery = String(query || "").trim().toLowerCase();
+  Array.from(poRequestPickerList.querySelectorAll("[data-select-po-offer-source]")).forEach((row) => {
+    const haystack = [
+      row.dataset.selectPoOfferSource,
+      row.dataset.requestCode,
+      row.dataset.vendor,
+      row.dataset.price,
+      row.dataset.delivery
+    ]
+      .join(" ")
+      .toLowerCase();
+    row.hidden = Boolean(normalizedQuery && !haystack.includes(normalizedQuery));
+  });
+}
+
+function getPoOffersForRequest(row) {
+  const offerCode = row.dataset.selectPoOfferSource || "";
+  const baseOffer = {
+    quoteCode: offerCode,
+    requestCode: row.dataset.requestCode || "",
+    vendor: row.dataset.vendor || "",
+    price: row.dataset.price || "",
+    delivery: row.dataset.delivery || "-",
+    leadTime: row.dataset.leadTime || "-",
+    note: "Dari penawaran yang sudah disetujui."
+  };
+
+  const offerMap = {
+    "PNW-2026-0034": [
+      baseOffer,
+      {
+        quoteCode: "PNW-2026-0035",
+        requestCode: row.dataset.requestCode || "",
+        vendor: "PT Infrastruktur Digital",
+        price: "Rp34.100.000",
+        delivery: "dikirim_vendor",
+        leadTime: "2026-07-24",
+        note: "Data barang terpilih dari penawaran yang sudah disetujui."
+      },
+      {
+        quoteCode: "PNW-2026-0036",
+        requestCode: row.dataset.requestCode || "",
+        vendor: "PT Sinar Network",
+        price: "Rp33.250.000",
+        delivery: "ekspedisi",
+        leadTime: "2026-07-25",
+        note: "Data barang terpilih dari penawaran yang sudah disetujui."
+      }
+    ],
+    "PNW-2026-0041": [
+      baseOffer,
+      {
+        quoteCode: "PNW-2026-0042",
+        requestCode: row.dataset.requestCode || "",
+        vendor: "PT Office Hub",
+        price: "Rp7.450.000",
+        delivery: "dikirim_vendor",
+        leadTime: "2026-07-22",
+        note: "Data barang terpilih dari penawaran yang sudah disetujui."
+      },
+      {
+        quoteCode: "PNW-2026-0043",
+        requestCode: row.dataset.requestCode || "",
+        vendor: "CV Karya Interior",
+        price: "Rp7.300.000",
+        delivery: "diambil",
+        leadTime: "2026-07-21",
+        note: "Data barang terpilih dari penawaran yang sudah disetujui."
+      }
+    ]
+  };
+
+  return offerMap[offerCode] || [baseOffer];
+}
+
+function getSelectedPoOffers() {
+  return [
+    {
+      quoteCode: "PNW-2026-0034",
+      requestCode: "2026/PP/IT/07/0004",
+      itemName: "Access Point Dual Band",
+      qty: "4",
+      unit: "Unit",
+      vendor: "PT NetCom",
+      paymentMethod: "TOP-030",
+      totalPrice: "Rp6.500.000",
+      subtotal: "Rp26.000.000",
+      note: "Penawaran berstatus terpilih."
+    },
+    {
+      quoteCode: "PNW-2026-0034",
+      requestCode: "2026/PP/IT/07/0004",
+      itemName: "Managed Switch 24 Port",
+      qty: "2",
+      unit: "Unit",
+      vendor: "PT NetCom",
+      paymentMethod: "TOP-030",
+      totalPrice: "Rp3.300.000",
+      subtotal: "Rp6.600.000",
+      note: "Penawaran berstatus terpilih."
+    },
+    {
+      quoteCode: "PNW-2026-0041",
+      requestCode: "2026/PP/GA/07/0016",
+      itemName: "Kursi Kerja Ergonomis",
+      qty: "6",
+      unit: "Pcs",
+      vendor: "PT Sarana Office",
+      paymentMethod: "TOP-014",
+      totalPrice: "Rp1.191.667",
+      subtotal: "Rp7.150.002",
+      note: "Penawaran berstatus terpilih."
+    }
+  ];
+}
+
 function submitPengajuanBarang() {
   const code = String(primaryField?.value || "").trim();
   const targetDateValue = String(getField("targetDate")?.value || "").trim();
+  const isEditingDraft = Boolean(editingRecordCode);
 
   if (!code) {
     primaryField?.focus();
     return;
   }
 
-  if (detailRecords[code]) {
+  if (detailRecords[code] && code !== editingRecordCode) {
     showAlert("error", "No pengajuan sudah ada", "Gunakan nomor pengajuan lain yang belum dipakai.");
     primaryField?.focus();
     return;
@@ -890,6 +1301,13 @@ function submitPengajuanBarang() {
     ]
   };
 
+  if (isEditingDraft) {
+    removeMainTableRow(editingRecordCode);
+    if (editingRecordCode !== code) {
+      delete detailRecords[editingRecordCode];
+    }
+  }
+
   detailRecords[code] = record;
   prependRequestRow({
     code,
@@ -904,7 +1322,7 @@ function submitPengajuanBarang() {
   resetCreateState();
   showAlert(
     "success",
-    "Pengajuan barang tersimpan",
+    isEditingDraft ? "Draft pengajuan barang diperbarui" : "Pengajuan barang tersimpan",
     `${code} sudah masuk ke tabel utama dan bisa dibuka lewat View.`
   );
 }
@@ -912,13 +1330,14 @@ function submitPengajuanBarang() {
 function submitPengajuanJasa() {
   const code = String(primaryField?.value || "").trim();
   const targetDateValue = String(getField("targetDate")?.value || "").trim();
+  const isEditingDraft = Boolean(editingRecordCode);
 
   if (!code) {
     primaryField?.focus();
     return;
   }
 
-  if (detailRecords[code]) {
+  if (detailRecords[code] && code !== editingRecordCode) {
     showAlert("error", "No pengajuan sudah ada", "Gunakan nomor pengajuan lain yang belum dipakai.");
     primaryField?.focus();
     return;
@@ -961,6 +1380,13 @@ function submitPengajuanJasa() {
     ]
   };
 
+  if (isEditingDraft) {
+    removeMainTableRow(editingRecordCode);
+    if (editingRecordCode !== code) {
+      delete detailRecords[editingRecordCode];
+    }
+  }
+
   detailRecords[code] = record;
   prependRequestRow({
     code,
@@ -975,7 +1401,7 @@ function submitPengajuanJasa() {
   resetCreateState();
   showAlert(
     "success",
-    "Pengajuan jasa tersimpan",
+    isEditingDraft ? "Draft pengajuan jasa diperbarui" : "Pengajuan jasa tersimpan",
     `${code} sudah masuk ke tabel utama dan bisa dibuka lewat View.`
   );
 }
@@ -983,9 +1409,16 @@ function submitPengajuanJasa() {
 function submitGenericForm() {
   const formData = new FormData(requestForm);
   const savedRef = String(primaryField?.value || "").trim() || "Draft baru";
+  const isEditingDraft = Boolean(editingRecordCode);
 
   if (detailViewType === "procurement-pembelian") {
-    const status = "proses_penawaran";
+    if (detailRecords[savedRef] && savedRef !== editingRecordCode) {
+      showAlert("error", "No procurement sudah ada", "Gunakan nomor procurement lain.");
+      primaryField?.focus();
+      return;
+    }
+
+    const status = "draft";
     const record = {
       header: {
         code: savedRef,
@@ -1000,19 +1433,42 @@ function submitGenericForm() {
       }
     };
 
+    if (isEditingDraft) {
+      removeMainTableRow(editingRecordCode);
+      if (editingRecordCode !== savedRef) {
+        delete detailRecords[editingRecordCode];
+      }
+    }
+
     detailRecords[savedRef] = record;
     prependProcurementPembelianRow(record);
   }
 
   if (detailViewType === "procurement-penawaran") {
+    const quoteCode = String(formData.get("no_penawaran") || "").trim();
     if (!savedRef || savedRef === "Draft baru") {
       primaryField?.focus();
       return;
     }
 
-    if (detailRecords[savedRef]) {
+    if (!quoteCode) {
+      showAlert("error", "No penawaran wajib diisi", "Isi no penawaran atau gunakan referensi dari sistem.");
+      getField("quoteCode")?.focus();
+      return;
+    }
+
+    if (detailRecords[savedRef] && savedRef !== editingRecordCode) {
       showAlert("error", "Pengajuan sudah punya penawaran", "Gunakan pengajuan lain atau buka detail penawaran yang sudah ada.");
       primaryField?.focus();
+      return;
+    }
+
+    const quoteCodeExists = Object.entries(detailRecords).some(
+      ([code, record]) => code !== editingRecordCode && record.header?.quoteCode === quoteCode
+    );
+    if (quoteCodeExists) {
+      showAlert("error", "No penawaran sudah ada", "Gunakan nomor penawaran lain.");
+      getField("quoteCode")?.focus();
       return;
     }
 
@@ -1022,9 +1478,16 @@ function submitGenericForm() {
       return;
     }
 
-    const status = "proses_penawaran";
+    if (!areAllRequestItemsQuoted(draftQuoteItems, selectedRequestItems)) {
+      showAlert("error", "Item belum lengkap", "Setiap barang dari detail pengajuan harus memiliki minimal satu penawaran.");
+      openQuoteItemModalButton?.focus();
+      return;
+    }
+
+    const status = "draft";
     const record = {
       header: {
+        quoteCode,
         requestCode: savedRef,
         need: selectedRequestNeed || "-",
         status
@@ -1032,33 +1495,49 @@ function submitGenericForm() {
       quotes: draftQuoteItems.map((item) => ({ ...item }))
     };
 
+    if (isEditingDraft) {
+      removeMainTableRow(editingRecordCode);
+      if (editingRecordCode !== savedRef) {
+        delete detailRecords[editingRecordCode];
+      }
+    }
+
     detailRecords[savedRef] = record;
     prependProcurementPenawaranRow(record);
   }
 
   if (detailViewType === "procurement-po") {
-    const status = String(formData.get("status") || "").trim() || "draft";
+    if (!draftPoItems.length) {
+      showAlert("error", "Detail PO masih kosong", "Tambahkan minimal satu detail dari penawaran terpilih.");
+      openPoItemModalButton?.focus();
+      return;
+    }
+
+    if (detailRecords[savedRef] && savedRef !== editingRecordCode) {
+      showAlert("error", "No PO sudah ada", "Gunakan nomor PO lain.");
+      primaryField?.focus();
+      return;
+    }
+
+    const status = "draft";
     const record = {
       header: {
         code: savedRef,
-        procurementCode: String(formData.get("procurementCode") || "").trim() || "-",
-        vendor: String(formData.get("vendor") || "").trim() || "-",
-        poDate: formatDateInput(String(formData.get("poDate") || "").trim()),
-        deliveryDate: formatDateInput(String(formData.get("deliveryDate") || "").trim()),
-        amount: String(formData.get("amount") || "").trim() || "-",
+        offerCode: getPoOfferSummary(draftPoItems),
+        vendor: String(formData.get("nama_vendor") || "").trim() || "-",
+        poDate: formatDateDisplay(new Date()),
         status,
-        attachment: String(formData.get("attachment") || "").trim() || "-"
+        notes: String(formData.get("catatan") || "").trim() || "-"
       },
-      items: [
-        {
-          name: String(formData.get("itemName") || "").trim() || "-",
-          qty: String(formData.get("qty") || "").trim() || "-",
-          unit: "Unit",
-          price: String(formData.get("amount") || "").trim() || "-",
-          note: String(formData.get("notes") || "").trim() || "-"
-        }
-      ]
+      items: draftPoItems.map((item) => ({ ...item }))
     };
+
+    if (isEditingDraft) {
+      removeMainTableRow(editingRecordCode);
+      if (editingRecordCode !== savedRef) {
+        delete detailRecords[editingRecordCode];
+      }
+    }
 
     detailRecords[savedRef] = record;
     prependProcurementPORow(record);
@@ -1067,10 +1546,18 @@ function submitGenericForm() {
   closeManagedModal(createModalBackdrop, createModalCard, requestForm, { resetForm: false });
   showAlert(
     "success",
-    "Data berhasil disimpan",
+    isEditingDraft ? "Draft berhasil diperbarui" : "Data berhasil disimpan",
     `${entityPlural} telah disimpan dan siap dipakai oleh modul terkait.`
   );
   resetCreateState();
+}
+
+function areAllRequestItemsQuoted(quotes = [], requestItems = []) {
+  if (!requestItems.length) {
+    return true;
+  }
+
+  return requestItems.every((item) => quotes.some((quote) => quote.itemCode === item.code));
 }
 
 function prependRequestRow({ code, division, priority, submitDate, targetDate, status }) {
@@ -1201,29 +1688,35 @@ function handlePenawaranApprovalAction(action, code) {
   }
 
   if (action === "approve_purchasing") {
-    const selectedIndex = (record.quotes || []).findIndex((quote) => quote.selected);
-    if (selectedIndex < 0) {
-      showAlert("error", "Vendor belum dipilih", "Kepala Purchasing harus memilih satu barang/vendor sebelum approve.");
+    if (!areAllQuoteItemsSelected(record.quotes || [])) {
+      showAlert("error", "Vendor belum lengkap", "Kepala Purchasing harus memilih satu vendor untuk setiap barang.");
       return;
     }
 
     record.header.status = "disetujui";
-    record.quotes = record.quotes.map((quote, index) => ({
+    record.quotes = record.quotes.map((quote) => ({
       ...quote,
-      status: index === selectedIndex ? "disetujui" : "ditolak"
+      status: quote.selected ? "disetujui" : "ditolak"
     }));
     showPenawaranActionResult(code, "Penawaran disetujui", `${code} siap menjadi dasar pembuatan PO.`);
     return;
   }
 
   if (action === "reject_purchasing") {
-    record.header.status = "proses_penawaran";
+    record.header.status = "draft";
     record.quotes = (record.quotes || []).map((quote) => ({
       ...quote,
       status: "direview"
     }));
-    showPenawaranActionResult(code, "Penawaran dikembalikan", `${code} kembali ke Purchasing untuk penyusunan ulang.`);
+    showPenawaranActionResult(code, "Penawaran dikembalikan", `${code} kembali menjadi draft dan dapat diedit Purchasing.`);
   }
+}
+
+function areAllQuoteItemsSelected(quotes = []) {
+  const itemCodes = Array.from(new Set(quotes.map((quote) => quote.itemCode || quote.itemName).filter(Boolean)));
+  return itemCodes.length > 0 && itemCodes.every((itemCode) =>
+    quotes.some((quote) => (quote.itemCode || quote.itemName) === itemCode && quote.selected)
+  );
 }
 
 function canRunPenawaranAction(action, status) {
@@ -1232,7 +1725,7 @@ function canRunPenawaranAction(action, status) {
   }
 
   const actionRules = {
-    submit_purchasing: activeRole === "purchasing" && status === "proses_penawaran",
+    submit_purchasing: activeRole === "purchasing" && ["draft", "proses_penawaran"].includes(status),
     approve_purchasing: activeRole === "kepala_purchasing" && status === "menunggu_persetujuan_purchasing",
     reject_purchasing: activeRole === "kepala_purchasing" && status === "menunggu_persetujuan_purchasing"
   };
@@ -1241,6 +1734,56 @@ function canRunPenawaranAction(action, status) {
 }
 
 function showPenawaranActionResult(code, title, message) {
+  const record = detailRecords[code];
+  updateRequestRowStatus(code, record.header.status);
+  renderDetailModal(record, code);
+  showAlert("success", title, message);
+}
+
+function handlePoApprovalAction(action, code) {
+  if (detailViewType !== "procurement-po" || !code) {
+    return;
+  }
+
+  const record = detailRecords[code];
+  if (!record || !canRunPoAction(action, record.header.status)) {
+    showAlert("warning", "Akses dibatasi", `${getActiveRoleLabel()} tidak dapat menjalankan aksi ini.`);
+    return;
+  }
+
+  if (action === "submit_po") {
+    record.header.status = "menunggu_persetujuan_purchasing";
+    showPoActionResult(code, "PO diajukan", `${code} masuk ke approval Kepala Purchasing.`);
+    return;
+  }
+
+  if (action === "approve_po") {
+    record.header.status = "disetujui";
+    showPoActionResult(code, "PO disetujui", `${code} sudah terbit dan detail PO terkunci.`);
+    return;
+  }
+
+  if (action === "reject_po") {
+    record.header.status = "dibatalkan";
+    showPoActionResult(code, "PO dibatalkan", `${code} dihentikan oleh Kepala Purchasing.`);
+  }
+}
+
+function canRunPoAction(action, status) {
+  if (activeRole === "admin") {
+    return true;
+  }
+
+  const actionRules = {
+    submit_po: activeRole === "purchasing" && status === "draft",
+    approve_po: activeRole === "kepala_purchasing" && status === "menunggu_persetujuan_purchasing",
+    reject_po: activeRole === "kepala_purchasing" && status === "menunggu_persetujuan_purchasing"
+  };
+
+  return Boolean(actionRules[action]);
+}
+
+function showPoActionResult(code, title, message) {
   const record = detailRecords[code];
   updateRequestRowStatus(code, record.header.status);
   renderDetailModal(record, code);
@@ -1265,6 +1808,17 @@ function updateRequestRowStatus(code, status) {
   if (statusCell) {
     statusCell.innerHTML = `<span class="status-chip ${getStatusChipClass(status)}">${escapeHtml(status)}</span>`;
   }
+}
+
+function removeMainTableRow(code) {
+  if (!mainTableBody || !code) {
+    return;
+  }
+
+  const detailButton = Array.from(mainTableBody.querySelectorAll('[data-detail="true"]')).find(
+    (button) => button.dataset.code === code
+  );
+  detailButton?.closest("tr")?.remove();
 }
 
 function prependProcurementPembelianRow(record) {
@@ -1314,9 +1868,10 @@ function prependProcurementPenawaranRow(record) {
   const row = document.createElement("tr");
   row.className = "master-slave-row is-active";
   row.innerHTML = `
+    <td>${escapeHtml(header.quoteCode || "-")}</td>
     <td>${escapeHtml(header.requestCode)}</td>
     <td>${escapeHtml(header.need)}</td>
-    <td>${escapeHtml(`${quotes.length} vendor`)}</td>
+    <td>${escapeHtml(getQuoteSummary(quotes))}</td>
     <td>${escapeHtml(bestQuote.unitPrice || "-")}</td>
     <td><span class="status-chip ${getStatusChipClass(header.status)}">${escapeHtml(header.status)}</span></td>
     <td>
@@ -1344,10 +1899,10 @@ function prependProcurementPORow(record) {
   row.className = "master-slave-row is-active";
   row.innerHTML = `
     <td>${escapeHtml(header.code)}</td>
-    <td>${escapeHtml(header.procurementCode)}</td>
+    <td>${escapeHtml(header.offerCode || getPoOfferSummary(record.items))}</td>
     <td>${escapeHtml(header.vendor)}</td>
     <td>${escapeHtml(header.poDate)}</td>
-    <td>${escapeHtml(header.amount)}</td>
+    <td>${escapeHtml(`${record.items?.length || 0} penawaran`)}</td>
     <td><span class="status-chip ${getStatusChipClass(header.status)}">${escapeHtml(header.status)}</span></td>
     <td>
       <button class="table-action" type="button" data-detail="true" data-code="${escapeHtml(header.code)}" data-status="${escapeHtml(
@@ -1362,7 +1917,23 @@ function prependProcurementPORow(record) {
   registerDetailButton(row.querySelector("[data-detail='true']"));
 }
 
+function getPoOfferSummary(items = []) {
+  const offerCodes = Array.from(new Set((items || []).map((item) => item.quoteCode).filter(Boolean)));
+  if (!offerCodes.length) {
+    return "-";
+  }
+
+  return offerCodes.length === 1 ? offerCodes[0] : `${offerCodes.length} penawaran`;
+}
+
+function getQuoteSummary(quotes = []) {
+  const itemCount = new Set(quotes.map((quote) => quote.itemCode || quote.itemName).filter(Boolean)).size;
+  const vendorCount = quotes.length;
+  return `${itemCount || 0} item / ${vendorCount || 0} vendor`;
+}
+
 function resetCreateState() {
+  editingRecordCode = "";
   requestForm?.reset();
   formFields.forEach(resetField);
   draftRequestItems = [];
@@ -1372,12 +1943,17 @@ function resetCreateState() {
   draftQuoteItems = [];
   quoteItemEditIndex = -1;
   selectedRequestNeed = "";
+  selectedRequestItems = [];
+  selectedPoOffers = [];
+  draftPoItems = [];
+  selectedPoOfferIndexes = new Set();
   clearSelectedItem();
   populateContextDefaults();
   applyCreateDefaults();
   renderDraftItems();
   renderServiceItems();
   renderQuoteItems();
+  renderPoItems();
 }
 
 function openManagedModal(backdrop, card, focusTarget) {
@@ -1413,12 +1989,15 @@ function closeManagedModal(backdrop, card, form, options = {}) {
 }
 
 function closeAllModals(options = {}) {
+  selectedPoOfferIndexes = new Set();
   closeManagedModal(createModalBackdrop, createModalCard, requestForm, options);
   closeManagedModal(detailModalBackdrop, detailModalCard, null, { resetForm: false });
   closeManagedModal(draftItemBackdrop, draftItemCard, draftItemForm, options);
   closeManagedModal(serviceItemBackdrop, serviceItemCard, serviceItemForm, options);
   closeManagedModal(quoteItemBackdrop, quoteItemCard, quoteItemForm, options);
   closeManagedModal(requestPickerBackdrop, requestPickerCard, null, { resetForm: false });
+  closeManagedModal(poRequestPickerBackdrop, poRequestPickerCard, null, { resetForm: false });
+  closeManagedModal(poItemPickerBackdrop, poItemPickerCard, null, { resetForm: false });
   closeManagedModal(itemPickerBackdrop, itemPickerCard, null, { resetForm: false });
   closeManagedModal(quickItemBackdrop, quickItemCard, quickItemForm, options);
 }
@@ -1431,6 +2010,8 @@ function areAllModalsClosed() {
     serviceItemBackdrop,
     quoteItemBackdrop,
     requestPickerBackdrop,
+    poRequestPickerBackdrop,
+    poItemPickerBackdrop,
     itemPickerBackdrop,
     quickItemBackdrop
   ].every((backdrop) => !backdrop || backdrop.hidden);
@@ -1538,6 +2119,7 @@ function renderDetailModal(record, code) {
 
   if (detailViewType === "procurement-pembelian") {
     detailModalBody.innerHTML = buildProcurementPembelianMarkup(record);
+    renderDraftEditActions(record);
     return;
   }
 
@@ -1549,6 +2131,7 @@ function renderDetailModal(record, code) {
 
   if (detailViewType === "procurement-po") {
     detailModalBody.innerHTML = buildProcurementPOMarkup(record);
+    renderPoApprovalActions(record);
     return;
   }
 
@@ -1736,13 +2319,14 @@ function renderPengajuanApprovalActions(record) {
 
   const status = String(record?.header?.status || "");
   const actions = getPengajuanActionsForRole(status);
-  if (!["pengajuan-barang", "pengajuan-jasa"].includes(detailViewType) || !actions.length) {
-    detailStatusActions.innerHTML = "";
+  if (!["pengajuan-barang", "pengajuan-jasa"].includes(detailViewType)) {
+    renderDraftEditActions(record);
     return;
   }
 
-  detailStatusActions.innerHTML = actions
-    .map(
+  detailStatusActions.innerHTML = [
+    getDraftEditButton(record),
+    ...actions.map(
       (action) => `
         <button
           class="${escapeHtml(action.variant)}"
@@ -1754,7 +2338,56 @@ function renderPengajuanApprovalActions(record) {
         </button>
       `
     )
-    .join("");
+  ].join("");
+}
+
+function renderDraftEditActions(record) {
+  if (!detailStatusActions) {
+    return;
+  }
+
+  detailStatusActions.innerHTML = getDraftEditButton(record);
+}
+
+function getDraftEditButton(record) {
+  if (!canEditDraftRecord(record)) {
+    return "";
+  }
+
+  const code = getRecordPrimaryCode(record);
+  return `
+    <button
+      class="secondary-button"
+      type="button"
+      data-edit-draft-record="${escapeHtml(code)}"
+    >
+      Edit Draft
+    </button>
+  `;
+}
+
+function getRecordPrimaryCode(record) {
+  return record?.header?.code || record?.header?.requestCode || activeDetailCode || "";
+}
+
+function renderActionButtons(record, actions) {
+  const approvalCode = record?.header?.requestCode || record?.header?.code || activeDetailCode || "";
+  return [
+    getDraftEditButton(record),
+    ...actions
+    .map(
+      (action) => `
+        <button
+          class="${escapeHtml(action.variant)}"
+          type="button"
+          data-approval-action="${escapeHtml(action.action)}"
+          data-approval-code="${escapeHtml(approvalCode)}"
+        >
+          ${escapeHtml(action.label)}
+        </button>
+      `
+    )
+  ].join("");
 }
 
 function getPengajuanActionsForRole(status) {
@@ -1782,29 +2415,14 @@ function renderPenawaranApprovalActions(record) {
 
   const status = String(record?.header?.status || "");
   const actions = getPenawaranActionsForRole(status);
-  if (!actions.length) {
-    detailStatusActions.innerHTML = "";
-    return;
-  }
-
-  detailStatusActions.innerHTML = actions
-    .map(
-      (action) => `
-        <button
-          class="${escapeHtml(action.variant)}"
-          type="button"
-          data-approval-action="${escapeHtml(action.action)}"
-          data-approval-code="${escapeHtml(record.header.requestCode)}"
-        >
-          ${escapeHtml(action.label)}
-        </button>
-      `
-    )
-    .join("");
+  detailStatusActions.innerHTML = renderActionButtons(record, actions);
 }
 
 function getPenawaranActionsForRole(status) {
   const allActions = {
+    draft: [
+      { action: "submit_purchasing", label: "ajukan approval", variant: "primary-button" }
+    ],
     proses_penawaran: [
       { action: "submit_purchasing", label: "ajukan approval", variant: "primary-button" }
     ],
@@ -1820,9 +2438,9 @@ function getPenawaranActionsForRole(status) {
 function getPenawaranApprovalSteps(record) {
   const status = String(record?.header?.status || "");
 
-  if (status === "proses_penawaran") {
+  if (status === "draft" || status === "proses_penawaran") {
     return [
-      { kind: "warning", title: "Purchasing", text: "Proses" },
+      { kind: "warning", title: "Purchasing", text: status === "draft" ? "Draft" : "Proses" },
       { kind: "", title: "Kepala Purchasing", text: "Menunggu" }
     ];
   }
@@ -1842,6 +2460,67 @@ function getPenawaranApprovalSteps(record) {
   }
 
   if (status === "ditolak") {
+    return [
+      { kind: "success", title: "Purchasing", text: "Diajukan" },
+      { kind: "error", title: "Kepala Purchasing", text: "Ditolak" }
+    ];
+  }
+
+  return [
+    { kind: "review", title: "Purchasing", text: status || "-" },
+    { kind: "", title: "Kepala Purchasing", text: "-" }
+  ];
+}
+
+function renderPoApprovalActions(record) {
+  if (!detailStatusActions) {
+    return;
+  }
+
+  const status = String(record?.header?.status || "");
+  const actions = getPoActionsForRole(status);
+  detailStatusActions.innerHTML = renderActionButtons(record, actions);
+}
+
+function getPoActionsForRole(status) {
+  const allActions = {
+    draft: [
+      { action: "submit_po", label: "ajukan approval", variant: "primary-button" }
+    ],
+    menunggu_persetujuan_purchasing: [
+      { action: "reject_po", label: "tolak", variant: "secondary-button danger-button" },
+      { action: "approve_po", label: "approve", variant: "primary-button" }
+    ]
+  };
+
+  return (allActions[status] || []).filter((action) => canRunPoAction(action.action, status));
+}
+
+function getPoApprovalSteps(record) {
+  const status = String(record?.header?.status || "");
+
+  if (status === "draft") {
+    return [
+      { kind: "warning", title: "Purchasing", text: "Draft" },
+      { kind: "", title: "Kepala Purchasing", text: "Menunggu" }
+    ];
+  }
+
+  if (status === "menunggu_persetujuan_purchasing") {
+    return [
+      { kind: "success", title: "Purchasing", text: "Diajukan" },
+      { kind: "warning", title: "Kepala Purchasing", text: "Pending" }
+    ];
+  }
+
+  if (status === "disetujui" || status === "selesai") {
+    return [
+      { kind: "success", title: "Purchasing", text: "Diajukan" },
+      { kind: "success", title: "Kepala Purchasing", text: status === "selesai" ? "Selesai" : "Approved" }
+    ];
+  }
+
+  if (status === "dibatalkan") {
     return [
       { kind: "success", title: "Purchasing", text: "Diajukan" },
       { kind: "error", title: "Kepala Purchasing", text: "Ditolak" }
@@ -2155,10 +2834,11 @@ function getQuoteField(name) {
 function openQuoteItemDialog(index = -1) {
   quoteItemEditIndex = Number.isInteger(index) ? index : -1;
   quoteItemForm?.reset();
+  populateQuoteRequestItemOptions();
 
   if (quoteItemEditIndex >= 0 && draftQuoteItems[quoteItemEditIndex]) {
     const item = draftQuoteItems[quoteItemEditIndex];
-    setFieldValue(getQuoteField("code"), item.code || "");
+    setFieldValue(getQuoteField("requestItem"), item.itemCode || "");
     setFieldValue(getQuoteField("vendor"), item.vendor || "");
     setFieldValue(getQuoteField("unitPrice"), item.unitPrice || "");
     setFieldValue(getQuoteField("paymentMethod"), item.paymentMethod || "");
@@ -2178,7 +2858,6 @@ function openQuoteItemDialog(index = -1) {
     }
   } else {
     quoteItemEditIndex = -1;
-    setFieldValue(getQuoteField("code"), getNextQuoteReference());
 
     if (quoteItemKicker) {
       quoteItemKicker.textContent = "Tambah Penawaran";
@@ -2193,7 +2872,28 @@ function openQuoteItemDialog(index = -1) {
     }
   }
 
-  openManagedModal(quoteItemBackdrop, quoteItemCard, getQuoteField("vendor"));
+  openManagedModal(quoteItemBackdrop, quoteItemCard, getQuoteField("requestItem"));
+}
+
+function populateQuoteRequestItemOptions() {
+  const itemField = getQuoteField("requestItem");
+  if (!itemField) {
+    return;
+  }
+
+  const options = selectedRequestItems.length
+    ? selectedRequestItems
+    : getRequestDetailItems(String(getField("requestCode")?.value || ""));
+
+  itemField.innerHTML = `
+    <option value="">Pilih barang dari detail pengajuan</option>
+    ${options
+      .map(
+        (item) =>
+          `<option value="${escapeHtml(item.code)}">${escapeHtml(item.name)} - ${escapeHtml(item.qty)} ${escapeHtml(item.unit)}</option>`
+      )
+      .join("")}
+  `;
 }
 
 function closeQuoteItemDialog(options = {}) {
@@ -2228,8 +2928,22 @@ function saveQuoteItem() {
     return;
   }
 
+  const itemCode = String(getQuoteField("requestItem")?.value || "").trim();
+  const requestItem = (selectedRequestItems.length
+    ? selectedRequestItems
+    : getRequestDetailItems(String(getField("requestCode")?.value || ""))
+  ).find((item) => item.code === itemCode);
+  if (!requestItem) {
+    showAlert("error", "Barang belum dipilih", "Pilih barang dari detail pengajuan terkait.");
+    getQuoteField("requestItem")?.focus();
+    return;
+  }
+
   const item = {
-    code: String(getQuoteField("code")?.value || "").trim(),
+    itemCode: requestItem.code,
+    itemName: requestItem.name,
+    itemQty: requestItem.qty,
+    itemUnit: requestItem.unit,
     vendor: String(getQuoteField("vendor")?.value || "").trim(),
     unitPrice: String(getQuoteField("unitPrice")?.value || "").trim(),
     taxIncluded: draftQuoteItems[quoteItemEditIndex]?.taxIncluded || false,
@@ -2240,10 +2954,12 @@ function saveQuoteItem() {
     selected: Boolean(draftQuoteItems[quoteItemEditIndex]?.selected)
   };
 
-  const duplicateIndex = draftQuoteItems.findIndex((quote) => quote.code === item.code);
+  const duplicateIndex = draftQuoteItems.findIndex(
+    (quote) => quote.itemCode === item.itemCode && quote.vendor === item.vendor
+  );
   if (duplicateIndex >= 0 && duplicateIndex !== quoteItemEditIndex) {
-    showAlert("error", "No penawaran sudah ada", "Gunakan nomor penawaran lain.");
-    getQuoteField("code")?.focus();
+    showAlert("error", "Penawaran sudah ada", "Vendor ini sudah punya penawaran untuk barang yang sama.");
+    getQuoteField("vendor")?.focus();
     return;
   }
 
@@ -2278,9 +2994,10 @@ function toggleQuoteSelected(index) {
   }
 
   const nextValue = !draftQuoteItems[index].selected;
+  const itemCode = draftQuoteItems[index].itemCode;
   draftQuoteItems = draftQuoteItems.map((quote, quoteIndex) => ({
     ...quote,
-    selected: quoteIndex === index ? nextValue : false
+    selected: quote.itemCode === itemCode ? quoteIndex === index ? nextValue : false : quote.selected
   }));
   renderQuoteItems();
 }
@@ -2302,9 +3019,10 @@ function toggleDetailQuoteSelected(code, index) {
   }
 
   const nextValue = !record.quotes[index].selected;
+  const itemCode = record.quotes[index].itemCode;
   record.quotes = record.quotes.map((quote, quoteIndex) => ({
     ...quote,
-    selected: quoteIndex === index ? nextValue : false
+    selected: quote.itemCode === itemCode ? quoteIndex === index ? nextValue : false : quote.selected
   }));
   renderDetailModal(record, code);
 }
@@ -2326,20 +3044,29 @@ function renderQuoteItems() {
   if (!draftQuoteItems.length) {
     quoteItemsTableBody.innerHTML = `
       <tr>
-        <td colspan="12" class="empty-table-cell">Belum ada penawaran vendor.</td>
+        <td colspan="10" class="empty-table-cell">Belum ada item penawaran.</td>
       </tr>
     `;
     return;
   }
 
-  quoteItemsTableBody.innerHTML = draftQuoteItems
-    .map(
-      (item, index) => {
+  quoteItemsTableBody.innerHTML = getQuoteItemGroups(draftQuoteItems)
+    .map((group) => {
+      const groupHeader = `
+        <tr class="table-group-row">
+          <td colspan="10">
+            <strong>${escapeHtml(group.name)}</strong>
+            <span>${escapeHtml(group.qty)} ${escapeHtml(group.unit)} - ${group.items.length} penawaran vendor</span>
+          </td>
+        </tr>
+      `;
+      const rows = group.items
+        .map(({ item, index }) => {
         const canSelectQuote = ["kepala_purchasing", "admin"].includes(activeRole);
 
         return `
           <tr>
-            <td>${escapeHtml(item.code)}</td>
+            <td>${escapeHtml(item.itemName || "-")}</td>
             <td>${escapeHtml(item.vendor)}</td>
             <td>${escapeHtml(item.unitPrice)}</td>
             <td>
@@ -2348,7 +3075,7 @@ function renderQuoteItems() {
                 data-active="${item.taxIncluded ? "true" : "false"}"
                 data-toggle-quote-tax="${index}"
                 type="button"
-                aria-label="Toggle PPN ${escapeHtml(item.code)}"
+                aria-label="Toggle PPN ${escapeHtml(item.itemName || item.vendor || "-")}"
               >
                 <span></span>
               </button>
@@ -2365,7 +3092,7 @@ function renderQuoteItems() {
                       data-active="${item.selected ? "true" : "false"}"
                       data-toggle-quote-selected="${index}"
                       type="button"
-                      aria-label="Pilih vendor ${escapeHtml(item.code)}"
+                      aria-label="Pilih vendor ${escapeHtml(item.vendor || "-")} untuk ${escapeHtml(item.itemName || "-")}"
                     ></button>`
                   : `<span class="choice-toggle is-readonly" data-active="${item.selected ? "true" : "false"}"></span>`
               }
@@ -2378,9 +3105,212 @@ function renderQuoteItems() {
             </td>
           </tr>
         `;
+        })
+        .join("");
+
+      return `${groupHeader}${rows}`;
+    })
+    .join("");
+}
+
+function getQuoteItemGroups(quotes = []) {
+  const groups = [];
+  quotes.forEach((item, index) => {
+    const key = item.itemCode || item.itemName || `item-${index}`;
+    let group = groups.find((entry) => entry.key === key);
+    if (!group) {
+      group = {
+        key,
+        name: item.itemName || "-",
+        qty: item.itemQty || "-",
+        unit: item.itemUnit || "",
+        items: []
+      };
+      groups.push(group);
+    }
+    group.items.push({ item, index });
+  });
+  return groups;
+}
+
+function renderPoOfferPicker() {
+  if (!poOfferPickerList) {
+    return;
+  }
+
+  if (!selectedPoOffers.length) {
+    poOfferPickerList.innerHTML = `
+      <tr>
+        <td colspan="9" class="empty-table-cell">Belum ada penawaran terpilih.</td>
+      </tr>
+    `;
+    return;
+  }
+
+  const filteredOffers = getFilteredPoOffers();
+  if (!filteredOffers.length) {
+    poOfferPickerList.innerHTML = `
+      <tr>
+        <td colspan="9" class="empty-table-cell">Tidak ada penawaran sesuai filter.</td>
+      </tr>
+    `;
+    return;
+  }
+
+  poOfferPickerList.innerHTML = filteredOffers
+    .map(
+      ({ offer, index }) => {
+        const isSelected = draftPoItems.some((item) => getPoItemKey(item) === getPoItemKey(offer));
+        const isChecked = selectedPoOfferIndexes.has(index);
+
+        return `
+        <tr>
+          <td>
+            <input
+              type="checkbox"
+              data-toggle-po-offer="${index}"
+              ${isSelected ? "disabled checked" : ""}
+              ${!isSelected && isChecked ? "checked" : ""}
+              aria-label="Pilih ${escapeHtml(offer.quoteCode)}"
+            />
+          </td>
+          <td>${escapeHtml(offer.quoteCode)}</td>
+          <td>${escapeHtml(offer.requestCode || "-")}</td>
+          <td>${escapeHtml(offer.itemName || "-")}</td>
+          <td>${escapeHtml(offer.vendor)}</td>
+          <td>${escapeHtml(offer.paymentMethod || "-")}</td>
+          <td>${escapeHtml(offer.qty || "-")}</td>
+          <td>${escapeHtml(offer.unit || "-")}</td>
+          <td>${escapeHtml(offer.totalPrice || offer.price || "-")}</td>
+        </tr>
+      `;
       }
     )
     .join("");
+}
+
+function getFilteredPoOffers() {
+  const query = String(poOfferPickerSearch?.value || "").trim().toLowerCase();
+  const payment = String(poOfferPaymentFilter?.value || "").trim();
+
+  return selectedPoOffers
+    .map((offer, index) => ({ offer, index }))
+    .filter(({ offer }) => {
+      const matchesPayment = !payment || offer.paymentMethod === payment;
+      const haystack = [
+        offer.quoteCode,
+        offer.requestCode,
+        offer.itemName,
+        offer.vendor,
+        offer.paymentMethod,
+        offer.qty,
+        offer.unit,
+        offer.totalPrice,
+        offer.subtotal
+      ]
+        .join(" ")
+        .toLowerCase();
+      return matchesPayment && (!query || haystack.includes(query));
+    });
+}
+
+function addSelectedPoOffers() {
+  const indexes = Array.from(selectedPoOfferIndexes).filter(
+    (index) =>
+      Number.isInteger(index) &&
+      selectedPoOffers[index] &&
+      !draftPoItems.some((item) => getPoItemKey(item) === getPoItemKey(selectedPoOffers[index]))
+  );
+
+  if (!indexes.length) {
+    showAlert("warning", "Belum ada penawaran dipilih", "Centang minimal satu penawaran sebelum menekan pilih.");
+    return false;
+  }
+
+  const newItems = indexes.map((index) => ({ ...selectedPoOffers[index] }));
+
+  draftPoItems = [...draftPoItems, ...newItems];
+  selectedPoOfferIndexes = new Set();
+  syncPoVendorFromItems();
+  renderPoItems();
+  renderPoOfferPicker();
+  return true;
+}
+
+function getPoItemKey(item) {
+  return [item.quoteCode, item.requestCode, item.itemName].filter(Boolean).join("|");
+}
+
+function removePoItem(index) {
+  if (!Number.isInteger(index) || !draftPoItems[index]) {
+    return;
+  }
+
+  draftPoItems.splice(index, 1);
+  syncPoVendorFromItems();
+  renderPoItems();
+}
+
+function syncPoVendorFromItems() {
+  const vendors = Array.from(new Set(draftPoItems.map((item) => item.vendor).filter(Boolean)));
+  if (!vendors.length) {
+    setFieldValue(getField("vendor"), selectedPoOffers[0]?.vendor || "");
+    return;
+  }
+
+  setFieldValue(getField("vendor"), vendors.length === 1 ? vendors[0] : `${vendors.length} vendor terpilih`);
+}
+
+function renderPoItems() {
+  if (!poItemsTableBody) {
+    return;
+  }
+
+  if (!draftPoItems.length) {
+    poItemsTableBody.innerHTML = `
+      <tr>
+        <td colspan="6" class="empty-table-cell">Belum ada detail PO.</td>
+      </tr>
+    `;
+    updatePoSubtotalSummary(draftPoItems);
+    return;
+  }
+
+  poItemsTableBody.innerHTML = draftPoItems
+    .map(
+      (item, index) => `
+        <tr>
+          <td>${escapeHtml(item.requestCode || "-")}</td>
+          <td>${escapeHtml(item.itemName || "-")}</td>
+          <td>${escapeHtml(item.qty || "-")}</td>
+          <td>${escapeHtml(item.unit || "-")}</td>
+          <td>${escapeHtml(item.totalPrice || item.price || "-")}</td>
+          <td><button class="table-action" type="button" data-remove-po-item="${index}">Hapus</button></td>
+        </tr>
+      `
+    )
+    .join("");
+  updatePoSubtotalSummary(draftPoItems);
+}
+
+function updatePoSubtotalSummary(items = []) {
+  if (!poItemsSubtotal) {
+    return;
+  }
+
+  poItemsSubtotal.textContent = formatRupiah(sumPoSubtotal(items));
+}
+
+function sumPoSubtotal(items = []) {
+  return items.reduce((total, item) => total + parseCurrencyValue(item.subtotal || item.totalPrice || item.price || 0), 0);
+}
+
+function formatRupiah(value) {
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    maximumFractionDigits: 0
+  }).format(Number(value) || 0);
 }
 
 function buildJasaDetailMarkup(record) {
@@ -2563,41 +3493,56 @@ function buildProcurementPenawaranMarkup(record) {
     )
     .join("");
   const quoteRows = (record.quotes || [])
-    .map(
-      (quote, index) => `
-        <tr>
-          <td>${escapeHtml(quote.code || "-")}</td>
-          <td>${escapeHtml(quote.vendor)}</td>
-          <td>${escapeHtml(quote.unitPrice || "-")}</td>
-          <td>
-            <span class="mini-toggle" data-active="${quote.taxIncluded ? "true" : "false"}">
-              <span></span>
-            </span>
-          </td>
-          <td>${escapeHtml(getQuotePriceIncludePpn(quote))}</td>
-          <td>${escapeHtml(quote.paymentMethod || "-")}</td>
-          <td>${escapeHtml(quote.delivery || "-")}</td>
-          <td>${escapeHtml(quote.leadTime || "-")}</td>
-          <td>
-            ${
-              canSelectQuote
-                ? `<button
-                    class="choice-toggle"
-                    data-active="${quote.selected ? "true" : "false"}"
-                    data-toggle-detail-quote-selected="${index}"
-                    data-approval-code="${escapeHtml(record.header.requestCode)}"
-                    type="button"
-                    aria-label="Pilih vendor ${escapeHtml(quote.code || "-")}"
-                  ></button>`
-                : `<span class="choice-toggle is-readonly" data-active="${quote.selected ? "true" : "false"}"></span>`
-            }
-          </td>
-        </tr>
-      `
-    )
-    .join("") || `
+    .length
+    ? getQuoteItemGroups(record.quotes || [])
+        .map((group) => {
+          const groupHeader = `
+            <tr class="table-group-row">
+              <td colspan="8">
+                <strong>${escapeHtml(group.name)}</strong>
+                <span>${escapeHtml(group.qty)} ${escapeHtml(group.unit)} - ${group.items.length} penawaran vendor</span>
+              </td>
+            </tr>
+          `;
+          const rows = group.items
+            .map(({ item: quote, index }) => `
+              <tr>
+                <td>${escapeHtml(quote.vendor)}</td>
+                <td>${escapeHtml(quote.unitPrice || "-")}</td>
+                <td>
+                  <span class="mini-toggle" data-active="${quote.taxIncluded ? "true" : "false"}">
+                    <span></span>
+                  </span>
+                </td>
+                <td>${escapeHtml(getQuotePriceIncludePpn(quote))}</td>
+                <td>${escapeHtml(quote.paymentMethod || "-")}</td>
+                <td>${escapeHtml(quote.delivery || "-")}</td>
+                <td>${escapeHtml(quote.leadTime || "-")}</td>
+                <td>
+                  ${
+                    canSelectQuote
+                      ? `<button
+                          class="choice-toggle"
+                          data-active="${quote.selected ? "true" : "false"}"
+                          data-toggle-detail-quote-selected="${index}"
+                          data-approval-code="${escapeHtml(record.header.requestCode)}"
+                          type="button"
+                          aria-label="Pilih vendor ${escapeHtml(quote.vendor || "-")}"
+                        ></button>`
+                      : `<span class="choice-toggle is-readonly" data-active="${quote.selected ? "true" : "false"}"></span>`
+                  }
+                </td>
+              </tr>
+            `)
+            .join("");
+
+          return `${groupHeader}${rows}`;
+        })
+        .join("")
+    : ""
+  || `
       <tr>
-        <td colspan="10" class="empty-table-cell">Belum ada penawaran vendor.</td>
+        <td colspan="8" class="empty-table-cell">Belum ada penawaran vendor.</td>
       </tr>
     `;
 
@@ -2614,6 +3559,10 @@ function buildProcurementPenawaranMarkup(record) {
           <strong>Data Penawaran</strong>
         </div>
         <div class="detail-list">
+          <div class="detail-row">
+            <div class="detail-label">No Penawaran</div>
+            <div class="detail-value">${escapeHtml(record.header.quoteCode || "-")}</div>
+          </div>
           <div class="detail-row">
             <div class="detail-label">No Pengajuan</div>
             <div class="detail-value">${escapeHtml(record.header.requestCode)}</div>
@@ -2637,8 +3586,7 @@ function buildProcurementPenawaranMarkup(record) {
           <table>
             <thead>
               <tr>
-                <th>No Penawaran</th>
-                <th>Nama Toko</th>
+                <th>Vendor</th>
                 <th>Harga (Rp)</th>
                 <th>PPN</th>
                 <th>Harga Include PPN</th>
@@ -2657,14 +3605,26 @@ function buildProcurementPenawaranMarkup(record) {
 }
 
 function buildProcurementPOMarkup(record) {
+  const approvalRows = getPoApprovalSteps(record)
+    .map(
+      (step) => `
+        <div class="approval-step" data-kind="${escapeHtml(step.kind || "pending")}">
+          <div class="approval-person">${escapeHtml(step.title)}</div>
+          <div class="approval-track"><span class="approval-dot"></span></div>
+          <div class="approval-state">${escapeHtml(step.text)}</div>
+        </div>
+      `
+    )
+    .join("");
   const itemRows = (record.items || [])
     .map(
       (item) => `
         <tr>
-          <td>${escapeHtml(item.name)}</td>
-          <td>${escapeHtml(item.qty)}</td>
-          <td>${escapeHtml(item.unit)}</td>
-          <td>${escapeHtml(item.price)}</td>
+          <td>${escapeHtml(item.requestCode || "-")}</td>
+          <td>${escapeHtml(item.itemName || "-")}</td>
+          <td>${escapeHtml(item.qty || "-")}</td>
+          <td>${escapeHtml(item.unit || "-")}</td>
+          <td>${escapeHtml(item.totalPrice || item.price || "-")}</td>
           <td>${escapeHtml(item.note)}</td>
         </tr>
       `
@@ -2673,6 +3633,12 @@ function buildProcurementPOMarkup(record) {
 
   return `
     <div class="modal-detail-stack">
+      <section class="approval-strip" aria-label="Alur approval PO">
+        <div class="approval-flow approval-flow-horizontal approval-flow-compact">
+          ${approvalRows}
+        </div>
+      </section>
+
       <section class="form-section">
         <div class="form-section-head">
           <strong>Data PO</strong>
@@ -2683,8 +3649,8 @@ function buildProcurementPOMarkup(record) {
             <div class="detail-value">${escapeHtml(record.header.code)}</div>
           </div>
           <div class="detail-row">
-            <div class="detail-label">Ref Procurement</div>
-            <div class="detail-value">${escapeHtml(record.header.procurementCode)}</div>
+            <div class="detail-label">Penawaran</div>
+            <div class="detail-value">${escapeHtml(record.header.offerCode || getPoOfferSummary(record.items))}</div>
           </div>
           <div class="detail-row">
             <div class="detail-label">Vendor Final</div>
@@ -2695,20 +3661,12 @@ function buildProcurementPOMarkup(record) {
             <div class="detail-value">${escapeHtml(record.header.poDate)}</div>
           </div>
           <div class="detail-row">
-            <div class="detail-label">Target Kirim</div>
-            <div class="detail-value">${escapeHtml(record.header.deliveryDate)}</div>
-          </div>
-          <div class="detail-row">
-            <div class="detail-label">Nilai Order</div>
-            <div class="detail-value">${escapeHtml(record.header.amount)}</div>
-          </div>
-          <div class="detail-row">
-            <div class="detail-label">Status Dokumen</div>
+            <div class="detail-label">Status</div>
             <div class="detail-value">${escapeHtml(record.header.status)}</div>
           </div>
           <div class="detail-row">
-            <div class="detail-label">Lampiran</div>
-            <div class="detail-value">${escapeHtml(record.header.attachment)}</div>
+            <div class="detail-label">Catatan</div>
+            <div class="detail-value">${escapeHtml(record.header.notes || "-")}</div>
           </div>
         </div>
       </section>
@@ -2721,15 +3679,20 @@ function buildProcurementPOMarkup(record) {
           <table>
             <thead>
               <tr>
-                <th>Barang</th>
-                <th>Qty</th>
+                <th>No Pengajuan</th>
+                <th>Nama Barang</th>
+                <th>Jumlah</th>
                 <th>Satuan</th>
-                <th>Harga</th>
+                <th>Total Harga</th>
                 <th>Catatan</th>
               </tr>
             </thead>
             <tbody>${itemRows}</tbody>
           </table>
+        </div>
+        <div class="table-summary">
+          <span>Subtotal Total Harga</span>
+          <strong>${escapeHtml(formatRupiah(sumPoSubtotal(record.items || [])))}</strong>
         </div>
       </section>
     </div>
@@ -2769,6 +3732,7 @@ function applyCreateDefaults() {
 
   if (detailViewType === "procurement-penawaran") {
     setFieldValue(getField("quoteDate"), formatDateDisplay(new Date()));
+    setFieldValue(getField("quoteCode"), getNextQuoteReference());
   }
 
   if (detailViewType === "procurement-penawaran" && statusField) {
@@ -2777,6 +3741,10 @@ function applyCreateDefaults() {
 
   if (detailViewType === "procurement-po" && statusField) {
     statusField.value = "draft";
+  }
+
+  if (detailViewType === "procurement-po") {
+    setFieldValue(getField("poDate"), formatDateDisplay(new Date()));
   }
 
   if (entitySingular.toLowerCase() !== "barang") {
@@ -2805,7 +3773,7 @@ function getStatusChipClass(statusValue) {
     return "success";
   }
 
-  if (status.includes("nonaktif") || status.includes("ditolak")) {
+  if (status.includes("nonaktif") || status.includes("ditolak") || status.includes("dibatalkan")) {
     return "danger";
   }
 
@@ -2852,7 +3820,8 @@ function getNextQuoteReference() {
   const year = String(new Date().getFullYear());
   const matcher = new RegExp(`^PNW-${year}-(\\d+)$`, "i");
   const quoteCodes = [
-    ...draftQuoteItems.map((quote) => quote.code),
+    String(getField("quoteCode")?.value || ""),
+    ...Object.values(detailRecords).map((record) => record.header?.quoteCode),
     ...Object.values(detailRecords).flatMap((record) => (record.quotes || []).map((quote) => quote.code))
   ];
 
@@ -2883,6 +3852,26 @@ function formatDateInput(value) {
 
   const [year, month, day] = value.split("-").map(Number);
   return formatDateDisplay(new Date(year, (month || 1) - 1, day || 1));
+}
+
+function parseDisplayDateToInput(value) {
+  if (!value || value === "-") {
+    return "";
+  }
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return value;
+  }
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return "";
+  }
+
+  const year = parsed.getFullYear();
+  const month = String(parsed.getMonth() + 1).padStart(2, "0");
+  const day = String(parsed.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
 function recordExists(code) {

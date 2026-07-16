@@ -1357,6 +1357,47 @@ body[data-theme="dark"] .reference-meta-chip {
   margin-top: 4px;
 }
 
+.modal-action-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.table-group-row td {
+  background: var(--soft);
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.table-group-row strong {
+  display: inline-block;
+  margin-right: 10px;
+  color: var(--text);
+}
+
+.table-summary {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 14px;
+  margin-top: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--soft);
+}
+
+.table-summary span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.table-summary strong {
+  color: var(--text);
+  font-size: 14px;
+}
+
 .modal-card > .modal-actions {
   align-self: end;
   margin-top: 12px;
