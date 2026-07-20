@@ -982,6 +982,15 @@ body[data-theme="dark"] .table-action {
   height: min(760px, calc(100dvh - 20px));
 }
 
+.modal-card.receipt-list-modal {
+  width: min(680px, 100%);
+  height: min(700px, calc(100dvh - 20px));
+}
+
+.receipt-list-modal table {
+  min-width: 560px;
+}
+
 .modal-head {
   gap: 12px;
   margin-bottom: 14px;
@@ -1755,6 +1764,37 @@ body[data-detail-view] #detailModalBody.modal-form {
   flex-wrap: nowrap;
 }
 
+.table-input {
+  width: 100%;
+  min-width: 88px;
+  height: 34px;
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel);
+  color: var(--text);
+  font: inherit;
+  font-size: 11px;
+  outline: none;
+}
+
+.table-input:focus {
+  border-color: #2b80ff;
+  box-shadow: 0 0 0 3px rgba(43, 128, 255, 0.12);
+}
+
+[data-select-receipt-item] {
+  cursor: pointer;
+}
+
+[data-select-receipt-item]:hover {
+  background: #f6f9ff;
+}
+
+body[data-theme="dark"] [data-select-receipt-item]:hover {
+  background: #19263d;
+}
+
 .draft-items-table td:last-child,
 .draft-items-table th:last-child {
   width: 1%;
@@ -1931,11 +1971,74 @@ body[data-detail-view] #detailModalBody.modal-form {
     height: auto;
   }
 
+  .modal-actions > button,
+  .modal-actions .primary-button,
+  .modal-actions .secondary-button {
+    flex: 1 1 100%;
+    min-height: 40px;
+  }
+
   .detail-summary-compact .detail-list {
     grid-template-columns: 1fr;
   }
 
   .detail-table-section {
     min-height: 240px;
+  }
+
+  .receipt-items-wrap {
+    border: 0;
+    background: transparent;
+    overflow: visible;
+  }
+
+  .receipt-items-wrap table,
+  .receipt-items-wrap thead,
+  .receipt-items-wrap tbody,
+  .receipt-items-wrap tr,
+  .receipt-items-wrap td {
+    display: block;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .receipt-items-wrap thead {
+    display: none;
+  }
+
+  .receipt-items-wrap tr {
+    margin-bottom: 10px;
+    padding: 12px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background: var(--panel);
+  }
+
+  .receipt-items-wrap td {
+    display: grid;
+    grid-template-columns: 92px minmax(0, 1fr);
+    gap: 10px;
+    align-items: start;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .receipt-items-wrap td:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .receipt-items-wrap td::before {
+    content: attr(data-label);
+    color: var(--text-soft);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .receipt-items-wrap .table-action {
+    width: 100%;
+    min-height: 34px;
   }
 }

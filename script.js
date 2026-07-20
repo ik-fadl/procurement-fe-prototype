@@ -125,6 +125,15 @@ const cancelReceiptPoPickerModal = document.getElementById("cancelReceiptPoPicke
 const receiptPoPickerSearch = document.getElementById("receiptPoPickerSearch");
 const receiptPoPickerList = document.getElementById("receiptPoPickerList");
 const confirmReceiptPoPickerModal = document.getElementById("confirmReceiptPoPickerModal");
+const receiptItemInputBackdrop = document.getElementById("receiptItemInputBackdrop");
+const receiptItemInputCard = receiptItemInputBackdrop?.querySelector(".modal-card");
+const receiptItemInputForm = document.getElementById("receiptItemInputForm");
+const closeReceiptItemInputModal = document.getElementById("closeReceiptItemInputModal");
+const cancelReceiptItemInputModal = document.getElementById("cancelReceiptItemInputModal");
+const receiptPickerSelectedInfo = document.getElementById("receiptPickerSelectedInfo");
+const receiptPickerQty = document.getElementById("receiptPickerQty");
+const receiptPickerCondition = document.getElementById("receiptPickerCondition");
+const receiptPickerNotes = document.getElementById("receiptPickerNotes");
 const receiptItemsTableBody = document.getElementById("receiptItemsTableBody");
 
 const quickItemBackdrop = document.getElementById("quickItemBackdrop");
@@ -866,9 +875,13 @@ poDetailEditForm?.addEventListener("submit", (event) => {
 });
 
 openReceiptPoPickerModalButton?.addEventListener("click", () => {
-  selectedReceiptItemKeys = new Set(draftReceiptItems.map(getReceiptItemKey));
+  selectedReceiptItemKeys = new Set();
   setFieldValue(receiptPoPickerSearch, "");
+  setFieldValue(receiptPickerQty, "");
+  setFieldValue(receiptPickerCondition, "sesuai");
+  setFieldValue(receiptPickerNotes, "");
   renderReceiptPoPicker("");
+  renderReceiptPickerSelection();
   openManagedModal(receiptPoPickerBackdrop, receiptPoPickerCard, receiptPoPickerSearch);
 });
 
@@ -882,23 +895,72 @@ receiptPoPickerSearch?.addEventListener("input", (event) => {
   renderReceiptPoPicker(event.target.value);
 });
 
-receiptPoPickerList?.addEventListener("change", (event) => {
-  const control = event.target.closest("[data-toggle-receipt-item]");
-  if (!control) {
+receiptPoPickerList?.addEventListener("click", (event) => {
+  const selectedRow = event.target.closest("[data-select-receipt-item]");
+  if (!selectedRow) {
     return;
   }
 
-  if (control.checked) {
-    selectedReceiptItemKeys = new Set([control.dataset.toggleReceiptItem]);
-  } else {
-    selectedReceiptItemKeys.clear();
-  }
+  openReceiptItemInputDialog(selectedRow.dataset.selectReceiptItem);
 });
 
 confirmReceiptPoPickerModal?.addEventListener("click", () => {
   if (applySelectedReceiptItems()) {
     closeManagedModal(receiptPoPickerBackdrop, receiptPoPickerCard, null, { resetForm: false });
   }
+});
+
+[closeReceiptItemInputModal, cancelReceiptItemInputModal].forEach((button) => {
+  button?.addEventListener("click", () => {
+    closeManagedModal(receiptItemInputBackdrop, receiptItemInputCard, receiptItemInputForm);
+  });
+});
+
+receiptItemInputBackdrop?.addEventListener("click", (event) => {
+  if (event.target === receiptItemInputBackdrop) {
+    closeManagedModal(receiptItemInputBackdrop, receiptItemInputCard, receiptItemInputForm);
+  }
+});
+
+receiptItemInputForm?.addEventListener("submit", (event) => {
+  event.preventDefault();
+  if (applySelectedReceiptItems()) {
+    closeManagedModal(receiptItemInputBackdrop, receiptItemInputCard, receiptItemInputForm);
+    closeManagedModal(receiptPoPickerBackdrop, receiptPoPickerCard, null, { resetForm: false });
+  }
+});
+
+receiptItemsTableBody?.addEventListener("input", (event) => {
+  const qtyField = event.target.closest("[data-receipt-qty]");
+  if (!qtyField) {
+    return;
+  }
+
+  updateReceiptItem(qtyField.dataset.receiptQty, { receivedQty: qtyField.value });
+});
+
+receiptItemsTableBody?.addEventListener("change", (event) => {
+  const conditionField = event.target.closest("[data-receipt-condition]");
+  if (!conditionField) {
+    return;
+  }
+
+  updateReceiptItem(conditionField.dataset.receiptCondition, { condition: conditionField.value });
+});
+
+receiptItemsTableBody?.addEventListener("click", (event) => {
+  const editButton = event.target.closest("[data-edit-receipt-item]");
+  if (editButton) {
+    openReceiptItemInputDialog(editButton.dataset.editReceiptItem);
+    return;
+  }
+
+  const removeButton = event.target.closest("[data-remove-receipt-item]");
+  if (!removeButton) {
+    return;
+  }
+
+  removeReceiptItem(removeButton.dataset.removeReceiptItem);
 });
 
 dismissAlert?.addEventListener("click", () => {
@@ -1210,7 +1272,8 @@ function setEditMode(data) {
 function startDraftEdit(code) {
   const record = detailRecords[code];
   if (!record || !canEditDraftRecord(record)) {
-    showAlert("warning", "Tidak bisa diedit", "Data hanya bisa diubah saat status masih draft.");
+    const editableStatus = detailViewType === "penerimaan-barang" ? "menunggu" : "draft";
+    showAlert("warning", "Tidak bisa diedit", `Data hanya bisa diubah saat status masih ${editableStatus}.`);
     return;
   }
 
@@ -1221,7 +1284,8 @@ function startDraftEdit(code) {
 }
 
 function canEditDraftRecord(record) {
-  if (String(record?.header?.status || "") !== "draft") {
+  const editableStatus = detailViewType === "penerimaan-barang" ? "menunggu" : "draft";
+  if (String(record?.header?.status || "") !== editableStatus) {
     return false;
   }
 
@@ -1266,7 +1330,7 @@ function prepareCreateModalForEdit(record, code) {
   clearSelectedItem();
 
   if (createModalKicker) {
-    createModalKicker.textContent = "Edit Draft";
+    createModalKicker.textContent = detailViewType === "penerimaan-barang" ? "Edit Penerimaan" : "Edit Draft";
   }
 
   if (createModalTitle) {
@@ -1341,22 +1405,14 @@ function fillDraftEditForm(record, code) {
   }
 
   if (detailViewType === "penerimaan-barang") {
-    selectedReceiptPo = getReceivablePoSources().find((po) => po.noPo === header.noPo) || null;
-    const receiptDetail = record.poDetail || record.items?.[0] || selectedReceiptPo?.items?.[0] || {};
     setFieldValue(getField("code"), header.code || code);
-    setFieldValue(getField("receiptPo"), header.noPo || "");
+    setFieldValue(getField("receiptPo"), getReceiptPoSummary(record.items || []));
     setFieldValue(getField("receiptDate"), header.receiptDate || formatDateDisplay(new Date()));
-    setFieldValue(getField("receivedBy"), header.receivedBy || "USR-PUR-001 - Rani Purchasing");
-    setFieldValue(getField("qtyReceived"), header.qtyReceived || "");
-    setFieldValue(getField("condition"), header.condition || "");
-    setFieldValue(getField("status"), header.status || "draft");
-    setFieldValue(getField("notes"), header.notes || "");
-    draftReceiptItems = receiptDetail.itemName ? [{
-      noPo: header.noPo,
-      vendor: selectedReceiptPo?.vendor || record.po?.vendor || "-",
-      poDate: selectedReceiptPo?.poDate || record.po?.poDate || "-",
-      ...receiptDetail
-    }] : [];
+    draftReceiptItems = (record.items || []).map((item, index) => ({
+      ...item,
+      noUrut: Number(item.noUrut || index + 1),
+      status: item.status || "menunggu"
+    }));
     renderReceiptItems();
   }
 }
@@ -1712,6 +1768,7 @@ function getReceivablePoSources() {
       totalQty: "8",
       items: [
         {
+          noUrutPo: 1,
           requestCode: "2026/PP/GA/07/0016",
           itemName: "Meja Kerja Modular",
           qty: "8",
@@ -1729,6 +1786,7 @@ function getReceivablePoSources() {
       totalQty: "6",
       items: [
         {
+          noUrutPo: 1,
           requestCode: "2026/PP/IT/07/0004",
           itemName: "Access Point Dual Band",
           qty: "4",
@@ -1736,6 +1794,7 @@ function getReceivablePoSources() {
           subtotal: "Rp26.000.000"
         },
         {
+          noUrutPo: 2,
           requestCode: "2026/PP/IT/07/0004",
           itemName: "Managed Switch 24 Port",
           qty: "2",
@@ -1753,6 +1812,7 @@ function getReceivablePoSources() {
       totalQty: "10",
       items: [
         {
+          noUrutPo: 1,
           requestCode: "2026/PP/OPS/07/0010",
           itemName: "Kursi Tamu Kantor",
           qty: "10",
@@ -2065,46 +2125,59 @@ function submitGenericForm() {
     }
 
     if (!draftReceiptItems.length) {
-      showAlert("error", "Detail PO belum dipilih", "Pilih satu detail PO sebelum menyimpan penerimaan.");
+      showAlert("error", "Barang belum dipilih", "Pilih minimal satu barang dari detail PO sebelum menyimpan penerimaan.");
       openReceiptPoPickerModalButton?.focus();
       return;
     }
 
-    const selectedDetail = draftReceiptItems[0];
-    const noPo = selectedDetail.noPo || "";
-    const qtyReceived = String(formData.get("qty_diterima") || "").trim();
-    const status = "draft";
-    const record = {
-      header: {
-        code: savedRef,
-        noPo,
-        receiptDate: String(formData.get("tgl_penerimaan") || "").trim() || formatDateDisplay(new Date()),
-        receivedBy: "USR-PUR-001 - Rani Purchasing",
-        qtyReceived,
-        condition: String(formData.get("kondisi_barang") || "").trim() || "sesuai",
-        status,
-        notes: String(formData.get("catatan") || "").trim() || "-"
-      },
-      po: selectedReceiptPo || getReceivablePoSources().find((po) => po.noPo === noPo) || null,
-      poDetail: { ...selectedDetail, receivedQty: qtyReceived },
-      items: [{ ...selectedDetail, receivedQty: qtyReceived }]
-    };
+    const invalidItem = draftReceiptItems.find((item) => {
+      const qty = Number(item.receivedQty || 0);
+      const maxQty = Number(item.qty || 0);
+      return qty <= 0 || (maxQty > 0 && qty > maxQty);
+    });
+    if (invalidItem) {
+      showAlert("error", "Qty tidak valid", `Qty terima ${invalidItem.itemName || "barang"} harus lebih dari 0 dan tidak melebihi qty PO.`);
+      return;
+    }
+
+    const status = "menunggu";
+    const receiptDate = String(formData.get("tgl_penerimaan") || "").trim() || formatDateDisplay(new Date());
 
     if (isEditingDraft) {
       removeMainTableRow(editingRecordCode);
-      if (editingRecordCode !== savedRef) {
-        delete detailRecords[editingRecordCode];
-      }
+      delete detailRecords[editingRecordCode];
     }
+
+    const items = draftReceiptItems.map((item, index) => ({
+      ...item,
+      noUrut: index + 1,
+      noUrutPo: Number(item.noUrutPo || index + 1),
+      status
+    }));
+    const record = {
+      header: {
+        code: savedRef,
+        receiptDate,
+        receivedBy: "USR-PUR-001 - Rani Purchasing",
+        status
+      },
+      items
+    };
 
     detailRecords[savedRef] = record;
     prependPenerimaanBarangRow(record);
   }
 
   closeManagedModal(createModalBackdrop, createModalCard, requestForm, { resetForm: false });
+  const successTitle =
+    detailViewType === "penerimaan-barang" && isEditingDraft
+      ? "Penerimaan berhasil diperbarui"
+      : isEditingDraft
+        ? "Draft berhasil diperbarui"
+        : "Data berhasil disimpan";
   showAlert(
     "success",
-    isEditingDraft ? "Draft berhasil diperbarui" : "Data berhasil disimpan",
+    successTitle,
     `${entityPlural} telah disimpan dan siap dipakai oleh modul terkait.`
   );
   resetCreateState();
@@ -2360,19 +2433,28 @@ function handlePenerimaanAction(action, code) {
   }
 
   if (action === "start_receipt_check") {
-    record.header.status = "pemeriksaan";
-    showPenerimaanActionResult(code, "Pemeriksaan dimulai", `${code} masuk ke status pemeriksaan barang.`);
+    record.items = (record.items || []).map((item) => ({ ...item, status: "diperiksa" }));
+    record.header.status = "diperiksa";
+    showPenerimaanActionResult(code, "Pemeriksaan dimulai", `${code} masuk ke pemeriksaan barang.`);
     return;
   }
 
   if (action === "complete_receipt") {
-    record.header.status = "selesai";
+    record.items = (record.items || []).map((item) => ({
+      ...item,
+      status: Number(item.receivedQty || 0) < Number(item.qty || 0) ? "diterima_sebagian" : "selesai"
+    }));
+    record.header.status = getReceiptAggregateStatus(record.items);
     showPenerimaanActionResult(code, "Penerimaan selesai", `${code} selesai dan dapat menjadi dasar proses berikutnya.`);
     return;
   }
 
   if (action === "mark_receipt_issue") {
-    record.header.status = "ada_masalah";
+    record.items = (record.items || []).map((item) => ({
+      ...item,
+      status: item.condition === "sesuai" ? "diperiksa" : "bermasalah"
+    }));
+    record.header.status = "bermasalah";
     showPenerimaanActionResult(code, "Penerimaan bermasalah", `${code} ditandai ada masalah untuk tindak lanjut retur/koreksi.`);
   }
 }
@@ -2383,9 +2465,9 @@ function canRunPenerimaanAction(action, status) {
   }
 
   const actionRules = {
-    start_receipt_check: activeRole === "purchasing" && status === "draft",
-    complete_receipt: activeRole === "purchasing" && status === "pemeriksaan",
-    mark_receipt_issue: activeRole === "purchasing" && status === "pemeriksaan"
+    start_receipt_check: activeRole === "purchasing" && status === "menunggu",
+    complete_receipt: activeRole === "purchasing" && status === "diperiksa",
+    mark_receipt_issue: activeRole === "purchasing" && status === "diperiksa"
   };
 
   return Boolean(actionRules[action]);
@@ -2396,6 +2478,27 @@ function showPenerimaanActionResult(code, title, message) {
   updateRequestRowStatus(code, record.header.status);
   renderDetailModal(record, code);
   showAlert("success", title, message);
+}
+
+function getReceiptAggregateStatus(items = []) {
+  const statuses = Array.from(new Set(items.map((item) => item.status || "menunggu")));
+  if (!statuses.length || statuses.every((status) => status === "menunggu")) {
+    return "menunggu";
+  }
+  if (statuses.includes("bermasalah")) {
+    return "bermasalah";
+  }
+  if (statuses.includes("diperiksa")) {
+    return "diperiksa";
+  }
+  if (statuses.includes("diterima_sebagian")) {
+    return "diterima_sebagian";
+  }
+  if (statuses.every((status) => status === "selesai" || status === "diterima")) {
+    return "selesai";
+  }
+
+  return statuses.length === 1 ? statuses[0] : "diproses";
 }
 
 function updateRequestRowStatus(code, status) {
@@ -2542,24 +2645,25 @@ function prependPenerimaanBarangRow(record) {
   });
 
   const { header } = record;
-  const item = record.poDetail || record.items?.[0] || record.po?.items?.[0] || {};
-  const vendor = item.vendor || record.po?.vendor || "-";
-  const qtyPo = `${item.qty || "-"} ${item.unit || ""}`.trim();
-  const qtyReceived = `${header.qtyReceived || item.receivedQty || "-"} ${item.unit || ""}`.trim();
+  const items = record.items || [];
+  const poSummary = getReceiptPoSummary(items) || "-";
+  const totalQty = items.reduce((total, item) => total + Number(item.receivedQty || 0), 0);
+  const qtyReceived = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 2 }).format(totalQty);
+  const status = getReceiptAggregateStatus(items);
+  header.status = status;
   const row = document.createElement("tr");
   row.className = "master-slave-row is-active";
   row.innerHTML = `
     <td>${escapeHtml(header.code)}</td>
-    <td>${escapeHtml(header.noPo)}</td>
-    <td>${escapeHtml(vendor)}</td>
-    <td>${escapeHtml(item.itemName || "-")}</td>
-    <td>${escapeHtml(qtyPo)}</td>
-    <td>${escapeHtml(qtyReceived)}</td>
     <td>${escapeHtml(header.receiptDate)}</td>
-    <td><span class="status-chip ${getStatusChipClass(header.status)}">${escapeHtml(header.status)}</span></td>
+    <td>${escapeHtml(`${items.length} barang`)}</td>
+    <td>${escapeHtml(poSummary)}</td>
+    <td>${escapeHtml(qtyReceived)}</td>
+    <td>${escapeHtml(header.receivedBy || "-")}</td>
+    <td><span class="status-chip ${getStatusChipClass(status)}">${escapeHtml(status)}</span></td>
     <td>
       <button class="table-action" type="button" data-detail="true" data-code="${escapeHtml(header.code)}" data-status="${escapeHtml(
-        header.status
+        status
       )}">
         View
       </button>
@@ -2659,6 +2763,7 @@ function closeAllModals(options = {}) {
   closeManagedModal(poItemPickerBackdrop, poItemPickerCard, null, { resetForm: false });
   closeManagedModal(poDetailEditBackdrop, poDetailEditCard, poDetailEditForm, options);
   closeManagedModal(receiptPoPickerBackdrop, receiptPoPickerCard, null, { resetForm: false });
+  closeManagedModal(receiptItemInputBackdrop, receiptItemInputCard, receiptItemInputForm, options);
   closeManagedModal(itemPickerBackdrop, itemPickerCard, null, { resetForm: false });
   closeManagedModal(quickItemBackdrop, quickItemCard, quickItemForm, options);
 }
@@ -2675,6 +2780,7 @@ function areAllModalsClosed() {
     poItemPickerBackdrop,
     poDetailEditBackdrop,
     receiptPoPickerBackdrop,
+    receiptItemInputBackdrop,
     itemPickerBackdrop,
     quickItemBackdrop
   ].every((backdrop) => !backdrop || backdrop.hidden);
@@ -2755,7 +2861,7 @@ function renderDetailModal(record, code) {
   detailModalKicker.textContent = "Detail";
   detailModalTitle.textContent = code ? `Detail ${code}` : `Detail ${entitySingular}`;
   detailModalCard.classList.add("modal-card-wide");
-  detailModalCard.classList.toggle("modal-card-content-fit", detailViewType === "penerimaan-barang");
+  detailModalCard.classList.remove("modal-card-content-fit");
 
   if (!record) {
     detailModalBody.innerHTML = `
@@ -3025,13 +3131,14 @@ function getDraftEditButton(record) {
   }
 
   const code = getRecordPrimaryCode(record);
+  const label = detailViewType === "penerimaan-barang" ? "Edit Penerimaan" : "Edit Draft";
   return `
     <button
       class="secondary-button"
       type="button"
       data-edit-draft-record="${escapeHtml(code)}"
     >
-      Edit Draft
+      ${label}
     </button>
   `;
 }
@@ -3209,16 +3316,25 @@ function renderPenerimaanActions(record) {
   }
 
   const status = String(record?.header?.status || "");
-  const actions = getPenerimaanActionsForRole(status);
+  const hasIssue = (record.items || []).some((item) => item.condition && item.condition !== "sesuai");
+  const actions = getPenerimaanActionsForRole(status).filter((action) => {
+    if (action.action === "mark_receipt_issue") {
+      return hasIssue;
+    }
+    if (action.action === "complete_receipt") {
+      return !hasIssue;
+    }
+    return true;
+  });
   detailStatusActions.innerHTML = renderActionButtons(record, actions);
 }
 
 function getPenerimaanActionsForRole(status) {
   const allActions = {
-    draft: [
+    menunggu: [
       { action: "start_receipt_check", label: "mulai pemeriksaan", variant: "primary-button" }
     ],
-    pemeriksaan: [
+    diperiksa: [
       { action: "mark_receipt_issue", label: "ada masalah", variant: "secondary-button danger-button" },
       { action: "complete_receipt", label: "selesai", variant: "primary-button" }
     ]
@@ -4278,7 +4394,7 @@ function renderReceiptPoPicker(query = "") {
   if (!rows.length) {
     receiptPoPickerList.innerHTML = `
       <tr>
-        <td colspan="8" class="empty-table-cell">Detail PO tidak ditemukan.</td>
+        <td colspan="4" class="empty-table-cell">Barang PO tidak ditemukan.</td>
       </tr>
     `;
     return;
@@ -4289,22 +4405,21 @@ function renderReceiptPoPicker(query = "") {
       (item) => {
         const key = getReceiptItemKey(item);
         return `
-        <tr>
+        <tr data-select-receipt-item="${escapeHtml(key)}">
           <td>
-            <input
-              type="radio"
-              name="receipt_detail_po"
-              data-toggle-receipt-item="${escapeHtml(key)}"
-              ${selectedReceiptItemKeys.has(key) ? "checked" : ""}
-            />
+            <div class="cell-stack">
+              <strong>${escapeHtml(item.itemName || "-")}</strong>
+              <span>${escapeHtml(item.requestCode || "-")}</span>
+            </div>
           </td>
-          <td><strong>${escapeHtml(item.noPo)}</strong></td>
-          <td>${escapeHtml(item.vendor)}</td>
-          <td>${escapeHtml(item.requestCode || "-")}</td>
-          <td>${escapeHtml(item.itemName || "-")}</td>
-          <td>${escapeHtml(item.qty || "-")}</td>
-          <td>${escapeHtml(item.unit || "-")}</td>
-          <td>${escapeHtml(item.subtotal || "-")}</td>
+          <td>
+            <div class="cell-stack">
+              <strong>${escapeHtml(item.noPo)}</strong>
+              <span>${escapeHtml(item.vendor)}</span>
+            </div>
+          </td>
+          <td>${escapeHtml(item.qty || "-")} ${escapeHtml(item.unit || "")}</td>
+          <td><button class="table-action" type="button">Pilih</button></td>
         </tr>
       `;
       }
@@ -4325,30 +4440,98 @@ function getReceivablePoItems() {
 }
 
 function getReceiptItemKey(item) {
-  return [item.noPo, item.requestCode, item.itemName].filter(Boolean).join("|");
+  return [item.noPo, item.noUrutPo, item.itemName].filter((value) => value !== undefined && value !== null).join("|");
+}
+
+function getSelectedReceiptPickerItem() {
+  const selectedKey = Array.from(selectedReceiptItemKeys)[0];
+  return getReceivablePoItems().find((item) => getReceiptItemKey(item) === selectedKey) || null;
+}
+
+function openReceiptItemInputDialog(key) {
+  selectedReceiptItemKeys = new Set([key]);
+  renderReceiptPickerSelection();
+  openManagedModal(receiptItemInputBackdrop, receiptItemInputCard, receiptPickerQty);
+}
+
+function renderReceiptPickerSelection() {
+  if (!receiptPickerSelectedInfo) {
+    return;
+  }
+
+  const item = getSelectedReceiptPickerItem();
+  if (!item) {
+    receiptPickerSelectedInfo.innerHTML = `<span>Pilih barang yang datang dari daftar PO.</span>`;
+    setFieldValue(receiptPickerNotes, "");
+    if (receiptPickerQty) {
+      receiptPickerQty.removeAttribute("max");
+    }
+    return;
+  }
+
+  const existing = draftReceiptItems.find((receiptItem) => getReceiptItemKey(receiptItem) === getReceiptItemKey(item));
+  setFieldValue(receiptPickerQty, existing?.receivedQty || item.qty || "");
+  setFieldValue(receiptPickerCondition, existing?.condition || "sesuai");
+  setFieldValue(receiptPickerNotes, existing?.notes === "-" ? "" : existing?.notes || "");
+  if (receiptPickerQty) {
+    receiptPickerQty.max = String(item.qty || "");
+  }
+
+  receiptPickerSelectedInfo.innerHTML = `
+    <div>
+      <strong>${escapeHtml(item.itemName || "-")}</strong>
+      <span>${escapeHtml(item.noPo || "-")} - ${escapeHtml(item.vendor || "-")}</span>
+    </div>
+    <div class="selected-reference-meta">
+      <span>Qty PO: ${escapeHtml(item.qty || "-")} ${escapeHtml(item.unit || "")}</span>
+      <span>No Pengajuan: ${escapeHtml(item.requestCode || "-")}</span>
+    </div>
+  `;
 }
 
 function applySelectedReceiptItems() {
   if (!selectedReceiptItemKeys.size) {
-    showAlert("warning", "Detail PO belum dipilih", "Pilih satu detail PO sebelum menekan pilih.");
+    showAlert("warning", "Barang belum dipilih", "Pilih barang yang datang terlebih dahulu.");
     return false;
   }
 
   const selectedKey = Array.from(selectedReceiptItemKeys)[0];
   const item = getReceivablePoItems().find((poItem) => getReceiptItemKey(poItem) === selectedKey);
   if (!item) {
-    showAlert("warning", "Detail PO tidak ditemukan", "Pilih ulang detail PO yang masih tersedia.");
+    showAlert("warning", "Barang tidak ditemukan", "Pilih ulang barang PO yang masih tersedia.");
     return false;
   }
 
-  draftReceiptItems = [{ ...item }];
-  selectedReceiptPo = getReceivablePoSources().find((po) => po.noPo === item.noPo) || null;
+  const receivedQty = String(receiptPickerQty?.value || "").trim();
+  const qty = Number(receivedQty);
+  const maxQty = Number(item.qty || 0);
+  if (qty <= 0 || (maxQty > 0 && qty > maxQty)) {
+    showAlert("error", "Jumlah tidak valid", "Jumlah diterima harus lebih dari 0 dan tidak boleh melebihi qty PO.");
+    receiptPickerQty?.focus();
+    return false;
+  }
+
+  const nextItem = {
+    ...item,
+    receivedQty,
+    condition: String(receiptPickerCondition?.value || "sesuai"),
+    notes: String(receiptPickerNotes?.value || "").trim() || "-"
+  };
+  const existingIndex = draftReceiptItems.findIndex((receiptItem) => getReceiptItemKey(receiptItem) === selectedKey);
+  if (existingIndex >= 0) {
+    draftReceiptItems[existingIndex] = nextItem;
+  } else {
+    draftReceiptItems.push(nextItem);
+  }
+
+  selectedReceiptPo = null;
+  selectedReceiptItemKeys = new Set();
   syncReceiptDerivedFields();
   renderReceiptItems();
   return true;
 }
 
-function renderReceiptItems() {
+function renderReceiptItemsLegacy() {
   if (!receiptItemsTableBody) {
     return;
   }
@@ -4371,12 +4554,83 @@ function renderReceiptItems() {
   `;
 }
 
-function syncReceiptDerivedFields() {
-  const item = draftReceiptItems[0];
-  setFieldValue(getField("receiptPo"), item?.noPo || "");
-  if (item) {
-    setFieldValue(getField("qtyReceived"), item.qty || "");
+function renderReceiptItems() {
+  if (!receiptItemsTableBody) {
+    return;
   }
+
+  if (!draftReceiptItems.length) {
+    receiptItemsTableBody.innerHTML = `
+      <tr>
+        <td colspan="8" class="empty-table-cell">Belum ada barang dipilih.</td>
+      </tr>
+    `;
+    return;
+  }
+
+  receiptItemsTableBody.innerHTML = draftReceiptItems
+    .map((item, index) => {
+      const key = getReceiptItemKey(item);
+      return `
+        <tr>
+          <td data-label="No">${index + 1}</td>
+          <td data-label="PO">
+            <div class="cell-stack">
+              <strong>${escapeHtml(item.noPo || "-")}</strong>
+              <span>${escapeHtml(item.vendor || "-")}</span>
+            </div>
+          </td>
+          <td data-label="Barang">
+            <div class="cell-stack">
+              <strong>${escapeHtml(item.itemName || "-")}</strong>
+              <span>${escapeHtml(item.requestCode || "-")}</span>
+            </div>
+          </td>
+          <td data-label="Qty PO">${escapeHtml(item.qty || "-")} ${escapeHtml(item.unit || "")}</td>
+          <td data-label="Qty Terima">${escapeHtml(item.receivedQty || "-")} ${escapeHtml(item.unit || "")}</td>
+          <td data-label="Kondisi"><span class="status-chip ${getStatusChipClass(item.condition || "sesuai")}">${escapeHtml(item.condition || "sesuai")}</span></td>
+          <td data-label="Catatan">${escapeHtml(item.notes || "-")}</td>
+          <td data-label="Aksi">
+            <div class="table-action-group">
+              <button class="table-action" type="button" data-edit-receipt-item="${escapeHtml(key)}">Edit</button>
+              <button class="table-action" type="button" data-remove-receipt-item="${escapeHtml(key)}">Hapus</button>
+            </div>
+          </td>
+        </tr>
+      `;
+    })
+    .join("");
+}
+
+function syncReceiptDerivedFields() {
+  setFieldValue(getField("receiptPo"), getReceiptPoSummary(draftReceiptItems));
+}
+
+function getReceiptPoSummary(items = []) {
+  const poCodes = Array.from(new Set(items.map((item) => item.noPo).filter(Boolean)));
+  if (!poCodes.length) {
+    return "";
+  }
+
+  return poCodes.length === 1 ? poCodes[0] : `${poCodes.length} PO`;
+}
+
+function updateReceiptItem(key, patch) {
+  draftReceiptItems = draftReceiptItems.map((item) =>
+    getReceiptItemKey(item) === key ? { ...item, ...patch } : item
+  );
+}
+
+function removeReceiptItem(key) {
+  draftReceiptItems = draftReceiptItems.filter((item) => getReceiptItemKey(item) !== key);
+  selectedReceiptItemKeys = new Set(draftReceiptItems.map(getReceiptItemKey));
+  syncReceiptDerivedFields();
+  renderReceiptItems();
+}
+
+function getReceiptConditionSummary(items = []) {
+  const conditions = Array.from(new Set(items.map((item) => item.condition || "sesuai")));
+  return conditions.length === 1 ? conditions[0] : `${conditions.length} kondisi`;
 }
 
 function sumPoSubtotal(items = []) {
@@ -4839,11 +5093,34 @@ function buildProcurementPOMarkup(record) {
 }
 
 function buildPenerimaanBarangMarkup(record) {
-  const po = record.po || getReceivablePoSources().find((item) => item.noPo === record.header.noPo) || {};
-  const item = record.poDetail || record.items?.[0] || po.items?.[0] || {};
+  const items = record.items || [];
+  const status = getReceiptAggregateStatus(items);
+  const totalQty = items.reduce((total, item) => total + Number(item.receivedQty || 0), 0);
+  const formattedTotalQty = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 2 }).format(totalQty);
+  const itemRows = items
+    .map(
+      (item, index) => `
+        <tr>
+          <td>${escapeHtml(item.noUrut || index + 1)}</td>
+          <td>
+            <div class="cell-stack">
+              <strong>${escapeHtml(item.noPo || "-")}</strong>
+              <span>Item ${escapeHtml(item.noUrutPo || "-")}</span>
+            </div>
+          </td>
+          <td>${escapeHtml(item.itemName || "-")}</td>
+          <td>${escapeHtml(item.qty || "-")} ${escapeHtml(item.unit || "")}</td>
+          <td>${escapeHtml(item.receivedQty || "-")} ${escapeHtml(item.unit || "")}</td>
+          <td>${escapeHtml(item.condition || "-")}</td>
+          <td>${escapeHtml(item.notes || "-")}</td>
+          <td><span class="status-chip ${getStatusChipClass(item.status)}">${escapeHtml(item.status || "menunggu")}</span></td>
+        </tr>
+      `
+    )
+    .join("");
 
   return `
-    <div class="modal-detail-stack">
+    <div class="modal-detail-stack detail-modal-fill">
       <section class="form-section detail-summary-compact">
         <div class="form-section-head">
           <strong>Data Penerimaan</strong>
@@ -4854,10 +5131,6 @@ function buildPenerimaanBarangMarkup(record) {
             <div class="detail-value">${escapeHtml(record.header.code)}</div>
           </div>
           <div class="detail-row">
-            <div class="detail-label">No PO</div>
-            <div class="detail-value">${escapeHtml(record.header.noPo)}</div>
-          </div>
-          <div class="detail-row">
             <div class="detail-label">Tanggal</div>
             <div class="detail-value">${escapeHtml(record.header.receiptDate)}</div>
           </div>
@@ -4866,53 +5139,40 @@ function buildPenerimaanBarangMarkup(record) {
             <div class="detail-value">${escapeHtml(record.header.receivedBy)}</div>
           </div>
           <div class="detail-row">
-            <div class="detail-label">Qty Diterima</div>
-            <div class="detail-value">${escapeHtml(record.header.qtyReceived)} ${escapeHtml(item.unit || "")}</div>
+            <div class="detail-label">Total Item</div>
+            <div class="detail-value">${escapeHtml(items.length)}</div>
           </div>
           <div class="detail-row">
-            <div class="detail-label">Kondisi Barang</div>
-            <div class="detail-value">${escapeHtml(record.header.condition)}</div>
+            <div class="detail-label">Total Diterima</div>
+            <div class="detail-value">${escapeHtml(formattedTotalQty)}</div>
           </div>
           <div class="detail-row">
             <div class="detail-label">Status</div>
-            <div class="detail-value">${escapeHtml(record.header.status)}</div>
-          </div>
-          <div class="detail-row">
-            <div class="detail-label">Catatan</div>
-            <div class="detail-value">${escapeHtml(record.header.notes || "-")}</div>
+            <div class="detail-value">${escapeHtml(status)}</div>
           </div>
         </div>
       </section>
 
-      <section class="form-section detail-summary-compact">
+      <section class="form-section detail-table-section">
         <div class="form-section-head">
-          <strong>Detail PO Dipilih</strong>
+          <strong>Barang Diterima</strong>
         </div>
-        <div class="detail-list">
-          <div class="detail-row">
-            <div class="detail-label">Vendor</div>
-            <div class="detail-value">${escapeHtml(po.vendor || "-")}</div>
-          </div>
-          <div class="detail-row">
-            <div class="detail-label">Tanggal PO</div>
-            <div class="detail-value">${escapeHtml(po.poDate || "-")}</div>
-          </div>
-          <div class="detail-row">
-            <div class="detail-label">No Pengajuan</div>
-            <div class="detail-value">${escapeHtml(item.requestCode || "-")}</div>
-          </div>
-          <div class="detail-row">
-            <div class="detail-label">Nama Barang</div>
-            <div class="detail-value">${escapeHtml(item.itemName || "-")}</div>
-          </div>
-          <div class="detail-row">
-            <div class="detail-label">Qty PO</div>
-            <div class="detail-value">${escapeHtml(item.qty || "-")} ${escapeHtml(item.unit || "")}</div>
-          </div>
-          <div class="detail-row">
-            <div class="detail-label">Subtotal</div>
-            <div class="detail-value">${escapeHtml(item.subtotal || item.totalPrice || "-")}</div>
-          </div>
+        <div class="table-wrap detail-table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>No</th>
+                <th>Referensi PO</th>
+                <th>Nama Barang</th>
+                <th>Qty PO</th>
+                <th>Qty Terima</th>
+                <th>Kondisi</th>
+                <th>Catatan</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>${itemRows || `<tr><td colspan="8" class="empty-table-cell">Belum ada barang.</td></tr>`}</tbody>
+          </table>
         </div>
       </section>
     </div>
@@ -5002,7 +5262,13 @@ function getStatusChipClass(statusValue) {
     return "review";
   }
 
-  if (status.includes("aktif") || status.includes("approved") || status.includes("siap") || status.includes("selesai")) {
+  if (
+    status.includes("aktif") ||
+    status.includes("approved") ||
+    status.includes("siap") ||
+    status.includes("selesai") ||
+    status.includes("diterima")
+  ) {
     return "success";
   }
 
@@ -5010,7 +5276,7 @@ function getStatusChipClass(statusValue) {
     return "danger";
   }
 
-  if (status.includes("review")) {
+  if (status.includes("review") || status.includes("diperiksa")) {
     return "info";
   }
 

@@ -155,12 +155,11 @@
               <thead>
                 <tr>
                   <th>No Penerimaan</th>
-                  <th>No PO</th>
-                  <th>Vendor</th>
-                  <th>Nama Barang</th>
-                  <th>Qty PO</th>
-                  <th>Qty Diterima</th>
                   <th>Tanggal</th>
+                  <th>Total Item</th>
+                  <th>No PO</th>
+                  <th>Total Diterima</th>
+                  <th>Petugas</th>
                   <th>Status</th>
                   <th>View</th>
                 </tr>
@@ -168,25 +167,23 @@
               <tbody id="requestTableBody">
                 <tr class="master-slave-row is-active">
                   <td>RCV-2026-0001</td>
-                  <td>PO-2026-0181</td>
-                  <td>PT Office Hub</td>
-                  <td>Meja Kerja Modular</td>
-                  <td>8 Set</td>
-                  <td>8 Set</td>
                   <td>16 Jul 2026</td>
-                  <td><span class="status-chip waiting">draft</span></td>
+                  <td>2 barang</td>
+                  <td>PO-2026-0188</td>
+                  <td>6</td>
+                  <td>Rani Purchasing</td>
+                  <td><span class="status-chip waiting">menunggu</span></td>
                   <td>
-                    <button class="table-action" type="button" data-detail="true" data-code="RCV-2026-0001" data-status="draft">View</button>
+                    <button class="table-action" type="button" data-detail="true" data-code="RCV-2026-0001" data-status="menunggu">View</button>
                   </td>
                 </tr>
                 <tr class="master-slave-row">
                   <td>RCV-2026-0002</td>
-                  <td>PO-2026-0176</td>
-                  <td>PT Sarana Office</td>
-                  <td>Kursi Tamu Kantor</td>
-                  <td>10 Pcs</td>
-                  <td>10 Pcs</td>
                   <td>15 Jul 2026</td>
+                  <td>1 barang</td>
+                  <td>PO-2026-0176</td>
+                  <td>10</td>
+                  <td>Rani Purchasing</td>
                   <td><span class="status-chip success">selesai</span></td>
                   <td>
                     <button class="table-action" type="button" data-detail="true" data-code="RCV-2026-0002" data-status="selesai">View</button>
@@ -230,49 +227,47 @@
             </div>
 
             <div class="form-section-head form-section-head-inline">
-              <strong>Detail PO Terpilih</strong>
-              <button class="secondary-button" id="openReceiptPoPickerModal" type="button">Pilih Detail PO</button>
+              <strong>Barang Diterima</strong>
+              <button class="secondary-button" id="openReceiptPoPickerModal" type="button">Tambah Barang</button>
             </div>
-            <div class="selected-reference-card" id="receiptItemsTableBody">
-              <span>Belum ada detail PO dipilih.</span>
+            <div class="table-wrap table-wrap-compact receipt-items-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>No</th>
+                    <th>No PO</th>
+                    <th>Nama Barang</th>
+                    <th>Qty PO</th>
+                    <th>Qty Terima</th>
+                    <th>Kondisi</th>
+                    <th>Catatan</th>
+                    <th>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="receiptItemsTableBody">
+                  <tr>
+                    <td colspan="8" class="empty-table-cell">Belum ada barang dipilih.</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
 
-            <div class="form-grid">
-              <label>
-                <span>Qty Diterima</span>
-                <input data-field="qtyReceived" name="qty_diterima" type="number" min="0" step="0.01" required />
-              </label>
-              <label>
-                <span>Kondisi Barang</span>
-                <select data-field="condition" name="kondisi_barang" required>
-                  <option value="sesuai">sesuai</option>
-                  <option value="kurang">kurang</option>
-                  <option value="rusak">rusak</option>
-                  <option value="tidak_sesuai">tidak_sesuai</option>
-                </select>
-              </label>
-            </div>
-
-            <label>
-              <span>Catatan</span>
-              <textarea data-field="notes" name="catatan" rows="3" placeholder="Catatan penerimaan"></textarea>
-            </label>
           </section>
 
           <div class="modal-actions">
             <button class="secondary-button" id="cancelCreateModal" type="button">Batal</button>
-            <button class="primary-button" type="submit">Simpan Penerimaan</button>
+            <button class="primary-button" type="submit">Submit Penerimaan</button>
           </div>
         </form>
       </div>
     </div>
 
     <div class="modal-backdrop" id="receiptPoPickerBackdrop" hidden aria-hidden="true">
-      <div class="modal-card modal-card-wide" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="receiptPoPickerTitle">
+      <div class="modal-card receipt-list-modal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="receiptPoPickerTitle">
         <div class="modal-head">
           <div>
             <p class="eyebrow">Referensi</p>
-            <h3 id="receiptPoPickerTitle">Pilih Detail PO</h3>
+            <h3 id="receiptPoPickerTitle">Barang Datang</h3>
           </div>
           <button class="icon-button tiny" id="closeReceiptPoPickerModal" type="button" aria-label="Close modal">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m18.3 5.7-1-1L12 10 6.7 4.7l-1 1L11 11l-5.3 5.3 1 1L12 12l5.3 5.3 1-1L13 11l5.3-5.3Z" /></svg>
@@ -282,7 +277,7 @@
         <div class="modal-form">
           <section class="form-section">
             <label>
-              <span>Cari Detail PO</span>
+              <span>Cari Barang PO</span>
               <input id="receiptPoPickerSearch" type="text" placeholder="Cari no PO, vendor, no pengajuan, atau nama barang" />
             </label>
 
@@ -290,19 +285,15 @@
               <table class="reference-table">
                 <thead>
                   <tr>
-                    <th>Pilih</th>
-                    <th>No PO</th>
-                    <th>Vendor</th>
-                    <th>No Pengajuan</th>
                     <th>Nama Barang</th>
-                    <th>Qty PO</th>
-                    <th>Satuan</th>
-                    <th>Subtotal</th>
+                    <th>PO</th>
+                    <th>Qty</th>
+                    <th>Aksi</th>
                   </tr>
                 </thead>
                 <tbody id="receiptPoPickerList">
                   <tr>
-                    <td colspan="8" class="empty-table-cell">Memuat detail PO.</td>
+                    <td colspan="4" class="empty-table-cell">Memuat barang dari PO.</td>
                   </tr>
                 </tbody>
               </table>
@@ -311,9 +302,56 @@
 
           <div class="modal-actions">
             <button class="secondary-button" id="cancelReceiptPoPickerModal" type="button">Tutup</button>
-            <button class="primary-button" id="confirmReceiptPoPickerModal" type="button">Pilih Detail</button>
           </div>
         </div>
+      </div>
+    </div>
+
+    <div class="modal-backdrop" id="receiptItemInputBackdrop" hidden aria-hidden="true">
+      <div class="modal-card modal-card-content-fit" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="receiptItemInputTitle">
+        <div class="modal-head">
+          <div>
+            <p class="eyebrow">Barang Datang</p>
+            <h3 id="receiptItemInputTitle">Jumlah & Kondisi</h3>
+          </div>
+          <button class="icon-button tiny" id="closeReceiptItemInputModal" type="button" aria-label="Close modal">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m18.3 5.7-1-1L12 10 6.7 4.7l-1 1L11 11l-5.3 5.3 1 1L12 12l5.3 5.3 1-1L13 11l5.3-5.3Z" /></svg>
+          </button>
+        </div>
+
+        <form class="modal-form" id="receiptItemInputForm">
+          <section class="form-section">
+            <div class="selected-reference-card" id="receiptPickerSelectedInfo">
+              <span>Pilih barang yang datang dari daftar PO.</span>
+            </div>
+
+            <div class="form-grid">
+              <label>
+                <span>Jumlah Diterima</span>
+                <input id="receiptPickerQty" type="number" min="0.01" step="0.01" placeholder="0" required />
+              </label>
+              <label>
+                <span>Kondisi Barang</span>
+                <select id="receiptPickerCondition" required>
+                  <option value="sesuai">sesuai</option>
+                  <option value="kurang">kurang</option>
+                  <option value="rusak">rusak</option>
+                  <option value="tidak_sesuai">tidak_sesuai</option>
+                </select>
+              </label>
+            </div>
+
+            <label>
+              <span>Catatan Barang</span>
+              <textarea id="receiptPickerNotes" rows="2" placeholder="Opsional"></textarea>
+            </label>
+          </section>
+
+          <div class="modal-actions">
+            <button class="secondary-button" id="cancelReceiptItemInputModal" type="button">Batal</button>
+            <button class="primary-button" type="submit">Simpan Barang</button>
+          </div>
+        </form>
       </div>
     </div>
 
@@ -342,76 +380,67 @@
         "RCV-2026-0001": {
           "header": {
             "code": "RCV-2026-0001",
-            "noPo": "PO-2026-0181",
             "receiptDate": "16 Jul 2026",
             "receivedBy": "USR-PUR-001 - Rani Purchasing",
-            "qtyReceived": "8",
-            "condition": "sesuai",
-            "status": "draft",
-            "notes": "Barang diterima sesuai dokumen PO."
+            "status": "menunggu"
           },
-          "po": {
-            "noPo": "PO-2026-0181",
-            "vendor": "PT Office Hub",
-            "poDate": "06 Jul 2026",
-            "items": [
-              {
-                "requestCode": "2026/PP/GA/07/0016",
-                "itemName": "Meja Kerja Modular",
-                "qty": "8",
-                "unit": "Set",
-                "subtotal": "Rp18.400.000"
-              }
-            ]
-          },
-          "poDetail": {
-            "noPo": "PO-2026-0181",
-            "vendor": "PT Office Hub",
-            "poDate": "06 Jul 2026",
-            "requestCode": "2026/PP/GA/07/0016",
-            "itemName": "Meja Kerja Modular",
-            "qty": "8",
-            "receivedQty": "8",
-            "unit": "Set",
-            "subtotal": "Rp18.400.000"
-          }
+          "items": [
+            {
+              "noUrut": 1,
+              "noPo": "PO-2026-0188",
+              "noUrutPo": 1,
+              "vendor": "PT NetCom",
+              "requestCode": "2026/PP/IT/07/0004",
+              "itemName": "Access Point Dual Band",
+              "qty": "4",
+              "receivedQty": "4",
+              "unit": "Unit",
+              "condition": "sesuai",
+              "status": "menunggu",
+              "notes": "Kemasan utuh.",
+              "subtotal": "Rp26.000.000"
+            },
+            {
+              "noUrut": 2,
+              "noPo": "PO-2026-0188",
+              "noUrutPo": 2,
+              "vendor": "PT NetCom",
+              "requestCode": "2026/PP/IT/07/0004",
+              "itemName": "Managed Switch 24 Port",
+              "qty": "2",
+              "receivedQty": "2",
+              "unit": "Unit",
+              "condition": "sesuai",
+              "status": "menunggu",
+              "notes": "Segel perangkat lengkap.",
+              "subtotal": "Rp6.600.000"
+            }
+          ]
         },
         "RCV-2026-0002": {
           "header": {
             "code": "RCV-2026-0002",
-            "noPo": "PO-2026-0176",
             "receiptDate": "15 Jul 2026",
             "receivedBy": "USR-PUR-001 - Rani Purchasing",
-            "qtyReceived": "10",
-            "condition": "sesuai",
-            "status": "selesai",
-            "notes": "Penerimaan selesai."
+            "status": "selesai"
           },
-          "po": {
-            "noPo": "PO-2026-0176",
-            "vendor": "PT Sarana Office",
-            "poDate": "02 Jul 2026",
-            "items": [
-              {
-                "requestCode": "2026/PP/OPS/07/0010",
-                "itemName": "Kursi Tamu Kantor",
-                "qty": "10",
-                "unit": "Pcs",
-                "subtotal": "Rp12.750.000"
-              }
-            ]
-          },
-          "poDetail": {
-            "noPo": "PO-2026-0176",
-            "vendor": "PT Sarana Office",
-            "poDate": "02 Jul 2026",
-            "requestCode": "2026/PP/OPS/07/0010",
-            "itemName": "Kursi Tamu Kantor",
-            "qty": "10",
-            "receivedQty": "10",
-            "unit": "Pcs",
-            "subtotal": "Rp12.750.000"
-          }
+          "items": [
+            {
+              "noUrut": 1,
+              "noPo": "PO-2026-0176",
+              "noUrutPo": 1,
+              "vendor": "PT Sarana Office",
+              "requestCode": "2026/PP/OPS/07/0010",
+              "itemName": "Kursi Tamu Kantor",
+              "qty": "10",
+              "receivedQty": "10",
+              "unit": "Pcs",
+              "condition": "sesuai",
+              "status": "selesai",
+              "notes": "Diterima tanpa kerusakan.",
+              "subtotal": "Rp12.750.000"
+            }
+          ]
         }
       }
     </script>
