@@ -157,7 +157,7 @@
               </span>
             </button>
             <div class="nav-submenu" hidden>
-              <a class="nav-sublink is-disabled" href="#">Penerimaan</a>
+              <a class="nav-sublink" href="./penerimaan-barang.html">Penerimaan</a>
               <a class="nav-sublink is-disabled" href="#">Retur</a>
             </div>
           </div>
@@ -557,15 +557,68 @@
                 </select>
               </label>
               <label>
-                <span>Nama Toko</span>
-                <select data-quote-field="vendor" name="nama_vendor" required>
-                  <option value="">Pilih vendor</option>
-                  <option value="PT Sarana Office">PT Sarana Office</option>
-                  <option value="PT Infra Solusi">PT Infra Solusi</option>
-                  <option value="PT NetCom">PT NetCom</option>
-                  <option value="CV Network Prima">CV Network Prima</option>
+                <span>Sumber Vendor</span>
+                <select data-quote-field="vendorSource" name="sumber_vendor">
+                  <option value="master">Master Vendor</option>
+                  <option value="new_master">Vendor Baru ke Master</option>
+                  <option value="one_time">Sekali Pakai</option>
                 </select>
               </label>
+            </div>
+
+            <div class="quote-vendor-block" data-vendor-mode-panel="master">
+              <label>
+                <span>Vendor dari Master</span>
+                <select data-quote-field="vendorMaster" name="kode_vendor_master">
+                  <option value="">Pilih vendor</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="quote-vendor-block" data-vendor-mode-panel="new_master" hidden>
+              <div class="form-grid">
+                <label>
+                  <span>Nama Vendor Baru</span>
+                  <input data-quote-field="newVendorName" name="vendor_baru_nama" type="text" placeholder="PT Vendor Baru" />
+                </label>
+                <label>
+                  <span>NPWP</span>
+                  <input data-quote-field="newVendorNpwp" name="vendor_baru_npwp" type="text" placeholder="00.000.000.0-000.000" />
+                </label>
+              </div>
+              <div class="form-grid">
+                <label>
+                  <span>Email</span>
+                  <input data-quote-field="newVendorEmail" name="vendor_baru_email" type="email" placeholder="sales@vendor.id" />
+                </label>
+                <label>
+                  <span>Telepon</span>
+                  <input data-quote-field="newVendorPhone" name="vendor_baru_telepon" type="text" placeholder="021-5555-1234" />
+                </label>
+              </div>
+              <div class="form-grid">
+                <label>
+                  <span>URL</span>
+                  <input data-quote-field="newVendorUrl" name="vendor_baru_url" type="url" placeholder="https://vendor.id" />
+                </label>
+              </div>
+              <label>
+                <span>Alamat</span>
+                <textarea data-quote-field="newVendorAddress" name="vendor_baru_alamat" rows="3" placeholder="Alamat vendor sesuai dokumen legal"></textarea>
+              </label>
+            </div>
+
+            <div class="quote-vendor-block" data-vendor-mode-panel="one_time" hidden>
+              <div class="form-grid">
+                <label>
+                  <span>Nama Toko Sekali Pakai</span>
+                  <input data-quote-field="vendorOneTime" name="vendor_sekali_pakai" type="text" placeholder="Nama toko / penyedia" />
+                </label>
+                <label>
+                  <span>Kontak / Catatan</span>
+                  <input data-quote-field="vendorOneTimeNote" name="vendor_sekali_pakai_catatan" type="text" placeholder="Opsional" />
+                </label>
+              </div>
             </div>
 
             <div class="form-grid">

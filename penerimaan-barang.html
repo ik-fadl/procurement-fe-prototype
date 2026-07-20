@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Penerimaan Barang - Procurement UI Prototype</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body
+    data-theme="light"
+    data-entity-singular="Penerimaan Barang"
+    data-entity-plural="Penerimaan Barang"
+    data-detail-view="penerimaan-barang"
+  >
+    <div class="app-shell">
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+          <div class="brand-word">bold</div>
+          <button class="collapse-button" type="button" aria-label="Collapse sidebar">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M10 7.4 8.6 6 2.6 12l6 6 1.4-1.4L6.4 13H22v-2H6.4L10 7.4Z" />
+            </svg>
+          </button>
+        </div>
+
+        <nav class="sidebar-nav">
+          <div class="nav-module">
+            <a class="nav-module-link is-disabled" href="#">
+              <span class="nav-module-title">
+                <span class="nav-module-icon"><svg viewBox="0 0 24 24"><path d="M4 13h6v7H4v-7Zm10-9h6v16h-6V4ZM4 4h6v7H4V4Z" /></svg></span>
+                Dashboard
+              </span>
+            </a>
+          </div>
+          <div class="nav-module">
+            <button class="nav-module-head" type="button" aria-expanded="false">
+              <span class="nav-module-title">
+                <span class="nav-module-icon"><svg viewBox="0 0 24 24"><path d="M5 4h14v4H5V4Zm0 6h14v10H5V10Z" /></svg></span>
+                Master
+              </span>
+              <span class="nav-module-arrow"><svg viewBox="0 0 24 24"><path d="m7 10 5 5 5-5H7Z" /></svg></span>
+            </button>
+            <div class="nav-submenu" hidden>
+              <a class="nav-sublink" href="./index.html">Barang</a>
+              <a class="nav-sublink" href="./master-vendor.html">Vendor</a>
+              <a class="nav-sublink" href="./master-divisi-role.html">Divisi</a>
+              <a class="nav-sublink" href="./master-divisi-role.html">Role & User</a>
+            </div>
+          </div>
+          <div class="nav-module">
+            <button class="nav-module-head" type="button" aria-expanded="false">
+              <span class="nav-module-title">
+                <span class="nav-module-icon"><svg viewBox="0 0 24 24"><path d="M6 4h12v4H6V4Zm0 6h12v10H6V10Z" /></svg></span>
+                Pengajuan
+              </span>
+              <span class="nav-module-arrow"><svg viewBox="0 0 24 24"><path d="m7 10 5 5 5-5H7Z" /></svg></span>
+            </button>
+            <div class="nav-submenu" hidden>
+              <a class="nav-sublink" href="./pengajuan-barang.html">Barang</a>
+              <a class="nav-sublink" href="./pengajuan-jasa.html">Jasa</a>
+            </div>
+          </div>
+          <div class="nav-module">
+            <button class="nav-module-head" type="button" aria-expanded="false">
+              <span class="nav-module-title">
+                <span class="nav-module-icon"><svg viewBox="0 0 24 24"><path d="M4 5h16v3H4V5Zm2 5h12v9H6v-9Z" /></svg></span>
+                Penawaran & PO
+              </span>
+              <span class="nav-module-arrow"><svg viewBox="0 0 24 24"><path d="m7 10 5 5 5-5H7Z" /></svg></span>
+            </button>
+            <div class="nav-submenu" hidden>
+              <a class="nav-sublink" href="./procurement-penawaran.html">Penawaran</a>
+              <a class="nav-sublink" href="./procurement-po.html">PO</a>
+            </div>
+          </div>
+          <div class="nav-module">
+            <button class="nav-module-head" type="button" aria-expanded="true">
+              <span class="nav-module-title">
+                <span class="nav-module-icon"><svg viewBox="0 0 24 24"><path d="M5 4h14v4H5V4Zm0 6h14v10H5V10Zm3 2v6h3v-6H8Z" /></svg></span>
+                Terima & Retur
+              </span>
+              <span class="nav-module-arrow"><svg viewBox="0 0 24 24"><path d="m7 10 5 5 5-5H7Z" /></svg></span>
+            </button>
+            <div class="nav-submenu">
+              <a class="nav-sublink active" href="./penerimaan-barang.html">Penerimaan</a>
+              <a class="nav-sublink is-disabled" href="#">Retur</a>
+            </div>
+          </div>
+          <div class="nav-module">
+            <a class="nav-module-link is-disabled" href="#">
+              <span class="nav-module-title">
+                <span class="nav-module-icon"><svg viewBox="0 0 24 24"><path d="M4 6h16v12H4V6Zm3 3h10v2H7V9Zm0 4h7v2H7v-2Z" /></svg></span>
+                Laporan
+              </span>
+            </a>
+          </div>
+        </nav>
+      </aside>
+
+      <main class="main-panel">
+        <header class="topbar">
+          <div class="topbar-left">
+            <button class="icon-button mobile-only" id="sidebarToggle" type="button" aria-label="Toggle sidebar">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 7h16v2H4V7Zm0 8h16v2H4v-2Zm0-4h16v2H4v-2Z" />
+              </svg>
+            </button>
+            <label class="search-shell" aria-label="Search">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="m15.5 14 5 5-1.5 1.5-5-5v-.8l-.3-.3A6 6 0 1 1 15.5 14ZM10 14a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" />
+              </svg>
+              <input type="text" placeholder="Cari penerimaan, PO, penerima, atau status" />
+            </label>
+          </div>
+
+          <div class="topbar-right">
+            <button class="utility-button" type="button" aria-label="Apps">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h5v5H5V5Zm9 0h5v5h-5V5ZM5 14h5v5H5v-5Zm9 0h5v5h-5v-5Z" /></svg>
+            </button>
+            <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle theme">
+              <svg class="theme-icon theme-icon-sun" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12Z" /></svg>
+              <svg class="theme-icon theme-icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 2.2A8.8 8.8 0 1 0 21.8 15 7.4 7.4 0 0 1 14.7 2.2Z" /></svg>
+            </button>
+            <button class="avatar-button" type="button" aria-label="Profile">
+              <span class="avatar-photo">MS</span>
+            </button>
+          </div>
+        </header>
+
+        <section class="page-head">
+          <div>
+            <h2>Penerimaan Barang</h2>
+          </div>
+          <div class="page-actions">
+            <button class="secondary-button" type="button">Filter Status</button>
+            <button class="primary-button" id="openCreateModal" type="button">Tambah Penerimaan</button>
+          </div>
+        </section>
+
+        <section class="panel panel-table">
+          <div class="panel-head">
+            <div>
+              <h3>Daftar Penerimaan Barang</h3>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>No Penerimaan</th>
+                  <th>No PO</th>
+                  <th>Vendor</th>
+                  <th>Nama Barang</th>
+                  <th>Qty PO</th>
+                  <th>Qty Diterima</th>
+                  <th>Tanggal</th>
+                  <th>Status</th>
+                  <th>View</th>
+                </tr>
+              </thead>
+              <tbody id="requestTableBody">
+                <tr class="master-slave-row is-active">
+                  <td>RCV-2026-0001</td>
+                  <td>PO-2026-0181</td>
+                  <td>PT Office Hub</td>
+                  <td>Meja Kerja Modular</td>
+                  <td>8 Set</td>
+                  <td>8 Set</td>
+                  <td>16 Jul 2026</td>
+                  <td><span class="status-chip waiting">draft</span></td>
+                  <td>
+                    <button class="table-action" type="button" data-detail="true" data-code="RCV-2026-0001" data-status="draft">View</button>
+                  </td>
+                </tr>
+                <tr class="master-slave-row">
+                  <td>RCV-2026-0002</td>
+                  <td>PO-2026-0176</td>
+                  <td>PT Sarana Office</td>
+                  <td>Kursi Tamu Kantor</td>
+                  <td>10 Pcs</td>
+                  <td>10 Pcs</td>
+                  <td>15 Jul 2026</td>
+                  <td><span class="status-chip success">selesai</span></td>
+                  <td>
+                    <button class="table-action" type="button" data-detail="true" data-code="RCV-2026-0002" data-status="selesai">View</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div class="modal-backdrop" id="createModalBackdrop" hidden aria-hidden="true">
+      <div class="modal-card modal-card-wide" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="createModalTitle">
+        <div class="modal-head">
+          <div>
+            <p class="eyebrow" id="createModalKicker">Tambah</p>
+            <h3 id="createModalTitle">Tambah Penerimaan Barang</h3>
+          </div>
+          <button class="icon-button tiny" id="closeCreateModal" type="button" aria-label="Close modal">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m18.3 5.7-1-1L12 10 6.7 4.7l-1 1L11 11l-5.3 5.3 1 1L12 12l5.3 5.3 1-1L13 11l5.3-5.3Z" /></svg>
+          </button>
+        </div>
+
+        <form class="modal-form" id="requestForm">
+          <section class="form-section">
+            <div class="form-section-head">
+              <strong>Data Penerimaan</strong>
+            </div>
+
+            <div class="form-grid">
+              <label>
+                <span>No Penerimaan (otomatis)</span>
+                <input data-field="code" data-primary-field name="no_penerimaan" type="text" readonly required />
+              </label>
+              <label>
+                <span>Tanggal Terima (hari ini)</span>
+                <input data-field="receiptDate" name="tgl_penerimaan" type="text" readonly />
+              </label>
+              <input data-field="receiptPo" name="no_po" type="hidden" />
+            </div>
+
+            <div class="form-section-head form-section-head-inline">
+              <strong>Detail PO Terpilih</strong>
+              <button class="secondary-button" id="openReceiptPoPickerModal" type="button">Pilih Detail PO</button>
+            </div>
+            <div class="selected-reference-card" id="receiptItemsTableBody">
+              <span>Belum ada detail PO dipilih.</span>
+            </div>
+
+            <div class="form-grid">
+              <label>
+                <span>Qty Diterima</span>
+                <input data-field="qtyReceived" name="qty_diterima" type="number" min="0" step="0.01" required />
+              </label>
+              <label>
+                <span>Kondisi Barang</span>
+                <select data-field="condition" name="kondisi_barang" required>
+                  <option value="sesuai">sesuai</option>
+                  <option value="kurang">kurang</option>
+                  <option value="rusak">rusak</option>
+                  <option value="tidak_sesuai">tidak_sesuai</option>
+                </select>
+              </label>
+            </div>
+
+            <label>
+              <span>Catatan</span>
+              <textarea data-field="notes" name="catatan" rows="3" placeholder="Catatan penerimaan"></textarea>
+            </label>
+          </section>
+
+          <div class="modal-actions">
+            <button class="secondary-button" id="cancelCreateModal" type="button">Batal</button>
+            <button class="primary-button" type="submit">Simpan Penerimaan</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="modal-backdrop" id="receiptPoPickerBackdrop" hidden aria-hidden="true">
+      <div class="modal-card modal-card-wide" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="receiptPoPickerTitle">
+        <div class="modal-head">
+          <div>
+            <p class="eyebrow">Referensi</p>
+            <h3 id="receiptPoPickerTitle">Pilih Detail PO</h3>
+          </div>
+          <button class="icon-button tiny" id="closeReceiptPoPickerModal" type="button" aria-label="Close modal">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m18.3 5.7-1-1L12 10 6.7 4.7l-1 1L11 11l-5.3 5.3 1 1L12 12l5.3 5.3 1-1L13 11l5.3-5.3Z" /></svg>
+          </button>
+        </div>
+
+        <div class="modal-form">
+          <section class="form-section">
+            <label>
+              <span>Cari Detail PO</span>
+              <input id="receiptPoPickerSearch" type="text" placeholder="Cari no PO, vendor, no pengajuan, atau nama barang" />
+            </label>
+
+            <div class="table-wrap reference-table-wrap">
+              <table class="reference-table">
+                <thead>
+                  <tr>
+                    <th>Pilih</th>
+                    <th>No PO</th>
+                    <th>Vendor</th>
+                    <th>No Pengajuan</th>
+                    <th>Nama Barang</th>
+                    <th>Qty PO</th>
+                    <th>Satuan</th>
+                    <th>Subtotal</th>
+                  </tr>
+                </thead>
+                <tbody id="receiptPoPickerList">
+                  <tr>
+                    <td colspan="8" class="empty-table-cell">Memuat detail PO.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <div class="modal-actions">
+            <button class="secondary-button" id="cancelReceiptPoPickerModal" type="button">Tutup</button>
+            <button class="primary-button" id="confirmReceiptPoPickerModal" type="button">Pilih Detail</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-backdrop" id="detailModalBackdrop" hidden aria-hidden="true">
+      <div class="modal-card modal-card-wide" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="modalTitle">
+        <div class="modal-head">
+          <div>
+            <p class="eyebrow" id="modalKicker">Detail</p>
+            <h3 id="modalTitle">Detail Penerimaan</h3>
+          </div>
+          <button class="icon-button tiny" id="closeDetailModal" type="button" aria-label="Close modal">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m18.3 5.7-1-1L12 10 6.7 4.7l-1 1L11 11l-5.3 5.3 1 1L12 12l5.3 5.3 1-1L13 11l5.3-5.3Z" /></svg>
+          </button>
+        </div>
+
+        <div class="modal-form" id="detailModalBody"></div>
+        <div class="modal-actions">
+          <div class="modal-action-group" id="detailStatusActions"></div>
+          <button class="secondary-button" id="cancelDetailModal" type="button">Tutup</button>
+        </div>
+      </div>
+    </div>
+
+    <script id="detailRecordsData" type="application/json">
+      {
+        "RCV-2026-0001": {
+          "header": {
+            "code": "RCV-2026-0001",
+            "noPo": "PO-2026-0181",
+            "receiptDate": "16 Jul 2026",
+            "receivedBy": "USR-PUR-001 - Rani Purchasing",
+            "qtyReceived": "8",
+            "condition": "sesuai",
+            "status": "draft",
+            "notes": "Barang diterima sesuai dokumen PO."
+          },
+          "po": {
+            "noPo": "PO-2026-0181",
+            "vendor": "PT Office Hub",
+            "poDate": "06 Jul 2026",
+            "items": [
+              {
+                "requestCode": "2026/PP/GA/07/0016",
+                "itemName": "Meja Kerja Modular",
+                "qty": "8",
+                "unit": "Set",
+                "subtotal": "Rp18.400.000"
+              }
+            ]
+          },
+          "poDetail": {
+            "noPo": "PO-2026-0181",
+            "vendor": "PT Office Hub",
+            "poDate": "06 Jul 2026",
+            "requestCode": "2026/PP/GA/07/0016",
+            "itemName": "Meja Kerja Modular",
+            "qty": "8",
+            "receivedQty": "8",
+            "unit": "Set",
+            "subtotal": "Rp18.400.000"
+          }
+        },
+        "RCV-2026-0002": {
+          "header": {
+            "code": "RCV-2026-0002",
+            "noPo": "PO-2026-0176",
+            "receiptDate": "15 Jul 2026",
+            "receivedBy": "USR-PUR-001 - Rani Purchasing",
+            "qtyReceived": "10",
+            "condition": "sesuai",
+            "status": "selesai",
+            "notes": "Penerimaan selesai."
+          },
+          "po": {
+            "noPo": "PO-2026-0176",
+            "vendor": "PT Sarana Office",
+            "poDate": "02 Jul 2026",
+            "items": [
+              {
+                "requestCode": "2026/PP/OPS/07/0010",
+                "itemName": "Kursi Tamu Kantor",
+                "qty": "10",
+                "unit": "Pcs",
+                "subtotal": "Rp12.750.000"
+              }
+            ]
+          },
+          "poDetail": {
+            "noPo": "PO-2026-0176",
+            "vendor": "PT Sarana Office",
+            "poDate": "02 Jul 2026",
+            "requestCode": "2026/PP/OPS/07/0010",
+            "itemName": "Kursi Tamu Kantor",
+            "qty": "10",
+            "receivedQty": "10",
+            "unit": "Pcs",
+            "subtotal": "Rp12.750.000"
+          }
+        }
+      }
+    </script>
+
+    <div class="inline-alert" id="inlineAlert" hidden>
+      <div class="inline-alert-icon"></div>
+      <div>
+        <strong id="inlineAlertTitle">Status</strong>
+        <p id="inlineAlertText">Alert detail</p>
+      </div>
+      <button class="icon-button tiny" id="dismissAlert" type="button" aria-label="Dismiss alert">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m18.3 5.7-1-1L12 10 6.7 4.7l-1 1L11 11l-5.3 5.3 1 1L12 12l5.3 5.3 1-1L13 11l5.3-5.3Z" /></svg>
+      </button>
+    </div>
+
+    <script src="./script.js"></script>
+  </body>
+</html>

@@ -5,7 +5,7 @@ const avatarPhoto = document.querySelector(".avatar-photo");
 const sidebarToggle = document.getElementById("sidebarToggle");
 const sidebar = document.getElementById("sidebar");
 const collapseButton = document.querySelector(".collapse-button");
-const moduleHeads = document.querySelectorAll(".nav-module-head");
+let moduleHeads = document.querySelectorAll(".nav-module-head");
 const openCreateModal = document.getElementById("openCreateModal");
 const requestForm = document.getElementById("requestForm");
 const formFields = Array.from(document.querySelectorAll("[data-field]"));
@@ -111,6 +111,21 @@ const poOfferPickerSearch = document.getElementById("poOfferPickerSearch");
 const poOfferPaymentFilter = document.getElementById("poOfferPaymentFilter");
 const poItemsTableBody = document.getElementById("poItemsTableBody");
 const poItemsSubtotal = document.getElementById("poItemsSubtotal");
+const poDetailEditBackdrop = document.getElementById("poDetailEditBackdrop");
+const poDetailEditCard = poDetailEditBackdrop?.querySelector(".modal-card");
+const poDetailEditForm = document.getElementById("poDetailEditForm");
+const closePoDetailEditModal = document.getElementById("closePoDetailEditModal");
+const cancelPoDetailEditModal = document.getElementById("cancelPoDetailEditModal");
+const poDetailEditItemName = document.getElementById("poDetailEditItemName");
+const receiptPoPickerBackdrop = document.getElementById("receiptPoPickerBackdrop");
+const receiptPoPickerCard = receiptPoPickerBackdrop?.querySelector(".modal-card");
+const openReceiptPoPickerModalButton = document.getElementById("openReceiptPoPickerModal");
+const closeReceiptPoPickerModal = document.getElementById("closeReceiptPoPickerModal");
+const cancelReceiptPoPickerModal = document.getElementById("cancelReceiptPoPickerModal");
+const receiptPoPickerSearch = document.getElementById("receiptPoPickerSearch");
+const receiptPoPickerList = document.getElementById("receiptPoPickerList");
+const confirmReceiptPoPickerModal = document.getElementById("confirmReceiptPoPickerModal");
+const receiptItemsTableBody = document.getElementById("receiptItemsTableBody");
 
 const quickItemBackdrop = document.getElementById("quickItemBackdrop");
 const quickItemCard = quickItemBackdrop?.querySelector(".modal-card");
@@ -121,6 +136,71 @@ const cancelQuickItemModal = document.getElementById("cancelQuickItemModal");
 const detailRecords = parseJsonNode(detailRecordsDataNode, {});
 const masterItemsDataNode = document.getElementById("masterItemsData");
 let masterItems = parseJsonNode(masterItemsDataNode, []);
+let quoteMasterVendors = [
+  {
+    code: "VND-001",
+    name: "PT Lintas Data",
+    npwp: "01.234.567.8-901.000",
+    email: "vendor@lintasdata.co.id",
+    phone: "021-7888-9900",
+    address: "Jl. TB Simatupang No. 18, Jakarta Selatan",
+    url: ""
+  },
+  {
+    code: "VND-002",
+    name: "PT Metro Office",
+    npwp: "09.876.543.2-111.000",
+    email: "sales@metrooffice.id",
+    phone: "022-4555-7711",
+    address: "Jl. Setiabudi No. 52, Bandung",
+    url: ""
+  },
+  {
+    code: "VND-003",
+    name: "CV Prima Teknik",
+    npwp: "02.111.222.3-444.000",
+    email: "admin@primateknik.com",
+    phone: "021-6644-1188",
+    address: "Jl. Industri Raya No. 4, Bekasi",
+    url: ""
+  },
+  {
+    code: "VND-004",
+    name: "PT Sarana Office",
+    npwp: "01.234.567.8-901.000",
+    email: "sales@saranaoffice.co.id",
+    phone: "021-8899-1001",
+    address: "Jakarta",
+    url: "https://saranaoffice.co.id"
+  },
+  {
+    code: "VND-005",
+    name: "PT Infra Solusi",
+    npwp: "02.234.567.8-901.000",
+    email: "procurement@infrasolusi.id",
+    phone: "021-7788-3002",
+    address: "Bekasi",
+    url: "https://infrasolusi.id"
+  },
+  {
+    code: "VND-006",
+    name: "PT NetCom",
+    npwp: "03.234.567.8-901.000",
+    email: "vendor@netcom.id",
+    phone: "021-6677-4200",
+    address: "Tangerang",
+    url: "https://netcom.id"
+  },
+  {
+    code: "VND-007",
+    name: "CV Network Prima",
+    npwp: "04.234.567.8-901.000",
+    email: "order@networkprima.id",
+    phone: "021-5566-7800",
+    address: "Jakarta",
+    url: ""
+  }
+];
 let draftRequestItems = [];
 let draftItemEditIndex = -1;
 let draftServiceItems = [];
@@ -133,18 +213,148 @@ let selectedRequestItems = [];
 let selectedPoOffers = [];
 let draftPoItems = [];
 let selectedPoOfferIndexes = new Set();
+let poItemEditIndex = -1;
+let selectedReceiptPo = null;
+let draftReceiptItems = [];
+let selectedReceiptItemKeys = new Set();
 let editingRecordCode = "";
 
 const roleOptions = [
   { value: "pemohon", label: "Pemohon" },
   { value: "kepala_divisi", label: "Kadiv" },
+  { value: "akunting", label: "Akunting" },
   { value: "kepala_akunting", label: "Ka. Akunting" },
   { value: "purchasing", label: "Purchasing" },
   { value: "kepala_purchasing", label: "Ka. Purchasing" },
+  { value: "finance", label: "Finance" },
+  { value: "kasir", label: "Kasir" },
+  { value: "kepala_finance", label: "Ka. Finance" },
+  { value: "direktur", label: "Direktur" },
+  { value: "admin_asset", label: "Admin Asset" },
   { value: "admin", label: "Admin" }
 ];
 const storedRole = localStorage.getItem("procurement-active-role");
 let activeRole = roleOptions.some((role) => role.value === storedRole) ? storedRole : "pemohon";
+
+const allRoles = roleOptions.map((role) => role.value);
+const navModules = [
+  {
+    title: "Dashboard",
+    icon: "M4 13h6v7H4v-7Zm10-9h6v16h-6V4ZM4 4h6v7H4V4Z",
+    roles: allRoles,
+    items: [
+      { label: "Utama", href: "", roles: allRoles },
+      { label: "Task Inbox", href: "", roles: allRoles }
+    ]
+  },
+  {
+    title: "Master",
+    icon: "M5 4h14v4H5V4Zm0 6h14v10H5V10Z",
+    roles: ["admin", "purchasing"],
+    items: [
+      { label: "Barang", href: "./index.html", roles: ["admin", "purchasing"] },
+      { label: "Vendor", href: "./master-vendor.html", roles: ["admin", "purchasing"] },
+      { label: "Divisi", href: "./master-divisi-role.html", roles: ["admin"] },
+      { label: "Role & User", href: "./master-divisi-role.html", roles: ["admin"] }
+    ]
+  },
+  {
+    title: "Pengajuan",
+    icon: "M6 4h12v4H6V4Zm0 6h12v10H6V10Z",
+    roles: ["admin", "pemohon", "kepala_divisi", "kepala_akunting", "akunting", "purchasing"],
+    items: [
+      { label: "Barang", href: "./pengajuan-barang.html", roles: ["admin", "pemohon", "kepala_divisi", "kepala_akunting", "akunting", "purchasing"] },
+      { label: "Jasa", href: "./pengajuan-jasa.html", roles: ["admin", "pemohon", "kepala_divisi", "kepala_akunting", "akunting", "purchasing"] }
+    ]
+  },
+  {
+    title: "Approval",
+    icon: "M5 4h14v3H5V4Zm0 5h14v11H5V9Zm3 3h8v2H8v-2Z",
+    roles: ["admin", "kepala_divisi", "kepala_akunting", "kepala_purchasing", "direktur"],
+    items: [
+      { label: "Divisi", href: "", roles: ["admin", "kepala_divisi"] },
+      { label: "Ka. Akunting", href: "", roles: ["admin", "kepala_akunting"] },
+      { label: "Ka. Purchasing", href: "", roles: ["admin", "kepala_purchasing"] },
+      { label: "Direktur", href: "", roles: ["admin", "direktur"] }
+    ]
+  },
+  {
+    title: "Procurement",
+    icon: "M4 5h16v3H4V5Zm2 5h12v9H6v-9Z",
+    roles: ["admin", "purchasing", "kepala_purchasing"],
+    items: [
+      { label: "Penawaran", href: "./procurement-penawaran.html", roles: ["admin", "purchasing", "kepala_purchasing"] },
+      { label: "Pembelian", href: "./procurement-pembelian.html", roles: ["admin", "purchasing"] },
+      { label: "PO", href: "./procurement-po.html", roles: ["admin", "purchasing", "kepala_purchasing"] }
+    ]
+  },
+  {
+    title: "Terima & Retur",
+    icon: "M5 4h14v4H5V4Zm0 6h14v10H5V10Zm3 2v6h3v-6H8Z",
+    roles: ["admin", "purchasing"],
+    items: [
+      { label: "Penerimaan", href: "./penerimaan-barang.html", roles: ["admin", "purchasing"] },
+      { label: "Retur", href: "", roles: ["admin", "purchasing"] }
+    ]
+  },
+  {
+    title: "Jasa",
+    icon: "M4 6h16v12H4V6Zm3 3h10v2H7V9Zm0 4h7v2H7v-2Z",
+    roles: ["admin", "pemohon", "purchasing"],
+    items: [
+      { label: "Monitoring", href: "", roles: ["admin", "pemohon", "purchasing"] }
+    ]
+  },
+  {
+    title: "AP & Payment",
+    icon: "M4 5h16v4H4V5Zm0 6h16v8H4v-8Zm2 2v4h5v-4H6Z",
+    roles: ["admin", "akunting", "kepala_akunting", "finance", "kasir", "kepala_finance", "direktur", "purchasing"],
+    items: [
+      { label: "Anggaran", href: "", roles: ["admin", "akunting", "kepala_akunting", "purchasing"] },
+      { label: "Pembayaran", href: "", roles: ["admin", "finance", "kasir", "kepala_finance", "kepala_akunting", "direktur"] }
+    ]
+  },
+  {
+    title: "Tagihan",
+    icon: "M5 4h14v16H5V4Zm2 3h10v2H7V7Zm0 4h10v2H7v-2Zm0 4h6v2H7v-2Z",
+    roles: ["admin", "akunting", "kepala_akunting", "finance", "kasir", "kepala_finance", "purchasing"],
+    items: [
+      { label: "Tagihan", href: "", roles: ["admin", "akunting", "kepala_akunting", "finance", "kasir", "kepala_finance", "purchasing"] }
+    ]
+  },
+  {
+    title: "FEAB & Kasbon",
+    icon: "M6 3h12v18H6V3Zm2 3v3h8V6H8Zm0 5v2h8v-2H8Zm0 4v2h5v-2H8Z",
+    roles: ["admin", "pemohon", "finance", "kasir", "kepala_finance", "akunting", "kepala_akunting"],
+    items: [
+      { label: "FEAB", href: "", roles: ["admin", "pemohon", "akunting", "kepala_akunting"] },
+      { label: "Kasbon", href: "", roles: ["admin", "pemohon", "finance", "kasir", "kepala_finance"] },
+      { label: "Realisasi", href: "", roles: ["admin", "pemohon", "akunting", "kepala_akunting"] },
+      { label: "Reimburse", href: "", roles: ["admin", "pemohon", "finance", "kasir", "kepala_finance"] },
+      { label: "Pengembalian", href: "", roles: ["admin", "finance", "kasir", "kepala_finance"] },
+      { label: "Payment Selisih", href: "", roles: ["admin", "finance", "kasir", "kepala_finance"] }
+    ]
+  },
+  {
+    title: "Aset",
+    icon: "M7 3h10l4 4v14H3V3h4Zm1 2v14h10V8.5L15.5 5H8Z",
+    roles: ["admin", "admin_asset"],
+    items: [
+      { label: "Item Aset", href: "", roles: ["admin", "admin_asset"] },
+      { label: "Aktivasi", href: "", roles: ["admin", "admin_asset"] }
+    ]
+  },
+  {
+    title: "Laporan",
+    icon: "M5 4h14v16H5V4Zm2 2v12h10V6H7Zm2 2h6v2H9V8Zm0 4h6v2H9v-2Z",
+    roles: allRoles,
+    items: [
+      { label: "Histori", href: "", roles: allRoles },
+      { label: "Arsip", href: "", roles: allRoles },
+      { label: "Ringkas", href: "", roles: allRoles }
+    ]
+  }
+];
 
 closeAllModals({ resetForm: false });
 renderRoleSwitcher();
@@ -165,19 +375,18 @@ sidebarToggle?.addEventListener("click", () => {
   sidebar?.classList.toggle("is-open");
 });
 
+sidebar?.addEventListener("click", (event) => {
+  const disabledLink = event.target.closest("a.is-disabled");
+  if (disabledLink) {
+    event.preventDefault();
+  }
+});
+
 collapseButton?.addEventListener("click", () => {
   sidebar?.classList.toggle("is-open");
 });
 
-moduleHeads.forEach((button) => {
-  button.addEventListener("click", () => {
-    const submenu = button.nextElementSibling;
-    const isExpanded = button.getAttribute("aria-expanded") === "true";
-
-    button.setAttribute("aria-expanded", String(!isExpanded));
-    submenu?.toggleAttribute("hidden", isExpanded);
-  });
-});
+bindSidebarModuleHeads();
 
 openCreateModal?.addEventListener("click", () => {
   if (!canCreateInCurrentContext()) {
@@ -279,6 +488,11 @@ detailModalCard?.addEventListener("click", (event) => {
 
   if (detailViewType === "procurement-po") {
     handlePoApprovalAction(approvalButton.dataset.approvalAction, approvalButton.dataset.approvalCode);
+    return;
+  }
+
+  if (detailViewType === "penerimaan-barang") {
+    handlePenerimaanAction(approvalButton.dataset.approvalAction, approvalButton.dataset.approvalCode);
   }
 });
 
@@ -323,6 +537,12 @@ poItemPickerBackdrop?.addEventListener("click", (event) => {
     selectedPoOfferIndexes = new Set();
     renderPoOfferPicker();
     closeManagedModal(poItemPickerBackdrop, poItemPickerCard, null, { resetForm: false });
+  }
+});
+
+receiptPoPickerBackdrop?.addEventListener("click", (event) => {
+  if (event.target === receiptPoPickerBackdrop) {
+    closeManagedModal(receiptPoPickerBackdrop, receiptPoPickerCard, null, { resetForm: false });
   }
 });
 
@@ -504,6 +724,12 @@ quoteItemForm?.addEventListener("submit", (event) => {
   saveQuoteItem();
 });
 
+quoteItemForm?.addEventListener("change", (event) => {
+  if (event.target.closest('[data-quote-field="vendorSource"]')) {
+    updateQuoteVendorMode();
+  }
+});
+
 closeQuoteItemModal?.addEventListener("click", closeQuoteItemDialog);
 cancelQuoteItemModal?.addEventListener("click", closeQuoteItemDialog);
 
@@ -612,9 +838,66 @@ confirmPoItemPickerModal?.addEventListener("click", () => {
 });
 
 poItemsTableBody?.addEventListener("click", (event) => {
+  const editButton = event.target.closest("[data-edit-po-item]");
+  if (editButton) {
+    openPoDetailEditDialog(Number(editButton.dataset.editPoItem));
+    return;
+  }
+
   const deleteButton = event.target.closest("[data-remove-po-item]");
   if (deleteButton) {
     removePoItem(Number(deleteButton.dataset.removePoItem));
+  }
+});
+
+[closePoDetailEditModal, cancelPoDetailEditModal].forEach((button) => {
+  button?.addEventListener("click", closePoDetailEditDialog);
+});
+
+poDetailEditBackdrop?.addEventListener("click", (event) => {
+  if (event.target === poDetailEditBackdrop) {
+    closePoDetailEditDialog();
+  }
+});
+
+poDetailEditForm?.addEventListener("submit", (event) => {
+  event.preventDefault();
+  savePoDetailEdit();
+});
+
+openReceiptPoPickerModalButton?.addEventListener("click", () => {
+  selectedReceiptItemKeys = new Set(draftReceiptItems.map(getReceiptItemKey));
+  setFieldValue(receiptPoPickerSearch, "");
+  renderReceiptPoPicker("");
+  openManagedModal(receiptPoPickerBackdrop, receiptPoPickerCard, receiptPoPickerSearch);
+});
+
+[closeReceiptPoPickerModal, cancelReceiptPoPickerModal].forEach((button) => {
+  button?.addEventListener("click", () => {
+    closeManagedModal(receiptPoPickerBackdrop, receiptPoPickerCard, null, { resetForm: false });
+  });
+});
+
+receiptPoPickerSearch?.addEventListener("input", (event) => {
+  renderReceiptPoPicker(event.target.value);
+});
+
+receiptPoPickerList?.addEventListener("change", (event) => {
+  const control = event.target.closest("[data-toggle-receipt-item]");
+  if (!control) {
+    return;
+  }
+
+  if (control.checked) {
+    selectedReceiptItemKeys = new Set([control.dataset.toggleReceiptItem]);
+  } else {
+    selectedReceiptItemKeys.clear();
+  }
+});
+
+confirmReceiptPoPickerModal?.addEventListener("click", () => {
+  if (applySelectedReceiptItems()) {
+    closeManagedModal(receiptPoPickerBackdrop, receiptPoPickerCard, null, { resetForm: false });
   }
 });
 
@@ -690,6 +973,8 @@ function getRoleInitials() {
 
 function applyRoleAccess() {
   root.dataset.activeRole = activeRole;
+  renderSidebarNavigation();
+  bindSidebarModuleHeads();
 
   if (avatarPhoto) {
     avatarPhoto.textContent = getRoleInitials();
@@ -702,6 +987,131 @@ function applyRoleAccess() {
   }
 }
 
+function renderSidebarNavigation() {
+  const nav = sidebar?.querySelector(".sidebar-nav");
+  if (!nav) {
+    return;
+  }
+
+  nav.innerHTML = navModules
+    .map((module) => renderNavModule(module))
+    .filter(Boolean)
+    .join("");
+}
+
+function renderNavModule(module) {
+  const items = getVisibleNavItems(module.items || []);
+  if (!canSeeNavItem(module) || !items.length) {
+    return "";
+  }
+
+  if (items.length === 1) {
+    const item = items[0];
+    return `
+      <div class="nav-module">
+        <a class="nav-module-link${getNavLinkClasses(item)}" href="${escapeHtml(item.href || "#")}"${item.href ? "" : " aria-disabled=\"true\""}>
+          <span class="nav-module-title">
+            ${renderNavIcon(module.icon)}
+            ${escapeHtml(module.title)}
+          </span>
+        </a>
+      </div>
+    `;
+  }
+
+  const isExpanded = items.some((item) => isCurrentNavItem(item));
+  return `
+    <div class="nav-module">
+      <button class="nav-module-head" type="button" aria-expanded="${String(isExpanded)}">
+        <span class="nav-module-title">
+          ${renderNavIcon(module.icon)}
+          ${escapeHtml(module.title)}
+        </span>
+        <span class="nav-module-arrow">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="m7 10 5 5 5-5H7Z" />
+          </svg>
+        </span>
+      </button>
+      <div class="nav-submenu"${isExpanded ? "" : " hidden"}>
+        ${items.map(renderNavSubLink).join("")}
+      </div>
+    </div>
+  `;
+}
+
+function renderNavSubLink(item) {
+  return `
+    <a class="nav-sublink${getNavLinkClasses(item)}" href="${escapeHtml(item.href || "#")}"${item.href ? "" : " aria-disabled=\"true\""}>
+      ${escapeHtml(item.label)}
+    </a>
+  `;
+}
+
+function renderNavIcon(path) {
+  return `
+    <span class="nav-module-icon">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="${escapeHtml(path)}" />
+      </svg>
+    </span>
+  `;
+}
+
+function getVisibleNavItems(items) {
+  return items.filter(canSeeNavItem);
+}
+
+function canSeeNavItem(item) {
+  return activeRole === "admin" || !item.roles || item.roles.includes(activeRole);
+}
+
+function getNavLinkClasses(item) {
+  return [
+    item.href ? "" : " is-disabled",
+    isCurrentNavItem(item) ? " active" : ""
+  ].join("");
+}
+
+function isCurrentNavItem(item) {
+  if (!item.href) {
+    return false;
+  }
+
+  return normalizePageName(item.href) === getCurrentPageName();
+}
+
+function normalizePageName(href) {
+  return String(href || "")
+    .replace(/^\.\/+/, "")
+    .replace(/^\//, "")
+    .split("/")
+    .pop();
+}
+
+function getCurrentPageName() {
+  const current = window.location.pathname.split("/").pop();
+  return current || "index.html";
+}
+
+function bindSidebarModuleHeads() {
+  moduleHeads = document.querySelectorAll(".nav-module-head");
+  moduleHeads.forEach((button) => {
+    if (button.dataset.boundSidebarHead === "true") {
+      return;
+    }
+
+    button.dataset.boundSidebarHead = "true";
+    button.addEventListener("click", () => {
+      const submenu = button.nextElementSibling;
+      const isExpanded = button.getAttribute("aria-expanded") === "true";
+
+      button.setAttribute("aria-expanded", String(!isExpanded));
+      submenu?.toggleAttribute("hidden", isExpanded);
+    });
+  });
+}
+
 function canCreateInCurrentContext() {
   if (activeRole === "admin") {
     return true;
@@ -711,7 +1121,12 @@ function canCreateInCurrentContext() {
     return activeRole === "pemohon";
   }
 
-  if (detailViewType === "procurement-pembelian" || detailViewType === "procurement-penawaran" || detailViewType === "procurement-po") {
+  if (
+    detailViewType === "procurement-pembelian" ||
+    detailViewType === "procurement-penawaran" ||
+    detailViewType === "procurement-po" ||
+    detailViewType === "penerimaan-barang"
+  ) {
     return activeRole === "purchasing";
   }
 
@@ -756,6 +1171,10 @@ function setCreateMode() {
   selectedPoOffers = [];
   draftPoItems = [];
   selectedPoOfferIndexes = new Set();
+  poItemEditIndex = -1;
+  selectedReceiptPo = null;
+  draftReceiptItems = [];
+  selectedReceiptItemKeys = new Set();
   clearSelectedItem();
   populateContextDefaults();
 
@@ -768,6 +1187,7 @@ function setCreateMode() {
   renderServiceItems();
   renderQuoteItems();
   renderPoItems();
+  renderReceiptItems();
 }
 
 function setEditMode(data) {
@@ -813,7 +1233,12 @@ function canEditDraftRecord(record) {
     return activeRole === "pemohon";
   }
 
-  if (detailViewType === "procurement-pembelian" || detailViewType === "procurement-penawaran" || detailViewType === "procurement-po") {
+  if (
+    detailViewType === "procurement-pembelian" ||
+    detailViewType === "procurement-penawaran" ||
+    detailViewType === "procurement-po" ||
+    detailViewType === "penerimaan-barang"
+  ) {
     return activeRole === "purchasing";
   }
 
@@ -834,6 +1259,10 @@ function prepareCreateModalForEdit(record, code) {
   selectedPoOffers = [];
   draftPoItems = [];
   selectedPoOfferIndexes = new Set();
+  poItemEditIndex = -1;
+  selectedReceiptPo = null;
+  draftReceiptItems = [];
+  selectedReceiptItemKeys = new Set();
   clearSelectedItem();
 
   if (createModalKicker) {
@@ -849,6 +1278,7 @@ function prepareCreateModalForEdit(record, code) {
   renderServiceItems();
   renderQuoteItems();
   renderPoItems();
+  renderReceiptItems();
 }
 
 function fillDraftEditForm(record, code) {
@@ -906,7 +1336,28 @@ function fillDraftEditForm(record, code) {
     setFieldValue(getField("vendor"), header.vendor || "");
     setFieldValue(getField("poDate"), header.poDate || formatDateDisplay(new Date()));
     setFieldValue(getField("notes"), header.notes || "");
-    draftPoItems = (record.items || []).map((item) => ({ ...item }));
+    draftPoItems = (record.items || []).map(normalizePoDraftItem);
+    return;
+  }
+
+  if (detailViewType === "penerimaan-barang") {
+    selectedReceiptPo = getReceivablePoSources().find((po) => po.noPo === header.noPo) || null;
+    const receiptDetail = record.poDetail || record.items?.[0] || selectedReceiptPo?.items?.[0] || {};
+    setFieldValue(getField("code"), header.code || code);
+    setFieldValue(getField("receiptPo"), header.noPo || "");
+    setFieldValue(getField("receiptDate"), header.receiptDate || formatDateDisplay(new Date()));
+    setFieldValue(getField("receivedBy"), header.receivedBy || "USR-PUR-001 - Rani Purchasing");
+    setFieldValue(getField("qtyReceived"), header.qtyReceived || "");
+    setFieldValue(getField("condition"), header.condition || "");
+    setFieldValue(getField("status"), header.status || "draft");
+    setFieldValue(getField("notes"), header.notes || "");
+    draftReceiptItems = receiptDetail.itemName ? [{
+      noPo: header.noPo,
+      vendor: selectedReceiptPo?.vendor || record.po?.vendor || "-",
+      poDate: selectedReceiptPo?.poDate || record.po?.poDate || "-",
+      ...receiptDetail
+    }] : [];
+    renderReceiptItems();
   }
 }
 
@@ -1250,6 +1701,69 @@ function getSelectedPoOffers() {
   ];
 }
 
+function getReceivablePoSources() {
+  return [
+    {
+      noPo: "PO-2026-0181",
+      vendor: "PT Office Hub",
+      poDate: "06 Jul 2026",
+      status: "menunggu_penerimaan",
+      itemCount: "1 item",
+      totalQty: "8",
+      items: [
+        {
+          requestCode: "2026/PP/GA/07/0016",
+          itemName: "Meja Kerja Modular",
+          qty: "8",
+          unit: "Set",
+          subtotal: "Rp18.400.000"
+        }
+      ]
+    },
+    {
+      noPo: "PO-2026-0188",
+      vendor: "PT NetCom",
+      poDate: "09 Jul 2026",
+      status: "menunggu_penerimaan",
+      itemCount: "2 item",
+      totalQty: "6",
+      items: [
+        {
+          requestCode: "2026/PP/IT/07/0004",
+          itemName: "Access Point Dual Band",
+          qty: "4",
+          unit: "Unit",
+          subtotal: "Rp26.000.000"
+        },
+        {
+          requestCode: "2026/PP/IT/07/0004",
+          itemName: "Managed Switch 24 Port",
+          qty: "2",
+          unit: "Unit",
+          subtotal: "Rp6.600.000"
+        }
+      ]
+    },
+    {
+      noPo: "PO-2026-0176",
+      vendor: "PT Sarana Office",
+      poDate: "02 Jul 2026",
+      status: "selesai",
+      itemCount: "1 item",
+      totalQty: "10",
+      items: [
+        {
+          requestCode: "2026/PP/OPS/07/0010",
+          itemName: "Kursi Tamu Kantor",
+          qty: "10",
+          unit: "Pcs",
+          subtotal: "Rp12.750.000"
+        }
+      ]
+    }
+  ];
+}
+
 function submitPengajuanBarang() {
   const code = String(primaryField?.value || "").trim();
   const targetDateValue = String(getField("targetDate")?.value || "").trim();
@@ -1543,6 +2057,50 @@ function submitGenericForm() {
     prependProcurementPORow(record);
   }
 
+  if (detailViewType === "penerimaan-barang") {
+    if (detailRecords[savedRef] && savedRef !== editingRecordCode) {
+      showAlert("error", "No penerimaan sudah ada", "Gunakan nomor penerimaan lain.");
+      primaryField?.focus();
+      return;
+    }
+
+    if (!draftReceiptItems.length) {
+      showAlert("error", "Detail PO belum dipilih", "Pilih satu detail PO sebelum menyimpan penerimaan.");
+      openReceiptPoPickerModalButton?.focus();
+      return;
+    }
+
+    const selectedDetail = draftReceiptItems[0];
+    const noPo = selectedDetail.noPo || "";
+    const qtyReceived = String(formData.get("qty_diterima") || "").trim();
+    const status = "draft";
+    const record = {
+      header: {
+        code: savedRef,
+        noPo,
+        receiptDate: String(formData.get("tgl_penerimaan") || "").trim() || formatDateDisplay(new Date()),
+        receivedBy: "USR-PUR-001 - Rani Purchasing",
+        qtyReceived,
+        condition: String(formData.get("kondisi_barang") || "").trim() || "sesuai",
+        status,
+        notes: String(formData.get("catatan") || "").trim() || "-"
+      },
+      po: selectedReceiptPo || getReceivablePoSources().find((po) => po.noPo === noPo) || null,
+      poDetail: { ...selectedDetail, receivedQty: qtyReceived },
+      items: [{ ...selectedDetail, receivedQty: qtyReceived }]
+    };
+
+    if (isEditingDraft) {
+      removeMainTableRow(editingRecordCode);
+      if (editingRecordCode !== savedRef) {
+        delete detailRecords[editingRecordCode];
+      }
+    }
+
+    detailRecords[savedRef] = record;
+    prependPenerimaanBarangRow(record);
+  }
+
   closeManagedModal(createModalBackdrop, createModalCard, requestForm, { resetForm: false });
   showAlert(
     "success",
@@ -1790,6 +2348,56 @@ function showPoActionResult(code, title, message) {
   showAlert("success", title, message);
 }
 
+function handlePenerimaanAction(action, code) {
+  if (detailViewType !== "penerimaan-barang" || !code) {
+    return;
+  }
+
+  const record = detailRecords[code];
+  if (!record || !canRunPenerimaanAction(action, record.header.status)) {
+    showAlert("warning", "Akses dibatasi", `${getActiveRoleLabel()} tidak dapat menjalankan aksi ini.`);
+    return;
+  }
+
+  if (action === "start_receipt_check") {
+    record.header.status = "pemeriksaan";
+    showPenerimaanActionResult(code, "Pemeriksaan dimulai", `${code} masuk ke status pemeriksaan barang.`);
+    return;
+  }
+
+  if (action === "complete_receipt") {
+    record.header.status = "selesai";
+    showPenerimaanActionResult(code, "Penerimaan selesai", `${code} selesai dan dapat menjadi dasar proses berikutnya.`);
+    return;
+  }
+
+  if (action === "mark_receipt_issue") {
+    record.header.status = "ada_masalah";
+    showPenerimaanActionResult(code, "Penerimaan bermasalah", `${code} ditandai ada masalah untuk tindak lanjut retur/koreksi.`);
+  }
+}
+
+function canRunPenerimaanAction(action, status) {
+  if (activeRole === "admin") {
+    return true;
+  }
+
+  const actionRules = {
+    start_receipt_check: activeRole === "purchasing" && status === "draft",
+    complete_receipt: activeRole === "purchasing" && status === "pemeriksaan",
+    mark_receipt_issue: activeRole === "purchasing" && status === "pemeriksaan"
+  };
+
+  return Boolean(actionRules[action]);
+}
+
+function showPenerimaanActionResult(code, title, message) {
+  const record = detailRecords[code];
+  updateRequestRowStatus(code, record.header.status);
+  renderDetailModal(record, code);
+  showAlert("success", title, message);
+}
+
 function updateRequestRowStatus(code, status) {
   if (!mainTableBody) {
     return;
@@ -1830,19 +2438,26 @@ function prependProcurementPembelianRow(record) {
     row.classList.remove("is-active");
   });
 
-  const { header } = record;
+  const header = record.header || {};
+  const po = record.purchase_order_head || {};
+  const details = record.purchase_order_detail || record.items || [];
+  const receipt = record.penerimaan_barang || {};
+  const firstDetail = details[0] || {};
+  const code = header.code || record.code || po.no_po || firstDetail.no_po || "-";
+  const totalJumlah = sumPurchaseOrderQty(details);
+  const totalDiterima = receipt.qty_diterima || sumPurchaseReceivedQty(details);
   const row = document.createElement("tr");
   row.className = "master-slave-row is-active";
   row.innerHTML = `
-    <td>${escapeHtml(header.code)}</td>
-    <td>${escapeHtml(header.requestCode)}</td>
-    <td>${escapeHtml(header.division)}</td>
-    <td>${escapeHtml(header.pic)}</td>
-    <td>${escapeHtml(header.orderType)}</td>
-    <td><span class="status-chip ${getStatusChipClass(header.status)}">${escapeHtml(header.status)}</span></td>
+    <td>${escapeHtml(po.tgl_po || header.poDate || "-")}</td>
+    <td>${escapeHtml(po.no_po || header.noPo || "-")}</td>
+    <td>${escapeHtml(firstDetail.nama_vendor || header.vendor || "-")}</td>
+    <td>${escapeHtml(getPurchaseOrderTotal(details, header.poValue))}</td>
+    <td>${escapeHtml(String(totalJumlah || "-"))}</td>
+    <td>${escapeHtml(String(totalDiterima || "0"))}</td>
     <td>
-      <button class="table-action" type="button" data-detail="true" data-code="${escapeHtml(header.code)}" data-status="${escapeHtml(
-        header.status
+      <button class="table-action" type="button" data-detail="true" data-code="${escapeHtml(code)}" data-status="${escapeHtml(
+        po.status || header.status || ""
       )}">
         View
       </button>
@@ -1917,6 +2532,44 @@ function prependProcurementPORow(record) {
   registerDetailButton(row.querySelector("[data-detail='true']"));
 }
 
+function prependPenerimaanBarangRow(record) {
+  if (!mainTableBody) {
+    return;
+  }
+
+  mainTableBody.querySelectorAll(".master-slave-row").forEach((row) => {
+    row.classList.remove("is-active");
+  });
+
+  const { header } = record;
+  const item = record.poDetail || record.items?.[0] || record.po?.items?.[0] || {};
+  const vendor = item.vendor || record.po?.vendor || "-";
+  const qtyPo = `${item.qty || "-"} ${item.unit || ""}`.trim();
+  const qtyReceived = `${header.qtyReceived || item.receivedQty || "-"} ${item.unit || ""}`.trim();
+  const row = document.createElement("tr");
+  row.className = "master-slave-row is-active";
+  row.innerHTML = `
+    <td>${escapeHtml(header.code)}</td>
+    <td>${escapeHtml(header.noPo)}</td>
+    <td>${escapeHtml(vendor)}</td>
+    <td>${escapeHtml(item.itemName || "-")}</td>
+    <td>${escapeHtml(qtyPo)}</td>
+    <td>${escapeHtml(qtyReceived)}</td>
+    <td>${escapeHtml(header.receiptDate)}</td>
+    <td><span class="status-chip ${getStatusChipClass(header.status)}">${escapeHtml(header.status)}</span></td>
+    <td>
+      <button class="table-action" type="button" data-detail="true" data-code="${escapeHtml(header.code)}" data-status="${escapeHtml(
+        header.status
+      )}">
+        View
+      </button>
+    </td>
+  `;
+
+  mainTableBody.prepend(row);
+  registerDetailButton(row.querySelector("[data-detail='true']"));
+}
+
 function getPoOfferSummary(items = []) {
   const offerCodes = Array.from(new Set((items || []).map((item) => item.quoteCode).filter(Boolean)));
   if (!offerCodes.length) {
@@ -1947,6 +2600,10 @@ function resetCreateState() {
   selectedPoOffers = [];
   draftPoItems = [];
   selectedPoOfferIndexes = new Set();
+  poItemEditIndex = -1;
+  selectedReceiptPo = null;
+  draftReceiptItems = [];
+  selectedReceiptItemKeys = new Set();
   clearSelectedItem();
   populateContextDefaults();
   applyCreateDefaults();
@@ -1954,6 +2611,7 @@ function resetCreateState() {
   renderServiceItems();
   renderQuoteItems();
   renderPoItems();
+  renderReceiptItems();
 }
 
 function openManagedModal(backdrop, card, focusTarget) {
@@ -1990,6 +2648,7 @@ function closeManagedModal(backdrop, card, form, options = {}) {
 
 function closeAllModals(options = {}) {
   selectedPoOfferIndexes = new Set();
+  selectedReceiptItemKeys = new Set();
   closeManagedModal(createModalBackdrop, createModalCard, requestForm, options);
   closeManagedModal(detailModalBackdrop, detailModalCard, null, { resetForm: false });
   closeManagedModal(draftItemBackdrop, draftItemCard, draftItemForm, options);
@@ -1998,6 +2657,8 @@ function closeAllModals(options = {}) {
   closeManagedModal(requestPickerBackdrop, requestPickerCard, null, { resetForm: false });
   closeManagedModal(poRequestPickerBackdrop, poRequestPickerCard, null, { resetForm: false });
   closeManagedModal(poItemPickerBackdrop, poItemPickerCard, null, { resetForm: false });
+  closeManagedModal(poDetailEditBackdrop, poDetailEditCard, poDetailEditForm, options);
+  closeManagedModal(receiptPoPickerBackdrop, receiptPoPickerCard, null, { resetForm: false });
   closeManagedModal(itemPickerBackdrop, itemPickerCard, null, { resetForm: false });
   closeManagedModal(quickItemBackdrop, quickItemCard, quickItemForm, options);
 }
@@ -2012,6 +2673,8 @@ function areAllModalsClosed() {
     requestPickerBackdrop,
     poRequestPickerBackdrop,
     poItemPickerBackdrop,
+    poDetailEditBackdrop,
+    receiptPoPickerBackdrop,
     itemPickerBackdrop,
     quickItemBackdrop
   ].every((backdrop) => !backdrop || backdrop.hidden);
@@ -2092,6 +2755,7 @@ function renderDetailModal(record, code) {
   detailModalKicker.textContent = "Detail";
   detailModalTitle.textContent = code ? `Detail ${code}` : `Detail ${entitySingular}`;
   detailModalCard.classList.add("modal-card-wide");
+  detailModalCard.classList.toggle("modal-card-content-fit", detailViewType === "penerimaan-barang");
 
   if (!record) {
     detailModalBody.innerHTML = `
@@ -2132,6 +2796,12 @@ function renderDetailModal(record, code) {
   if (detailViewType === "procurement-po") {
     detailModalBody.innerHTML = buildProcurementPOMarkup(record);
     renderPoApprovalActions(record);
+    return;
+  }
+
+  if (detailViewType === "penerimaan-barang") {
+    detailModalBody.innerHTML = buildPenerimaanBarangMarkup(record);
+    renderPenerimaanActions(record);
     return;
   }
 
@@ -2180,14 +2850,14 @@ function buildBarangDetailMarkup(record) {
     .join("");
 
   return `
-    <div class="modal-detail-stack">
+    <div class="modal-detail-stack detail-modal-fill">
       <section class="approval-strip" aria-label="Alur approval">
         <div class="approval-flow approval-flow-horizontal">
           ${approvalRows}
         </div>
       </section>
 
-      <section class="form-section">
+      <section class="form-section detail-summary-compact">
         <div class="form-section-head">
           <strong>Data Pengajuan</strong>
         </div>
@@ -2229,11 +2899,11 @@ function buildBarangDetailMarkup(record) {
         </div>
       </section>
 
-      <section class="form-section">
+      <section class="form-section detail-table-section">
         <div class="form-section-head">
           <strong>Item Pengajuan</strong>
         </div>
-        <div class="table-wrap">
+        <div class="table-wrap detail-table-wrap">
           <table>
             <thead>
               <tr>
@@ -2531,6 +3201,30 @@ function getPoApprovalSteps(record) {
     { kind: "review", title: "Purchasing", text: status || "-" },
     { kind: "", title: "Kepala Purchasing", text: "-" }
   ];
+}
+
+function renderPenerimaanActions(record) {
+  if (!detailStatusActions) {
+    return;
+  }
+
+  const status = String(record?.header?.status || "");
+  const actions = getPenerimaanActionsForRole(status);
+  detailStatusActions.innerHTML = renderActionButtons(record, actions);
+}
+
+function getPenerimaanActionsForRole(status) {
+  const allActions = {
+    draft: [
+      { action: "start_receipt_check", label: "mulai pemeriksaan", variant: "primary-button" }
+    ],
+    pemeriksaan: [
+      { action: "mark_receipt_issue", label: "ada masalah", variant: "secondary-button danger-button" },
+      { action: "complete_receipt", label: "selesai", variant: "primary-button" }
+    ]
+  };
+
+  return (allActions[status] || []).filter((action) => canRunPenerimaanAction(action.action, status));
 }
 
 function openDraftItemDialog(index = -1) {
@@ -2835,11 +3529,22 @@ function openQuoteItemDialog(index = -1) {
   quoteItemEditIndex = Number.isInteger(index) ? index : -1;
   quoteItemForm?.reset();
   populateQuoteRequestItemOptions();
+  populateQuoteVendorOptions();
 
   if (quoteItemEditIndex >= 0 && draftQuoteItems[quoteItemEditIndex]) {
     const item = draftQuoteItems[quoteItemEditIndex];
+    const vendorSource = item.vendorSource || inferQuoteVendorSource(item.vendor);
     setFieldValue(getQuoteField("requestItem"), item.itemCode || "");
-    setFieldValue(getQuoteField("vendor"), item.vendor || "");
+    setFieldValue(getQuoteField("vendorSource"), vendorSource);
+    setFieldValue(getQuoteField("vendorMaster"), item.vendorCode || getVendorCodeByName(item.vendor));
+    setFieldValue(getQuoteField("newVendorName"), vendorSource === "new_master" ? item.vendor : "");
+    setFieldValue(getQuoteField("newVendorNpwp"), item.vendorNpwp || "");
+    setFieldValue(getQuoteField("newVendorEmail"), item.vendorEmail || "");
+    setFieldValue(getQuoteField("newVendorPhone"), item.vendorPhone || "");
+    setFieldValue(getQuoteField("newVendorUrl"), item.vendorUrl || "");
+    setFieldValue(getQuoteField("newVendorAddress"), item.vendorAddress || "");
+    setFieldValue(getQuoteField("vendorOneTime"), vendorSource === "one_time" ? item.vendor : "");
+    setFieldValue(getQuoteField("vendorOneTimeNote"), item.vendorNote || "");
     setFieldValue(getQuoteField("unitPrice"), item.unitPrice || "");
     setFieldValue(getQuoteField("paymentMethod"), item.paymentMethod || "");
     setFieldValue(getQuoteField("delivery"), item.delivery || "");
@@ -2872,6 +3577,7 @@ function openQuoteItemDialog(index = -1) {
     }
   }
 
+  updateQuoteVendorMode();
   openManagedModal(quoteItemBackdrop, quoteItemCard, getQuoteField("requestItem"));
 }
 
@@ -2894,6 +3600,130 @@ function populateQuoteRequestItemOptions() {
       )
       .join("")}
   `;
+}
+
+function populateQuoteVendorOptions(selectedCode = "") {
+  const vendorField = getQuoteField("vendorMaster");
+  if (!vendorField) {
+    return;
+  }
+
+  const currentValue = selectedCode || vendorField.value;
+  vendorField.innerHTML = `
+    <option value="">Pilih vendor dari master</option>
+    ${quoteMasterVendors
+      .map(
+        (vendor) =>
+          `<option value="${escapeHtml(vendor.code)}">${escapeHtml(vendor.name)}${vendor.npwp ? ` - ${escapeHtml(vendor.npwp)}` : ""}</option>`
+      )
+      .join("")}
+  `;
+  setFieldValue(vendorField, currentValue);
+}
+
+function updateQuoteVendorMode() {
+  const source = String(getQuoteField("vendorSource")?.value || "master");
+  quoteItemForm?.querySelectorAll("[data-vendor-mode-panel]").forEach((panel) => {
+    const isActive = panel.dataset.vendorModePanel === source;
+    panel.hidden = !isActive;
+    panel.querySelectorAll("input, select, textarea").forEach((field) => {
+      field.disabled = !isActive;
+      field.required = false;
+    });
+  });
+
+  if (source === "master") {
+    getQuoteField("vendorMaster")?.setAttribute("required", "required");
+  }
+
+  if (source === "new_master") {
+    getQuoteField("newVendorName")?.setAttribute("required", "required");
+  }
+
+  if (source === "one_time") {
+    getQuoteField("vendorOneTime")?.setAttribute("required", "required");
+  }
+}
+
+function inferQuoteVendorSource(vendorName = "") {
+  return getVendorCodeByName(vendorName) ? "master" : "one_time";
+}
+
+function getVendorCodeByName(vendorName = "") {
+  const vendor = quoteMasterVendors.find((item) => item.name.toLowerCase() === String(vendorName).toLowerCase());
+  return vendor?.code || "";
+}
+
+function getNextQuoteVendorCode() {
+  const max = quoteMasterVendors.reduce((highest, vendor) => {
+    const number = Number(String(vendor.code || "").replace(/\D/g, ""));
+    return Number.isFinite(number) ? Math.max(highest, number) : highest;
+  }, 0);
+  return `VND-${String(max + 1).padStart(3, "0")}`;
+}
+
+function getQuoteVendorPayload() {
+  const source = String(getQuoteField("vendorSource")?.value || "master");
+
+  if (source === "master") {
+    const code = String(getQuoteField("vendorMaster")?.value || "").trim();
+    const vendor = quoteMasterVendors.find((item) => item.code === code);
+    return vendor
+      ? {
+          vendor: vendor.name,
+          vendorCode: vendor.code,
+          vendorSource: "master",
+          vendorNpwp: vendor.npwp,
+          vendorEmail: vendor.email,
+          vendorPhone: vendor.phone,
+          vendorAddress: vendor.address,
+          vendorUrl: vendor.url
+        }
+      : null;
+  }
+
+  if (source === "new_master") {
+    const name = String(getQuoteField("newVendorName")?.value || "").trim();
+    if (!name) {
+      return null;
+    }
+
+    let vendor = quoteMasterVendors.find((item) => item.name.toLowerCase() === name.toLowerCase());
+    if (!vendor) {
+      vendor = {
+        code: getNextQuoteVendorCode(),
+        name,
+        npwp: String(getQuoteField("newVendorNpwp")?.value || "").trim(),
+        email: String(getQuoteField("newVendorEmail")?.value || "").trim(),
+        phone: String(getQuoteField("newVendorPhone")?.value || "").trim(),
+        address: String(getQuoteField("newVendorAddress")?.value || "").trim(),
+        url: String(getQuoteField("newVendorUrl")?.value || "").trim()
+      };
+      quoteMasterVendors.push(vendor);
+      populateQuoteVendorOptions(vendor.code);
+    }
+
+    return {
+      vendor: vendor.name,
+      vendorCode: vendor.code,
+      vendorSource: "new_master",
+      vendorNpwp: vendor.npwp,
+      vendorEmail: vendor.email,
+      vendorPhone: vendor.phone,
+      vendorAddress: vendor.address,
+      vendorUrl: vendor.url
+    };
+  }
+
+  const name = String(getQuoteField("vendorOneTime")?.value || "").trim();
+  return name
+    ? {
+        vendor: name,
+        vendorCode: "",
+        vendorSource: "one_time",
+        vendorNote: String(getQuoteField("vendorOneTimeNote")?.value || "").trim()
+      }
+    : null;
 }
 
 function closeQuoteItemDialog(options = {}) {
@@ -2939,12 +3769,24 @@ function saveQuoteItem() {
     return;
   }
 
+  const vendorPayload = getQuoteVendorPayload();
+  if (!vendorPayload) {
+    showAlert("error", "Vendor belum lengkap", "Pilih vendor dari master, isi vendor baru, atau isi vendor sekali pakai.");
+    const source = String(getQuoteField("vendorSource")?.value || "master");
+    const targetField =
+      source === "new_master" ? getQuoteField("newVendorName") :
+      source === "one_time" ? getQuoteField("vendorOneTime") :
+      getQuoteField("vendorMaster");
+    targetField?.focus();
+    return;
+  }
+
   const item = {
     itemCode: requestItem.code,
     itemName: requestItem.name,
     itemQty: requestItem.qty,
     itemUnit: requestItem.unit,
-    vendor: String(getQuoteField("vendor")?.value || "").trim(),
+    ...vendorPayload,
     unitPrice: String(getQuoteField("unitPrice")?.value || "").trim(),
     taxIncluded: draftQuoteItems[quoteItemEditIndex]?.taxIncluded || false,
     tax: draftQuoteItems[quoteItemEditIndex]?.taxIncluded ? "hitung_ppn_11" : "harga_sudah_include_ppn",
@@ -2959,7 +3801,7 @@ function saveQuoteItem() {
   );
   if (duplicateIndex >= 0 && duplicateIndex !== quoteItemEditIndex) {
     showAlert("error", "Penawaran sudah ada", "Vendor ini sudah punya penawaran untuk barang yang sama.");
-    getQuoteField("vendor")?.focus();
+    getQuoteField("vendorMaster")?.focus();
     return;
   }
 
@@ -3067,7 +3909,12 @@ function renderQuoteItems() {
         return `
           <tr>
             <td>${escapeHtml(item.itemName || "-")}</td>
-            <td>${escapeHtml(item.vendor)}</td>
+            <td>
+              <div class="cell-stack">
+                <strong>${escapeHtml(item.vendor)}</strong>
+                <span>${escapeHtml(getQuoteVendorSourceLabel(item))}</span>
+              </div>
+            </td>
             <td>${escapeHtml(item.unitPrice)}</td>
             <td>
               <button
@@ -3131,6 +3978,22 @@ function getQuoteItemGroups(quotes = []) {
     group.items.push({ item, index });
   });
   return groups;
+}
+
+function getQuoteVendorSourceLabel(item = {}) {
+  if (item.vendorSource === "new_master") {
+    return `baru master${item.vendorCode ? ` - ${item.vendorCode}` : ""}`;
+  }
+
+  if (item.vendorSource === "one_time") {
+    return "sekali pakai";
+  }
+
+  if (item.vendorCode || getVendorCodeByName(item.vendor)) {
+    return `master${item.vendorCode ? ` - ${item.vendorCode}` : ""}`;
+  }
+
+  return "sekali pakai";
 }
 
 function renderPoOfferPicker() {
@@ -3227,7 +4090,7 @@ function addSelectedPoOffers() {
     return false;
   }
 
-  const newItems = indexes.map((index) => ({ ...selectedPoOffers[index] }));
+  const newItems = indexes.map((index) => normalizePoDraftItem(selectedPoOffers[index]));
 
   draftPoItems = [...draftPoItems, ...newItems];
   selectedPoOfferIndexes = new Set();
@@ -3239,6 +4102,32 @@ function addSelectedPoOffers() {
 
 function getPoItemKey(item) {
   return [item.quoteCode, item.requestCode, item.itemName].filter(Boolean).join("|");
+}
+
+function normalizePoDraftItem(item = {}) {
+  const originalQty = String(item.originalQty || item.qty || "1");
+  const qty = String(item.qty || originalQty);
+  const unitPrice = item.unitPrice || item.totalPrice || item.price || "Rp0";
+  return recalculatePoDraftItem({
+    ...item,
+    originalQty,
+    qty,
+    unitPrice,
+    totalPrice: unitPrice
+  }, qty);
+}
+
+function recalculatePoDraftItem(item = {}, qtyValue = item.qty) {
+  const qty = Math.max(Number(qtyValue) || 0, 0);
+  const unitPrice = item.unitPrice || item.totalPrice || item.price || "Rp0";
+  const subtotal = parseCurrencyValue(unitPrice) * qty;
+  return {
+    ...item,
+    qty: String(qty),
+    totalPrice: unitPrice,
+    unitPrice,
+    subtotal: formatRupiah(subtotal)
+  };
 }
 
 function removePoItem(index) {
@@ -3269,7 +4158,7 @@ function renderPoItems() {
   if (!draftPoItems.length) {
     poItemsTableBody.innerHTML = `
       <tr>
-        <td colspan="6" class="empty-table-cell">Belum ada detail PO.</td>
+        <td colspan="7" class="empty-table-cell">Belum ada detail PO.</td>
       </tr>
     `;
     updatePoSubtotalSummary(draftPoItems);
@@ -3282,15 +4171,87 @@ function renderPoItems() {
         <tr>
           <td>${escapeHtml(item.requestCode || "-")}</td>
           <td>${escapeHtml(item.itemName || "-")}</td>
-          <td>${escapeHtml(item.qty || "-")}</td>
+          <td>
+            <div class="cell-stack">
+              <strong>${escapeHtml(item.qty || "-")}</strong>
+              <span>dari ${escapeHtml(item.originalQty || item.qty || "-")}</span>
+            </div>
+          </td>
           <td>${escapeHtml(item.unit || "-")}</td>
-          <td>${escapeHtml(item.totalPrice || item.price || "-")}</td>
-          <td><button class="table-action" type="button" data-remove-po-item="${index}">Hapus</button></td>
+          <td>${escapeHtml(item.unitPrice || item.totalPrice || item.price || "-")}</td>
+          <td>${escapeHtml(item.subtotal || item.totalPrice || item.price || "-")}</td>
+          <td>
+            <div class="table-action-group">
+              <button class="table-action" type="button" data-edit-po-item="${index}">Edit</button>
+              <button class="table-action" type="button" data-remove-po-item="${index}">Hapus</button>
+            </div>
+          </td>
         </tr>
       `
     )
     .join("");
   updatePoSubtotalSummary(draftPoItems);
+}
+
+function getPoDetailEditField(name) {
+  return poDetailEditForm?.querySelector(`[data-po-detail-edit-field="${name}"]`);
+}
+
+function openPoDetailEditDialog(index) {
+  if (!Number.isInteger(index) || !draftPoItems[index]) {
+    return;
+  }
+
+  poItemEditIndex = index;
+  const item = draftPoItems[index];
+  const originalQty = item.originalQty || item.qty || "";
+  if (poDetailEditItemName) {
+    poDetailEditItemName.textContent = item.itemName || "Detail PO";
+  }
+
+  setFieldValue(getPoDetailEditField("originalQty"), `${originalQty} ${item.unit || ""}`.trim());
+  setFieldValue(getPoDetailEditField("qty"), item.qty || "");
+  setFieldValue(getPoDetailEditField("unit"), item.unit || "");
+  setFieldValue(getPoDetailEditField("unitPrice"), item.unitPrice || item.totalPrice || item.price || "");
+  setFieldValue(getPoDetailEditField("note"), item.note || "");
+
+  const qtyField = getPoDetailEditField("qty");
+  if (qtyField) {
+    qtyField.max = String(originalQty || "");
+  }
+
+  openManagedModal(poDetailEditBackdrop, poDetailEditCard, qtyField);
+}
+
+function closePoDetailEditDialog() {
+  poItemEditIndex = -1;
+  closeManagedModal(poDetailEditBackdrop, poDetailEditCard, poDetailEditForm);
+}
+
+function savePoDetailEdit() {
+  if (!poDetailEditForm?.reportValidity() || !draftPoItems[poItemEditIndex]) {
+    return;
+  }
+
+  const item = draftPoItems[poItemEditIndex];
+  const qty = Number(getPoDetailEditField("qty")?.value || 0);
+  const originalQty = Number(item.originalQty || item.qty || 0);
+
+  if (originalQty > 0 && qty > originalQty) {
+    showAlert("error", "Qty melebihi penawaran", "Qty PO tidak boleh lebih besar dari qty detail penawaran.");
+    getPoDetailEditField("qty")?.focus();
+    return;
+  }
+
+  draftPoItems[poItemEditIndex] = recalculatePoDraftItem(
+    {
+      ...item,
+      note: String(getPoDetailEditField("note")?.value || "").trim() || item.note || "-"
+    },
+    qty
+  );
+  renderPoItems();
+  closePoDetailEditDialog();
 }
 
 function updatePoSubtotalSummary(items = []) {
@@ -3299,6 +4260,123 @@ function updatePoSubtotalSummary(items = []) {
   }
 
   poItemsSubtotal.textContent = formatRupiah(sumPoSubtotal(items));
+}
+
+function renderReceiptPoPicker(query = "") {
+  if (!receiptPoPickerList) {
+    return;
+  }
+
+  const search = String(query || "").toLowerCase();
+  const rows = getReceivablePoItems().filter((item) =>
+    [item.noPo, item.vendor, item.poDate, item.requestCode, item.itemName, item.qty, item.unit, item.subtotal]
+      .join(" ")
+      .toLowerCase()
+      .includes(search)
+  );
+
+  if (!rows.length) {
+    receiptPoPickerList.innerHTML = `
+      <tr>
+        <td colspan="8" class="empty-table-cell">Detail PO tidak ditemukan.</td>
+      </tr>
+    `;
+    return;
+  }
+
+  receiptPoPickerList.innerHTML = rows
+    .map(
+      (item) => {
+        const key = getReceiptItemKey(item);
+        return `
+        <tr>
+          <td>
+            <input
+              type="radio"
+              name="receipt_detail_po"
+              data-toggle-receipt-item="${escapeHtml(key)}"
+              ${selectedReceiptItemKeys.has(key) ? "checked" : ""}
+            />
+          </td>
+          <td><strong>${escapeHtml(item.noPo)}</strong></td>
+          <td>${escapeHtml(item.vendor)}</td>
+          <td>${escapeHtml(item.requestCode || "-")}</td>
+          <td>${escapeHtml(item.itemName || "-")}</td>
+          <td>${escapeHtml(item.qty || "-")}</td>
+          <td>${escapeHtml(item.unit || "-")}</td>
+          <td>${escapeHtml(item.subtotal || "-")}</td>
+        </tr>
+      `;
+      }
+    )
+    .join("");
+}
+
+function getReceivablePoItems() {
+  return getReceivablePoSources().flatMap((po) =>
+    (po.items || []).map((item) => ({
+      ...item,
+      noPo: po.noPo,
+      vendor: po.vendor,
+      poDate: po.poDate,
+      poStatus: po.status
+    }))
+  );
+}
+
+function getReceiptItemKey(item) {
+  return [item.noPo, item.requestCode, item.itemName].filter(Boolean).join("|");
+}
+
+function applySelectedReceiptItems() {
+  if (!selectedReceiptItemKeys.size) {
+    showAlert("warning", "Detail PO belum dipilih", "Pilih satu detail PO sebelum menekan pilih.");
+    return false;
+  }
+
+  const selectedKey = Array.from(selectedReceiptItemKeys)[0];
+  const item = getReceivablePoItems().find((poItem) => getReceiptItemKey(poItem) === selectedKey);
+  if (!item) {
+    showAlert("warning", "Detail PO tidak ditemukan", "Pilih ulang detail PO yang masih tersedia.");
+    return false;
+  }
+
+  draftReceiptItems = [{ ...item }];
+  selectedReceiptPo = getReceivablePoSources().find((po) => po.noPo === item.noPo) || null;
+  syncReceiptDerivedFields();
+  renderReceiptItems();
+  return true;
+}
+
+function renderReceiptItems() {
+  if (!receiptItemsTableBody) {
+    return;
+  }
+
+  if (!draftReceiptItems.length) {
+    receiptItemsTableBody.innerHTML = `<span>Belum ada detail PO dipilih.</span>`;
+    return;
+  }
+
+  const item = draftReceiptItems[0];
+  receiptItemsTableBody.innerHTML = `
+    <div>
+      <strong>${escapeHtml(item.noPo || "-")} - ${escapeHtml(item.itemName || "-")}</strong>
+      <span>${escapeHtml(item.vendor || "-")} • ${escapeHtml(item.requestCode || "-")}</span>
+    </div>
+    <div class="selected-reference-meta">
+      <span>Qty PO: ${escapeHtml(item.qty || "-")} ${escapeHtml(item.unit || "")}</span>
+      <span>Subtotal: ${escapeHtml(item.subtotal || "-")}</span>
+    </div>
+  `;
+}
+
+function syncReceiptDerivedFields() {
+  const item = draftReceiptItems[0];
+  setFieldValue(getField("receiptPo"), item?.noPo || "");
+  if (item) {
+    setFieldValue(getField("qtyReceived"), item.qty || "");
+  }
 }
 
 function sumPoSubtotal(items = []) {
@@ -3346,14 +4424,14 @@ function buildJasaDetailMarkup(record) {
     .join("");
 
   return `
-    <div class="modal-detail-stack">
+    <div class="modal-detail-stack detail-modal-fill">
       <section class="approval-strip" aria-label="Alur approval">
         <div class="approval-flow approval-flow-horizontal">
           ${approvalRows}
         </div>
       </section>
 
-      <section class="form-section">
+      <section class="form-section detail-summary-compact">
         <div class="form-section-head">
           <strong>Data Pengajuan</strong>
         </div>
@@ -3403,11 +4481,11 @@ function buildJasaDetailMarkup(record) {
         </div>
       </section>
 
-      <section class="form-section">
+      <section class="form-section detail-table-section">
         <div class="form-section-head">
           <strong>Detail Jasa</strong>
         </div>
-        <div class="table-wrap">
+        <div class="table-wrap detail-table-wrap">
           <table>
             <thead>
               <tr>
@@ -3428,53 +4506,99 @@ function buildJasaDetailMarkup(record) {
 }
 
 function buildProcurementPembelianMarkup(record) {
+  const po = record.purchase_order_head || record.header || {};
+  const details = record.purchase_order_detail || record.items || [];
+  const receipt = record.penerimaan_barang || {};
+  const returned = record.retur_barang || {};
+  const firstDetail = details[0] || {};
+  const noPo = po.no_po || record.header?.noPo || "-";
+  const noPengajuan = firstDetail.no_pengajuan || record.header?.requestCode || "-";
+  const vendor = firstDetail.nama_vendor || record.header?.vendor || "-";
+  const totalPembelian = getPurchaseOrderTotal(details, record.header?.poValue);
+  const itemRows = details
+    .map(
+      (item) => `
+        <tr>
+          <td>${escapeHtml(item.nama_divisi || "-")}</td>
+          <td>${escapeHtml(item.uraian || item.name || "-")}</td>
+          <td>${escapeHtml(item.jumlah || item.qty || "-")} ${escapeHtml(item.satuan || item.unit || "")}</td>
+          <td>${escapeHtml(item.jumlah_diterima || receipt.qty_diterima || "0")}</td>
+          <td>${escapeHtml(item.jumlah_retur || returned.qty_retur || "0")}</td>
+          <td>${escapeHtml(item.subtotal || "-")}</td>
+        </tr>
+      `
+    )
+    .join("");
   return `
-    <div class="modal-detail-stack">
-      <section class="form-section">
+    <div class="modal-detail-stack detail-modal-fill">
+      <section class="form-section detail-summary-compact">
         <div class="form-section-head">
-          <strong>Data Procurement</strong>
+          <strong>Ringkasan Transaksi</strong>
         </div>
         <div class="detail-list">
           <div class="detail-row">
-            <div class="detail-label">No Procurement</div>
-            <div class="detail-value">${escapeHtml(record.header.code)}</div>
+            <div class="detail-label">No PO</div>
+            <div class="detail-value">${escapeHtml(noPo)}</div>
           </div>
           <div class="detail-row">
-            <div class="detail-label">Ref Pengajuan</div>
-            <div class="detail-value">${escapeHtml(record.header.requestCode)}</div>
+            <div class="detail-label">No Pengajuan</div>
+            <div class="detail-value">${escapeHtml(noPengajuan)}</div>
           </div>
           <div class="detail-row">
-            <div class="detail-label">Divisi</div>
-            <div class="detail-value">${escapeHtml(record.header.division)}</div>
+            <div class="detail-label">Vendor</div>
+            <div class="detail-value">${escapeHtml(vendor)}</div>
           </div>
           <div class="detail-row">
-            <div class="detail-label">PIC Purchasing</div>
-            <div class="detail-value">${escapeHtml(record.header.pic)}</div>
+            <div class="detail-label">Tanggal PO</div>
+            <div class="detail-value">${escapeHtml(po.tgl_po || record.header?.poDate || "-")}</div>
           </div>
           <div class="detail-row">
-            <div class="detail-label">Jalur Order</div>
-            <div class="detail-value">${escapeHtml(record.header.orderType)}</div>
+            <div class="detail-label">Nilai</div>
+            <div class="detail-value">${escapeHtml(totalPembelian)}</div>
           </div>
           <div class="detail-row">
-            <div class="detail-label">Target Sourcing</div>
-            <div class="detail-value">${escapeHtml(record.header.targetDate)}</div>
-          </div>
-          <div class="detail-row">
-            <div class="detail-label">Status</div>
-            <div class="detail-value">${escapeHtml(record.header.status)}</div>
-          </div>
-          <div class="detail-row">
-            <div class="detail-label">Kebutuhan Final</div>
-            <div class="detail-value">${escapeHtml(record.header.need)}</div>
-          </div>
-          <div class="detail-row">
-            <div class="detail-label">Catatan</div>
-            <div class="detail-value">${escapeHtml(record.header.notes)}</div>
+            <div class="detail-label">Catatan PO</div>
+            <div class="detail-value">${escapeHtml(po.catatan || record.header?.notes || "-")}</div>
           </div>
         </div>
       </section>
+
+      <section class="form-section detail-table-section">
+        <div class="form-section-head">
+          <strong>Detail Item</strong>
+        </div>
+        <div class="table-wrap detail-table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Divisi</th>
+                <th>Nama Barang</th>
+                <th>Jumlah</th>
+                <th>Jumlah Diterima</th>
+                <th>Jumlah Retur</th>
+                <th>Nilai</th>
+              </tr>
+            </thead>
+            <tbody>${itemRows || `<tr><td colspan="6" class="empty-table-cell">Belum ada item.</td></tr>`}</tbody>
+          </table>
+        </div>
+      </section>
+
     </div>
   `;
+}
+
+function getPurchaseOrderTotal(details = [], fallback = "") {
+  const total = (details || []).reduce((sum, item) => sum + parseCurrencyValue(item.subtotal || 0), 0);
+  return total > 0 ? formatRupiah(total) : fallback || "-";
+}
+
+function sumPurchaseOrderQty(details = []) {
+  return (details || []).reduce((sum, item) => sum + (Number(item.jumlah || item.qty) || 0), 0);
+}
+
+function sumPurchaseReceivedQty(details = []) {
+  return (details || []).reduce((sum, item) => sum + (Number(item.jumlah_diterima) || 0), 0);
 }
 
 function buildProcurementPenawaranMarkup(record) {
@@ -3507,7 +4631,12 @@ function buildProcurementPenawaranMarkup(record) {
           const rows = group.items
             .map(({ item: quote, index }) => `
               <tr>
-                <td>${escapeHtml(quote.vendor)}</td>
+                <td>
+                  <div class="cell-stack">
+                    <strong>${escapeHtml(quote.vendor)}</strong>
+                    <span>${escapeHtml(getQuoteVendorSourceLabel(quote))}</span>
+                  </div>
+                </td>
                 <td>${escapeHtml(quote.unitPrice || "-")}</td>
                 <td>
                   <span class="mini-toggle" data-active="${quote.taxIncluded ? "true" : "false"}">
@@ -3547,14 +4676,14 @@ function buildProcurementPenawaranMarkup(record) {
     `;
 
   return `
-    <div class="modal-detail-stack">
+    <div class="modal-detail-stack detail-modal-fill">
       <section class="approval-strip" aria-label="Alur approval">
         <div class="approval-flow approval-flow-horizontal approval-flow-compact">
           ${approvalRows}
         </div>
       </section>
 
-      <section class="form-section">
+      <section class="form-section detail-summary-compact">
         <div class="form-section-head">
           <strong>Data Penawaran</strong>
         </div>
@@ -3578,11 +4707,11 @@ function buildProcurementPenawaranMarkup(record) {
         </div>
       </section>
 
-      <section class="form-section">
+      <section class="form-section detail-table-section">
         <div class="form-section-head">
           <strong>Perbandingan Vendor</strong>
         </div>
-        <div class="table-wrap">
+        <div class="table-wrap detail-table-wrap">
           <table>
             <thead>
               <tr>
@@ -3618,28 +4747,37 @@ function buildProcurementPOMarkup(record) {
     .join("");
   const itemRows = (record.items || [])
     .map(
-      (item) => `
-        <tr>
-          <td>${escapeHtml(item.requestCode || "-")}</td>
-          <td>${escapeHtml(item.itemName || "-")}</td>
-          <td>${escapeHtml(item.qty || "-")}</td>
-          <td>${escapeHtml(item.unit || "-")}</td>
-          <td>${escapeHtml(item.totalPrice || item.price || "-")}</td>
-          <td>${escapeHtml(item.note)}</td>
-        </tr>
-      `
+      (item) => {
+        const normalizedItem = normalizePoDraftItem(item);
+        return `
+          <tr>
+            <td>${escapeHtml(normalizedItem.requestCode || "-")}</td>
+            <td>${escapeHtml(normalizedItem.itemName || "-")}</td>
+            <td>
+              <div class="cell-stack">
+                <strong>${escapeHtml(normalizedItem.qty || "-")}</strong>
+                <span>dari ${escapeHtml(normalizedItem.originalQty || normalizedItem.qty || "-")}</span>
+              </div>
+            </td>
+            <td>${escapeHtml(normalizedItem.unit || "-")}</td>
+            <td>${escapeHtml(normalizedItem.unitPrice || normalizedItem.totalPrice || normalizedItem.price || "-")}</td>
+            <td>${escapeHtml(normalizedItem.subtotal || "-")}</td>
+            <td>${escapeHtml(normalizedItem.note || "-")}</td>
+          </tr>
+        `;
+      }
     )
     .join("");
 
   return `
-    <div class="modal-detail-stack">
+    <div class="modal-detail-stack detail-modal-fill">
       <section class="approval-strip" aria-label="Alur approval PO">
         <div class="approval-flow approval-flow-horizontal approval-flow-compact">
           ${approvalRows}
         </div>
       </section>
 
-      <section class="form-section">
+      <section class="form-section detail-summary-compact">
         <div class="form-section-head">
           <strong>Data PO</strong>
         </div>
@@ -3671,19 +4809,20 @@ function buildProcurementPOMarkup(record) {
         </div>
       </section>
 
-      <section class="form-section">
+      <section class="form-section detail-table-section">
         <div class="form-section-head">
           <strong>Item PO</strong>
         </div>
-        <div class="table-wrap">
+        <div class="table-wrap detail-table-wrap">
           <table>
             <thead>
               <tr>
                 <th>No Pengajuan</th>
                 <th>Nama Barang</th>
-                <th>Jumlah</th>
+                <th>Qty PO</th>
                 <th>Satuan</th>
-                <th>Total Harga</th>
+                <th>Harga Satuan</th>
+                <th>Subtotal</th>
                 <th>Catatan</th>
               </tr>
             </thead>
@@ -3693,6 +4832,87 @@ function buildProcurementPOMarkup(record) {
         <div class="table-summary">
           <span>Subtotal Total Harga</span>
           <strong>${escapeHtml(formatRupiah(sumPoSubtotal(record.items || [])))}</strong>
+        </div>
+      </section>
+    </div>
+  `;
+}
+
+function buildPenerimaanBarangMarkup(record) {
+  const po = record.po || getReceivablePoSources().find((item) => item.noPo === record.header.noPo) || {};
+  const item = record.poDetail || record.items?.[0] || po.items?.[0] || {};
+
+  return `
+    <div class="modal-detail-stack">
+      <section class="form-section detail-summary-compact">
+        <div class="form-section-head">
+          <strong>Data Penerimaan</strong>
+        </div>
+        <div class="detail-list">
+          <div class="detail-row">
+            <div class="detail-label">No Penerimaan</div>
+            <div class="detail-value">${escapeHtml(record.header.code)}</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">No PO</div>
+            <div class="detail-value">${escapeHtml(record.header.noPo)}</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">Tanggal</div>
+            <div class="detail-value">${escapeHtml(record.header.receiptDate)}</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">User Terima</div>
+            <div class="detail-value">${escapeHtml(record.header.receivedBy)}</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">Qty Diterima</div>
+            <div class="detail-value">${escapeHtml(record.header.qtyReceived)} ${escapeHtml(item.unit || "")}</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">Kondisi Barang</div>
+            <div class="detail-value">${escapeHtml(record.header.condition)}</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">Status</div>
+            <div class="detail-value">${escapeHtml(record.header.status)}</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">Catatan</div>
+            <div class="detail-value">${escapeHtml(record.header.notes || "-")}</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="form-section detail-summary-compact">
+        <div class="form-section-head">
+          <strong>Detail PO Dipilih</strong>
+        </div>
+        <div class="detail-list">
+          <div class="detail-row">
+            <div class="detail-label">Vendor</div>
+            <div class="detail-value">${escapeHtml(po.vendor || "-")}</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">Tanggal PO</div>
+            <div class="detail-value">${escapeHtml(po.poDate || "-")}</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">No Pengajuan</div>
+            <div class="detail-value">${escapeHtml(item.requestCode || "-")}</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">Nama Barang</div>
+            <div class="detail-value">${escapeHtml(item.itemName || "-")}</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">Qty PO</div>
+            <div class="detail-value">${escapeHtml(item.qty || "-")} ${escapeHtml(item.unit || "")}</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">Subtotal</div>
+            <div class="detail-value">${escapeHtml(item.subtotal || item.totalPrice || "-")}</div>
+          </div>
         </div>
       </section>
     </div>
@@ -3718,6 +4938,10 @@ function getPrimaryDraftValue() {
 
   if (detailViewType === "procurement-po") {
     return getNextWorkflowReference("PO");
+  }
+
+  if (detailViewType === "penerimaan-barang") {
+    return getNextWorkflowReference("RCV");
   }
 
   if (entitySingular.toLowerCase() === "barang") {
@@ -3747,6 +4971,15 @@ function applyCreateDefaults() {
     setFieldValue(getField("poDate"), formatDateDisplay(new Date()));
   }
 
+  if (detailViewType === "penerimaan-barang") {
+    setFieldValue(getField("receiptDate"), formatDateDisplay(new Date()));
+    setFieldValue(getField("receivedBy"), "USR-PUR-001 - Rani Purchasing");
+    setFieldValue(getField("condition"), "sesuai");
+    if (statusField) {
+      statusField.value = "draft";
+    }
+  }
+
   if (entitySingular.toLowerCase() !== "barang") {
     return;
   }
@@ -3773,7 +5006,7 @@ function getStatusChipClass(statusValue) {
     return "success";
   }
 
-  if (status.includes("nonaktif") || status.includes("ditolak") || status.includes("dibatalkan")) {
+  if (status.includes("nonaktif") || status.includes("ditolak") || status.includes("dibatalkan") || status.includes("masalah")) {
     return "danger";
   }
 

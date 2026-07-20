@@ -157,7 +157,7 @@
               </span>
             </button>
             <div class="nav-submenu" hidden>
-              <a class="nav-sublink is-disabled" href="#">Penerimaan</a>
+              <a class="nav-sublink" href="./penerimaan-barang.html">Penerimaan</a>
               <a class="nav-sublink is-disabled" href="#">Retur</a>
             </div>
           </div>
@@ -426,15 +426,16 @@
                   <tr>
                     <th>No Pengajuan</th>
                     <th>Nama Barang</th>
-                    <th>Jumlah</th>
+                    <th>Qty PO</th>
                     <th>Satuan</th>
-                    <th>Total Harga</th>
+                    <th>Harga Satuan</th>
+                    <th>Subtotal</th>
                     <th>Aksi</th>
                   </tr>
                 </thead>
                 <tbody id="poItemsTableBody">
                   <tr>
-                    <td colspan="6" class="empty-table-cell">Belum ada detail PO.</td>
+                    <td colspan="7" class="empty-table-cell">Belum ada detail PO.</td>
                   </tr>
                 </tbody>
               </table>
@@ -448,6 +449,62 @@
           <div class="modal-actions">
             <button class="secondary-button" id="cancelCreateModal" type="button">Batal</button>
             <button class="primary-button" type="submit">Simpan PO</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="modal-backdrop" id="poDetailEditBackdrop" hidden aria-hidden="true">
+      <div class="modal-card" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="poDetailEditTitle">
+        <div class="modal-head">
+          <div>
+            <p class="eyebrow">Edit Detail</p>
+            <h3 id="poDetailEditTitle">Qty Detail PO</h3>
+          </div>
+          <button class="icon-button tiny" id="closePoDetailEditModal" type="button" aria-label="Close modal">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m18.3 5.7-1-1L12 10 6.7 4.7l-1 1L11 11l-5.3 5.3 1 1L12 12l5.3 5.3 1-1L13 11l5.3-5.3Z" />
+            </svg>
+          </button>
+        </div>
+
+        <form class="modal-form" id="poDetailEditForm">
+          <section class="form-section">
+            <div class="form-section-head">
+              <strong id="poDetailEditItemName">Item PO</strong>
+            </div>
+
+            <div class="form-grid">
+              <label>
+                <span>Qty dari Penawaran</span>
+                <input data-po-detail-edit-field="originalQty" type="text" readonly />
+              </label>
+              <label>
+                <span>Qty PO</span>
+                <input data-po-detail-edit-field="qty" name="qty_po" type="number" min="0.01" step="0.01" required />
+              </label>
+            </div>
+
+            <div class="form-grid">
+              <label>
+                <span>Satuan</span>
+                <input data-po-detail-edit-field="unit" type="text" readonly />
+              </label>
+              <label>
+                <span>Harga Satuan</span>
+                <input data-po-detail-edit-field="unitPrice" type="text" readonly />
+              </label>
+            </div>
+
+            <label>
+              <span>Catatan Detail</span>
+              <textarea data-po-detail-edit-field="note" name="catatan_detail" rows="3" placeholder="Opsional"></textarea>
+            </label>
+          </section>
+
+          <div class="modal-actions">
+            <button class="secondary-button" id="cancelPoDetailEditModal" type="button">Batal</button>
+            <button class="primary-button" type="submit">Simpan Detail</button>
           </div>
         </form>
       </div>

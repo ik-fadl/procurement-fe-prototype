@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Procurement Pembelian - Procurement UI Prototype</title>
+    <title>Pembelian - Procurement UI Prototype</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -14,8 +14,8 @@
   </head>
   <body
     data-theme="light"
-    data-entity-singular="Procurement Pembelian"
-    data-entity-plural="Daftar Procurement"
+    data-entity-singular="Pembelian"
+    data-entity-plural="Daftar Pembelian"
     data-detail-view="procurement-pembelian"
   >
     <div class="app-shell">
@@ -157,7 +157,7 @@
               </span>
             </button>
             <div class="nav-submenu" hidden>
-              <a class="nav-sublink is-disabled" href="#">Penerimaan</a>
+              <a class="nav-sublink" href="./penerimaan-barang.html">Penerimaan</a>
               <a class="nav-sublink is-disabled" href="#">Retur</a>
             </div>
           </div>
@@ -299,66 +299,65 @@
           </div>
           <div class="page-actions">
             <button class="secondary-button" type="button">Filter Status</button>
-            <button class="primary-button" id="openCreateModal" type="button">Tambah Procurement</button>
           </div>
         </section>
 
         <section class="panel panel-table">
           <div class="panel-head">
             <div>
-              <h3>Daftar Procurement Pembelian</h3>
+              <h3>Monitoring Pembelian</h3>
             </div>
           </div>
 
           <div class="table-wrap">
-            <table>
+              <table>
               <thead>
                 <tr>
-                  <th>No Procurement</th>
-                  <th>Ref Pengajuan</th>
-                  <th>Divisi</th>
-                  <th>PIC Purchasing</th>
-                  <th>Jalur Order</th>
-                  <th>Status</th>
+                  <th>Tgl PO</th>
+                  <th>No PO</th>
+                  <th>Nama Vendor</th>
+                  <th>Total Nilai</th>
+                  <th>Total Jumlah</th>
+                  <th>Total Diterima</th>
                   <th>View</th>
                 </tr>
               </thead>
               <tbody id="requestTableBody">
                 <tr class="master-slave-row is-active">
-                  <td>PRC-2026-0012</td>
-                  <td>PGJ-BRG-2026-0006</td>
-                  <td>General Affairs</td>
-                  <td>Rina Purchasing</td>
-                  <td>PO</td>
-                  <td><span class="status-chip waiting">proses_penawaran</span></td>
+                  <td>09 Jul 2026</td>
+                  <td>PO-2026-0188</td>
+                  <td>PT NetCom</td>
+                  <td>Rp32.600.000</td>
+                  <td>6</td>
+                  <td>0</td>
                   <td>
-                    <button class="table-action" type="button" data-detail="true" data-code="PRC-2026-0012" data-status="proses_penawaran">
+                    <button class="table-action" type="button" data-detail="true" data-code="PBL-2026-0007" data-status="menunggu_penerimaan">
                       View
                     </button>
                   </td>
                 </tr>
                 <tr class="master-slave-row">
-                  <td>PRC-2026-0010</td>
-                  <td>PGJ-JSA-2026-0009</td>
-                  <td>Purchasing</td>
-                  <td>Dimas Procurement</td>
-                  <td>SPK</td>
-                  <td><span class="status-chip waiting">menunggu_persetujuan_purchasing</span></td>
+                  <td>06 Jul 2026</td>
+                  <td>PO-2026-0181</td>
+                  <td>PT Office Hub</td>
+                  <td>Rp18.400.000</td>
+                  <td>8</td>
+                  <td>8</td>
                   <td>
-                    <button class="table-action" type="button" data-detail="true" data-code="PRC-2026-0010" data-status="menunggu_persetujuan_purchasing">
+                    <button class="table-action" type="button" data-detail="true" data-code="PBL-2026-0006" data-status="draft">
                       View
                     </button>
                   </td>
                 </tr>
                 <tr class="master-slave-row">
-                  <td>PRC-2026-0008</td>
-                  <td>PGJ-BRG-2026-0004</td>
-                  <td>IT Support</td>
-                  <td>Rina Purchasing</td>
-                  <td>PO</td>
-                  <td><span class="status-chip success">disetujui</span></td>
+                  <td>02 Jul 2026</td>
+                  <td>PO-2026-0176</td>
+                  <td>PT Sarana Office</td>
+                  <td>Rp12.750.000</td>
+                  <td>10</td>
+                  <td>10</td>
                   <td>
-                    <button class="table-action" type="button" data-detail="true" data-code="PRC-2026-0008" data-status="disetujui">
+                    <button class="table-action" type="button" data-detail="true" data-code="PBL-2026-0005" data-status="selesai">
                       View
                     </button>
                   </td>
@@ -370,97 +369,12 @@
       </main>
     </div>
 
-    <div class="modal-backdrop" id="createModalBackdrop" hidden aria-hidden="true">
-      <div class="modal-card modal-card-wide" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="createModalTitle">
-        <div class="modal-head">
-          <div>
-            <p class="eyebrow" id="createModalKicker">Tambah</p>
-            <h3 id="createModalTitle">Tambah Procurement Pembelian</h3>
-          </div>
-          <button class="icon-button tiny" id="closeCreateModal" type="button" aria-label="Close modal">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="m18.3 5.7-1-1L12 10 6.7 4.7l-1 1L11 11l-5.3 5.3 1 1L12 12l5.3 5.3 1-1L13 11l5.3-5.3Z" />
-            </svg>
-          </button>
-        </div>
-
-        <form class="modal-form" id="requestForm">
-          <section class="form-section">
-            <div class="form-section-head">
-              <strong>Data Procurement</strong>
-            </div>
-
-            <div class="form-grid">
-              <label>
-                <span>No Procurement</span>
-                <input data-field="code" data-primary-field name="code" type="text" placeholder="PRC-2026-0013" />
-              </label>
-              <label>
-                <span>Ref Pengajuan</span>
-                <input data-field="requestCode" name="requestCode" type="text" placeholder="PGJ-BRG-2026-0013" />
-              </label>
-            </div>
-
-            <div class="form-grid">
-              <label>
-                <span>Divisi</span>
-                <select data-field="division" name="division">
-                  <option value="">Pilih divisi</option>
-                  <option value="General Affairs">General Affairs</option>
-                  <option value="Purchasing">Purchasing</option>
-                  <option value="IT Support">IT Support</option>
-                </select>
-              </label>
-              <label>
-                <span>PIC Purchasing</span>
-                <select data-field="pic" name="pic">
-                  <option value="">Pilih PIC</option>
-                  <option value="Rina Purchasing">Rina Purchasing</option>
-                  <option value="Dimas Procurement">Dimas Procurement</option>
-                </select>
-              </label>
-            </div>
-
-            <div class="form-grid">
-              <label>
-                <span>Jalur Order</span>
-                <select data-field="orderType" name="orderType">
-                  <option value="">Pilih jalur</option>
-                  <option value="PO">PO</option>
-                  <option value="SPK">SPK</option>
-                </select>
-              </label>
-              <label>
-                <span>Target Sourcing</span>
-                <input data-field="targetDate" name="targetDate" type="date" />
-              </label>
-            </div>
-
-            <label class="field-span-2">
-              <span>Kebutuhan Final</span>
-              <textarea data-field="need" name="need" rows="4" placeholder="Kebutuhan final"></textarea>
-            </label>
-
-            <label class="field-span-2">
-              <span>Catatan</span>
-              <textarea data-field="notes" name="notes" rows="4" placeholder="Catatan procurement"></textarea>
-            </label>
-          </section>
-
-          <div class="modal-actions">
-            <button class="secondary-button" id="cancelCreateModal" type="button">Batal</button>
-            <button class="primary-button" type="submit">Simpan Procurement</button>
-          </div>
-        </form>
-      </div>
-    </div>
-
     <div class="modal-backdrop" id="detailModalBackdrop" hidden aria-hidden="true">
       <div class="modal-card modal-card-wide" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="modalTitle">
         <div class="modal-head">
           <div>
             <p class="eyebrow" id="modalKicker">Detail</p>
-            <h3 id="modalTitle">Detail Procurement</h3>
+            <h3 id="modalTitle">Detail Pembelian</h3>
           </div>
           <button class="icon-button tiny" id="closeDetailModal" type="button" aria-label="Close modal">
             <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -479,44 +393,70 @@
 
     <script id="detailRecordsData" type="application/json">
       {
-        "PRC-2026-0012": {
-          "header": {
-            "code": "PRC-2026-0012",
-            "requestCode": "PGJ-BRG-2026-0006",
-            "division": "General Affairs",
-            "pic": "Rina Purchasing",
-            "orderType": "PO",
-            "targetDate": "15 Jul 2026",
-            "status": "proses_penawaran",
-            "need": "Pengadaan kursi kerja ergonomis untuk tambahan seat back office.",
-            "notes": "Sudah lolos approval akunting dan siap lanjut input vendor kandidat."
-          }
+        "PBL-2026-0007": {
+          "purchase_order_head": { "no_po": "PO-2026-0188", "tgl_po": "09 Jul 2026", "status": "disetujui", "catatan": "Menunggu penerimaan barang." },
+          "purchase_order_detail": [
+            { "no_po": "PO-2026-0188", "no_penawaran": "PNW-2026-0034", "no_pengajuan": "2026/PP/IT/07/0004", "nama_divisi": "IT Support", "nama_vendor": "PT NetCom", "uraian": "Access Point Dual Band", "jumlah": "4", "jumlah_diterima": "0", "jumlah_retur": "0", "satuan": "Unit", "harga_satuan": "Rp6.500.000", "subtotal": "Rp26.000.000", "status": "menunggu_penerimaan" },
+            { "no_po": "PO-2026-0188", "no_penawaran": "PNW-2026-0034", "no_pengajuan": "2026/PP/IT/07/0004", "nama_divisi": "IT Support", "nama_vendor": "PT NetCom", "uraian": "Managed Switch 24 Port", "jumlah": "2", "jumlah_diterima": "0", "jumlah_retur": "0", "satuan": "Unit", "harga_satuan": "Rp3.300.000", "subtotal": "Rp6.600.000", "status": "menunggu_penerimaan" }
+          ],
+          "penerimaan_barang": null,
+          "retur_barang": null,
+          "tagihan": null,
+          "permintaan_pembayaran": null,
+          "transaksi_pembayaran": null,
+          "lampiran_dokumen": [
+            { "no_lampiran": "LMP-PO-0188", "modul_lampiran": "purchase_order", "jenis_lampiran": "po", "nama_file": "PO-2026-0188.pdf", "status": "tersedia" },
+            { "no_lampiran": "LMP-PNW-0034", "modul_lampiran": "penawaran", "jenis_lampiran": "penawaran", "nama_file": "PNW-2026-0034.pdf", "status": "tersedia" }
+          ],
+          "histori_proses": [
+            { "tanggal": "04 Jul 2026", "modul": "pengajuan", "status": "siap_procurement", "catatan": "Pengajuan disetujui." },
+            { "tanggal": "08 Jul 2026", "modul": "penawaran", "status": "disetujui", "catatan": "Vendor terpilih PT NetCom." },
+            { "tanggal": "09 Jul 2026", "modul": "purchase_order_head", "status": "disetujui", "catatan": "PO terbit." }
+          ]
         },
-        "PRC-2026-0010": {
-          "header": {
-            "code": "PRC-2026-0010",
-            "requestCode": "PGJ-JSA-2026-0009",
-            "division": "Purchasing",
-            "pic": "Dimas Procurement",
-            "orderType": "SPK",
-            "targetDate": "18 Jul 2026",
-            "status": "menunggu_persetujuan_purchasing",
-            "need": "Maintenance jaringan berkala dan preventive maintenance perangkat kantor pusat.",
-            "notes": "Vendor shortlist sudah lengkap dan menunggu approval perbandingan penawaran."
-          }
+        "PBL-2026-0006": {
+          "purchase_order_head": { "no_po": "PO-2026-0181", "tgl_po": "06 Jul 2026", "status": "disetujui", "catatan": "Penerimaan masih draft." },
+          "purchase_order_detail": [
+            { "no_po": "PO-2026-0181", "no_penawaran": "PNW-2026-0045", "no_pengajuan": "2026/PP/GA/07/0016", "nama_divisi": "General Affairs", "nama_vendor": "PT Office Hub", "uraian": "Meja Kerja Modular", "jumlah": "8", "jumlah_diterima": "8", "jumlah_retur": "0", "satuan": "Set", "harga_satuan": "Rp2.300.000", "subtotal": "Rp18.400.000", "status": "draft_penerimaan" }
+          ],
+          "penerimaan_barang": { "no_penerimaan": "RCV-2026-0001", "no_po": "PO-2026-0181", "tgl_penerimaan": "16 Jul 2026", "user_terima": "USR-PUR-001", "qty_diterima": "8", "kondisi_barang": "sesuai", "status": "draft", "catatan": "Draft penerimaan belum final." },
+          "retur_barang": null,
+          "tagihan": null,
+          "permintaan_pembayaran": null,
+          "transaksi_pembayaran": null,
+          "lampiran_dokumen": [
+            { "no_lampiran": "LMP-PO-0181", "modul_lampiran": "purchase_order", "jenis_lampiran": "po", "nama_file": "PO-2026-0181.pdf", "status": "tersedia" },
+            { "no_lampiran": "LMP-RCV-0001", "modul_lampiran": "penerimaan_barang", "jenis_lampiran": "penerimaan", "nama_file": "RCV-2026-0001", "status": "draft" }
+          ],
+          "histori_proses": [
+            { "tanggal": "02 Jul 2026", "modul": "pengajuan", "status": "siap_procurement", "catatan": "Pengajuan selesai approval." },
+            { "tanggal": "06 Jul 2026", "modul": "purchase_order_head", "status": "disetujui", "catatan": "PO disetujui." },
+            { "tanggal": "16 Jul 2026", "modul": "penerimaan_barang", "status": "draft", "catatan": "Draft penerimaan dibuat." }
+          ]
         },
-        "PRC-2026-0008": {
-          "header": {
-            "code": "PRC-2026-0008",
-            "requestCode": "PGJ-BRG-2026-0004",
-            "division": "IT Support",
-            "pic": "Rina Purchasing",
-            "orderType": "PO",
-            "targetDate": "09 Jul 2026",
-            "status": "disetujui",
-            "need": "Pengadaan access point dual band dan switch cadangan untuk cabang baru.",
-            "notes": "Hasil penawaran sudah disetujui dan siap dibuatkan PO."
-          }
+        "PBL-2026-0005": {
+          "purchase_order_head": { "no_po": "PO-2026-0176", "tgl_po": "02 Jul 2026", "status": "selesai", "catatan": "Transaksi selesai dengan retur sebagian." },
+          "purchase_order_detail": [
+            { "no_po": "PO-2026-0176", "no_penawaran": "PNW-2026-0028", "no_pengajuan": "2026/PP/OPS/07/0010", "nama_divisi": "Operasional", "nama_vendor": "PT Sarana Office", "uraian": "Kursi Tamu Kantor", "jumlah": "10", "jumlah_diterima": "10", "jumlah_retur": "1", "satuan": "Pcs", "harga_satuan": "Rp1.275.000", "subtotal": "Rp12.750.000", "status": "diterima" }
+          ],
+          "penerimaan_barang": { "no_penerimaan": "RCV-2026-0002", "no_po": "PO-2026-0176", "tgl_penerimaan": "15 Jul 2026", "user_terima": "USR-PUR-001", "qty_diterima": "10", "kondisi_barang": "sesuai", "status": "selesai", "catatan": "Barang diterima." },
+          "retur_barang": { "no_retur": "RTR-2026-0001", "no_po": "PO-2026-0176", "qty_retur": "1", "alasan_retur": "Cacat fisik", "status": "selesai" },
+          "tagihan": { "no_tagihan": "INV-SO-778", "kode_vendor": "VDR-0007", "tgl_tagihan": "15 Jul 2026", "tgl_jatuh_tempo": "30 Jul 2026", "nominal_tagihan": "Rp12.750.000", "status": "terbayar", "deskripsi_tagihan": "Tagihan PO-2026-0176." },
+          "permintaan_pembayaran": { "no_permintaan_pembayaran": "PAYREQ-2026-0042", "sumber_pembayaran": "tagihan", "no_tagihan": "INV-SO-778", "nominal_diminta": "Rp12.750.000", "tgl_pengajuan": "15 Jul 2026", "status": "selesai", "perlu_persetujuan_direktur": false },
+          "transaksi_pembayaran": { "no_transaksi": "PAY-2026-0042", "no_permintaan_pembayaran": "PAYREQ-2026-0042", "metode_pembayaran": "transfer", "tgl_bayar": "15 Jul 2026", "nominal_bayar": "Rp12.750.000", "kasir": "USR-FIN-001", "status": "berhasil", "referensi_bank": "BCA-77891" },
+          "lampiran_dokumen": [
+            { "no_lampiran": "LMP-PO-0176", "modul_lampiran": "purchase_order", "jenis_lampiran": "po", "nama_file": "PO-2026-0176.pdf", "status": "tersedia" },
+            { "no_lampiran": "LMP-RCV-0002", "modul_lampiran": "penerimaan_barang", "jenis_lampiran": "penerimaan", "nama_file": "RCV-2026-0002.pdf", "status": "selesai" },
+            { "no_lampiran": "LMP-RTR-0001", "modul_lampiran": "retur_barang", "jenis_lampiran": "retur", "nama_file": "RTR-2026-0001.pdf", "status": "selesai" },
+            { "no_lampiran": "LMP-INV-778", "modul_lampiran": "tagihan", "jenis_lampiran": "invoice", "nama_file": "INV-SO-778.pdf", "status": "terbayar" },
+            { "no_lampiran": "LMP-PAY-0042", "modul_lampiran": "transaksi_pembayaran", "jenis_lampiran": "bukti_bayar", "nama_file": "PAY-2026-0042.pdf", "status": "tersedia" }
+          ],
+          "histori_proses": [
+            { "tanggal": "02 Jul 2026", "modul": "purchase_order_head", "status": "selesai", "catatan": "PO dibuat." },
+            { "tanggal": "15 Jul 2026", "modul": "penerimaan_barang", "status": "selesai", "catatan": "Barang diterima." },
+            { "tanggal": "15 Jul 2026", "modul": "retur_barang", "status": "selesai", "catatan": "1 pcs diretur." },
+            { "tanggal": "15 Jul 2026", "modul": "transaksi_pembayaran", "status": "berhasil", "catatan": "Pembayaran selesai." }
+          ]
         }
       }
     </script>
