@@ -50,7 +50,7 @@
               <a class="nav-sublink" href="./index.html">Barang</a>
               <a class="nav-sublink" href="./master-vendor.html">Vendor</a>
               <a class="nav-sublink" href="./master-divisi-role.html">Divisi</a>
-              <a class="nav-sublink" href="./master-divisi-role.html">Role & User</a>
+              <a class="nav-sublink" href="./master-user-role.html">User & Role</a>
             </div>
           </div>
           <div class="nav-module">
@@ -89,7 +89,7 @@
             </button>
             <div class="nav-submenu">
               <a class="nav-sublink active" href="./penerimaan-barang.html">Penerimaan</a>
-              <a class="nav-sublink is-disabled" href="#">Retur</a>
+              <a class="nav-sublink" href="./retur-barang.html">Retur</a>
             </div>
           </div>
           <div class="nav-module">
@@ -172,9 +172,9 @@
                   <td>PO-2026-0188</td>
                   <td>6</td>
                   <td>Rani Purchasing</td>
-                  <td><span class="status-chip waiting">menunggu</span></td>
+                  <td><span class="status-chip success">diterima</span></td>
                   <td>
-                    <button class="table-action" type="button" data-detail="true" data-code="RCV-2026-0001" data-status="menunggu">View</button>
+                    <button class="table-action" type="button" data-detail="true" data-code="RCV-2026-0001" data-status="diterima">View</button>
                   </td>
                 </tr>
                 <tr class="master-slave-row">
@@ -184,9 +184,9 @@
                   <td>PO-2026-0176</td>
                   <td>10</td>
                   <td>Rani Purchasing</td>
-                  <td><span class="status-chip success">selesai</span></td>
+                  <td><span class="status-chip success">diterima</span></td>
                   <td>
-                    <button class="table-action" type="button" data-detail="true" data-code="RCV-2026-0002" data-status="selesai">View</button>
+                    <button class="table-action" type="button" data-detail="true" data-code="RCV-2026-0002" data-status="diterima">View</button>
                   </td>
                 </tr>
               </tbody>
@@ -382,7 +382,7 @@
             "code": "RCV-2026-0001",
             "receiptDate": "16 Jul 2026",
             "receivedBy": "USR-PUR-001 - Rani Purchasing",
-            "status": "menunggu"
+            "status": "diterima"
           },
           "items": [
             {
@@ -396,7 +396,7 @@
               "receivedQty": "4",
               "unit": "Unit",
               "condition": "sesuai",
-              "status": "menunggu",
+              "status": "diterima",
               "notes": "Kemasan utuh.",
               "subtotal": "Rp26.000.000"
             },
@@ -411,7 +411,7 @@
               "receivedQty": "2",
               "unit": "Unit",
               "condition": "sesuai",
-              "status": "menunggu",
+              "status": "diterima",
               "notes": "Segel perangkat lengkap.",
               "subtotal": "Rp6.600.000"
             }
@@ -422,7 +422,7 @@
             "code": "RCV-2026-0002",
             "receiptDate": "15 Jul 2026",
             "receivedBy": "USR-PUR-001 - Rani Purchasing",
-            "status": "selesai"
+            "status": "diterima"
           },
           "items": [
             {
@@ -436,7 +436,7 @@
               "receivedQty": "10",
               "unit": "Pcs",
               "condition": "sesuai",
-              "status": "selesai",
+              "status": "diterima",
               "notes": "Diterima tanpa kerusakan.",
               "subtotal": "Rp12.750.000"
             }

@@ -46,6 +46,31 @@ const mainTableBody = requestTableBody || document.querySelector(".panel-table t
 const autoDivisionField = document.querySelector("[data-auto-division]");
 const autoSubmitDateField = document.querySelector("[data-auto-submit-date]");
 const codeHintNode = document.querySelector("[data-code-hint]");
+const roleAccessBackdrop = document.getElementById("roleAccessBackdrop");
+const roleAccessCard = roleAccessBackdrop?.querySelector(".modal-card");
+const roleAccessForm = document.getElementById("roleAccessForm");
+const roleAccessTitle = document.getElementById("roleAccessTitle");
+const roleAccessCode = document.getElementById("roleAccessCode");
+const roleAccessUserCount = document.getElementById("roleAccessUserCount");
+const roleAccessSelectedCount = document.getElementById("roleAccessSelectedCount");
+const roleAccessSearch = document.getElementById("roleAccessSearch");
+const selectAllRoleAccess = document.getElementById("selectAllRoleAccess");
+const clearRoleAccess = document.getElementById("clearRoleAccess");
+const closeRoleAccessModal = document.getElementById("closeRoleAccessModal");
+const cancelRoleAccessModal = document.getElementById("cancelRoleAccessModal");
+const openCreateUserModal = document.getElementById("openCreateUserModal");
+const userModalBackdrop = document.getElementById("userModalBackdrop");
+const userModalCard = userModalBackdrop?.querySelector(".modal-card");
+const userForm = document.getElementById("userForm");
+const userModalTitle = document.getElementById("userModalTitle");
+const userModalKicker = document.getElementById("userModalKicker");
+const closeUserModal = document.getElementById("closeUserModal");
+const cancelUserModal = document.getElementById("cancelUserModal");
+const userRoleTableBody = document.getElementById("userRoleTableBody");
+const userRoleSearch = document.getElementById("userRoleSearch");
+const userDivisionFilter = document.getElementById("userDivisionFilter");
+const accessTabButtons = Array.from(document.querySelectorAll("[data-access-tab]"));
+const accessTabPanels = Array.from(document.querySelectorAll("[data-access-tab-panel]"));
 
 const itemPickerBackdrop = document.getElementById("itemPickerBackdrop");
 const itemPickerCard = itemPickerBackdrop?.querySelector(".modal-card");
@@ -135,6 +160,23 @@ const receiptPickerQty = document.getElementById("receiptPickerQty");
 const receiptPickerCondition = document.getElementById("receiptPickerCondition");
 const receiptPickerNotes = document.getElementById("receiptPickerNotes");
 const receiptItemsTableBody = document.getElementById("receiptItemsTableBody");
+const returnableItemsDataNode = document.getElementById("returnableItemsData");
+const returnItemPickerBackdrop = document.getElementById("returnItemPickerBackdrop");
+const returnItemPickerCard = returnItemPickerBackdrop?.querySelector(".modal-card");
+const openReturnItemPickerButton = document.getElementById("openReturnItemPicker");
+const closeReturnItemPicker = document.getElementById("closeReturnItemPicker");
+const cancelReturnItemPicker = document.getElementById("cancelReturnItemPicker");
+const confirmReturnItemPicker = document.getElementById("confirmReturnItemPicker");
+const returnItemPickerSearch = document.getElementById("returnItemPickerSearch");
+const returnItemPickerList = document.getElementById("returnItemPickerList");
+const returnSelectedItemSummary = document.getElementById("returnSelectedItemSummary");
+const returnTransactionCount = document.getElementById("returnTransactionCount");
+const returnQtyReasonBackdrop = document.getElementById("returnQtyReasonBackdrop");
+const returnQtyReasonCard = returnQtyReasonBackdrop?.querySelector(".modal-card");
+const returnQtyReasonForm = document.getElementById("returnQtyReasonForm");
+const closeReturnQtyReason = document.getElementById("closeReturnQtyReason");
+const cancelReturnQtyReason = document.getElementById("cancelReturnQtyReason");
+const returnQtyItemSummary = document.getElementById("returnQtyItemSummary");
 
 const quickItemBackdrop = document.getElementById("quickItemBackdrop");
 const quickItemCard = quickItemBackdrop?.querySelector(".modal-card");
@@ -226,6 +268,9 @@ let poItemEditIndex = -1;
 let selectedReceiptPo = null;
 let draftReceiptItems = [];
 let selectedReceiptItemKeys = new Set();
+let returnableItems = parseJsonNode(returnableItemsDataNode, []);
+let selectedReturnItem = null;
+let pendingReturnItemKey = "";
 let editingRecordCode = "";
 
 const roleOptions = [
@@ -242,13 +287,62 @@ const roleOptions = [
   { value: "admin_asset", label: "Admin Asset" },
   { value: "admin", label: "Admin" }
 ];
+const roleAccessDefaults = {
+  pemohon: ["dashboard.view", "pengajuan.view", "pengajuan.create", "jasa.view", "report.view"],
+  kepala_divisi: ["dashboard.view", "pengajuan.view", "pengajuan.approve_divisi", "report.view"],
+  akunting: ["dashboard.view", "pengajuan.view", "payment.view", "expense.manage", "report.view"],
+  kepala_akunting: [
+    "dashboard.view",
+    "pengajuan.view",
+    "pengajuan.approve_divisi",
+    "pengajuan.approve_akunting",
+    "payment.view",
+    "payment.approve",
+    "report.view"
+  ],
+  purchasing: [
+    "dashboard.view",
+    "master.procurement.view",
+    "master.procurement.manage",
+    "pengajuan.view",
+    "procurement.view",
+    "procurement.manage",
+    "penerimaan.manage",
+    "report.view"
+  ],
+  kepala_purchasing: ["dashboard.view", "procurement.view", "procurement.approve", "report.view"],
+  finance: ["dashboard.view", "payment.view", "payment.manage", "expense.manage", "report.view"],
+  kasir: ["dashboard.view", "payment.view", "payment.manage", "expense.manage", "report.view"],
+  kepala_finance: ["dashboard.view", "payment.view", "payment.manage", "payment.approve", "expense.manage", "report.view"],
+  direktur: ["dashboard.view", "payment.view", "payment.approve", "report.view"],
+  admin_asset: ["dashboard.view", "asset.manage", "report.view"],
+  admin: ["*"]
+};
+let roleAccessOverrides = loadRoleAccessOverrides();
+let editingRoleAccess = "";
+let editingUserCode = "";
 const storedRole = localStorage.getItem("procurement-active-role");
-let activeRole = roleOptions.some((role) => role.value === storedRole) ? storedRole : "pemohon";
+const defaultRole = root.dataset.defaultRole;
+let activeRole = roleOptions.some((role) => role.value === storedRole)
+  ? storedRole
+  : roleOptions.some((role) => role.value === defaultRole)
+    ? defaultRole
+    : root.dataset.accessPage === "true"
+      ? "admin"
+      : "pemohon";
+if (
+  root.dataset.accessPage === "true" &&
+  !roleHasAccess(activeRole, "master.organization.view") &&
+  !roleHasAccess(activeRole, "role.manage_access")
+) {
+  activeRole = roleOptions.find((role) => roleHasAccess(role.value, "role.manage_access"))?.value || "admin";
+}
 
 const allRoles = roleOptions.map((role) => role.value);
 const navModules = [
   {
     title: "Dashboard",
+    access: "dashboard.view",
     icon: "M4 13h6v7H4v-7Zm10-9h6v16h-6V4ZM4 4h6v7H4V4Z",
     roles: allRoles,
     items: [
@@ -261,14 +355,15 @@ const navModules = [
     icon: "M5 4h14v4H5V4Zm0 6h14v10H5V10Z",
     roles: ["admin", "purchasing"],
     items: [
-      { label: "Barang", href: "./index.html", roles: ["admin", "purchasing"] },
-      { label: "Vendor", href: "./master-vendor.html", roles: ["admin", "purchasing"] },
-      { label: "Divisi", href: "./master-divisi-role.html", roles: ["admin"] },
-      { label: "Role & User", href: "./master-divisi-role.html", roles: ["admin"] }
+      { label: "Barang", href: "./index.html", access: "master.procurement.view", roles: ["admin", "purchasing"] },
+      { label: "Vendor", href: "./master-vendor.html", access: "master.procurement.view", roles: ["admin", "purchasing"] },
+      { label: "Divisi", href: "./master-divisi-role.html", access: "master.organization.view", roles: ["admin"] },
+      { label: "User & Role", href: "./master-user-role.html", access: "role.manage_access", roles: ["admin"] }
     ]
   },
   {
     title: "Pengajuan",
+    access: "pengajuan.view",
     icon: "M6 4h12v4H6V4Zm0 6h12v10H6V10Z",
     roles: ["admin", "pemohon", "kepala_divisi", "kepala_akunting", "akunting", "purchasing"],
     items: [
@@ -281,14 +376,15 @@ const navModules = [
     icon: "M5 4h14v3H5V4Zm0 5h14v11H5V9Zm3 3h8v2H8v-2Z",
     roles: ["admin", "kepala_divisi", "kepala_akunting", "kepala_purchasing", "direktur"],
     items: [
-      { label: "Divisi", href: "", roles: ["admin", "kepala_divisi"] },
-      { label: "Ka. Akunting", href: "", roles: ["admin", "kepala_akunting"] },
-      { label: "Ka. Purchasing", href: "", roles: ["admin", "kepala_purchasing"] },
-      { label: "Direktur", href: "", roles: ["admin", "direktur"] }
+      { label: "Divisi", href: "", access: "pengajuan.approve_divisi", roles: ["admin", "kepala_divisi"] },
+      { label: "Ka. Akunting", href: "", access: "pengajuan.approve_akunting", roles: ["admin", "kepala_akunting"] },
+      { label: "Ka. Purchasing", href: "", access: "procurement.approve", roles: ["admin", "kepala_purchasing"] },
+      { label: "Direktur", href: "", access: "payment.approve", roles: ["admin", "direktur"] }
     ]
   },
   {
     title: "Procurement",
+    access: "procurement.view",
     icon: "M4 5h16v3H4V5Zm2 5h12v9H6v-9Z",
     roles: ["admin", "purchasing", "kepala_purchasing"],
     items: [
@@ -299,15 +395,17 @@ const navModules = [
   },
   {
     title: "Terima & Retur",
+    access: "penerimaan.manage",
     icon: "M5 4h14v4H5V4Zm0 6h14v10H5V10Zm3 2v6h3v-6H8Z",
     roles: ["admin", "purchasing"],
     items: [
       { label: "Penerimaan", href: "./penerimaan-barang.html", roles: ["admin", "purchasing"] },
-      { label: "Retur", href: "", roles: ["admin", "purchasing"] }
+      { label: "Retur", href: "./retur-barang.html", roles: ["admin", "purchasing"] }
     ]
   },
   {
     title: "Jasa",
+    access: "jasa.view",
     icon: "M4 6h16v12H4V6Zm3 3h10v2H7V9Zm0 4h7v2H7v-2Z",
     roles: ["admin", "pemohon", "purchasing"],
     items: [
@@ -316,6 +414,7 @@ const navModules = [
   },
   {
     title: "AP & Payment",
+    access: "payment.view",
     icon: "M4 5h16v4H4V5Zm0 6h16v8H4v-8Zm2 2v4h5v-4H6Z",
     roles: ["admin", "akunting", "kepala_akunting", "finance", "kasir", "kepala_finance", "direktur", "purchasing"],
     items: [
@@ -325,6 +424,7 @@ const navModules = [
   },
   {
     title: "Tagihan",
+    access: "payment.view",
     icon: "M5 4h14v16H5V4Zm2 3h10v2H7V7Zm0 4h10v2H7v-2Zm0 4h6v2H7v-2Z",
     roles: ["admin", "akunting", "kepala_akunting", "finance", "kasir", "kepala_finance", "purchasing"],
     items: [
@@ -333,6 +433,7 @@ const navModules = [
   },
   {
     title: "FEAB & Kasbon",
+    access: "expense.manage",
     icon: "M6 3h12v18H6V3Zm2 3v3h8V6H8Zm0 5v2h8v-2H8Zm0 4v2h5v-2H8Z",
     roles: ["admin", "pemohon", "finance", "kasir", "kepala_finance", "akunting", "kepala_akunting"],
     items: [
@@ -346,6 +447,7 @@ const navModules = [
   },
   {
     title: "Aset",
+    access: "asset.manage",
     icon: "M7 3h10l4 4v14H3V3h4Zm1 2v14h10V8.5L15.5 5H8Z",
     roles: ["admin", "admin_asset"],
     items: [
@@ -355,6 +457,7 @@ const navModules = [
   },
   {
     title: "Laporan",
+    access: "report.view",
     icon: "M5 4h14v16H5V4Zm2 2v12h10V6H7Zm2 2h6v2H9V8Zm0 4h6v2H9v-2Z",
     roles: allRoles,
     items: [
@@ -368,6 +471,7 @@ const navModules = [
 closeAllModals({ resetForm: false });
 renderRoleSwitcher();
 applyRoleAccess();
+initializeAccessTabs();
 
 const storedTheme = localStorage.getItem("procurement-theme");
 if (storedTheme === "dark" || storedTheme === "light") {
@@ -404,23 +508,89 @@ openCreateModal?.addEventListener("click", () => {
   }
 
   setCreateMode();
-  showAlert(
-    "warning",
-    `Draft ${entitySingular} baru`,
-    `Lengkapi form ${entitySingular.toLowerCase()} sesuai alur modul lalu simpan agar head baru masuk ke tabel utama.`
-  );
   openManagedModal(createModalBackdrop, createModalCard, primaryField);
 });
 
 document.querySelectorAll("[data-edit='true']").forEach((button) => {
   button.addEventListener("click", () => {
     setEditMode(button.dataset);
-    showStatusAlert(button.dataset);
     openManagedModal(createModalBackdrop, createModalCard, primaryField);
   });
 });
 
 document.querySelectorAll("[data-detail='true']").forEach(registerDetailButton);
+
+document.querySelectorAll("[data-manage-role]").forEach((button) => {
+  button.addEventListener("click", () => openRoleAccessDialog(button));
+});
+
+[closeRoleAccessModal, cancelRoleAccessModal].forEach((button) => {
+  button?.addEventListener("click", closeRoleAccessDialog);
+});
+
+roleAccessBackdrop?.addEventListener("click", (event) => {
+  if (event.target === roleAccessBackdrop) {
+    closeRoleAccessDialog();
+  }
+});
+
+roleAccessForm?.addEventListener("submit", (event) => {
+  event.preventDefault();
+  saveRoleAccess();
+});
+
+roleAccessForm?.addEventListener("change", (event) => {
+  if (event.target.matches("[name='role_access']")) {
+    updateRoleAccessSelectedCount();
+  }
+});
+
+roleAccessSearch?.addEventListener("input", (event) => {
+  filterRoleAccessOptions(event.target.value);
+});
+
+selectAllRoleAccess?.addEventListener("click", () => {
+  roleAccessForm?.querySelectorAll("[data-permission-label]:not([hidden]) [name='role_access']").forEach((field) => {
+    field.checked = true;
+  });
+  updateRoleAccessSelectedCount();
+});
+
+clearRoleAccess?.addEventListener("click", () => {
+  roleAccessForm?.querySelectorAll("[data-permission-label]:not([hidden]) [name='role_access']").forEach((field) => {
+    field.checked = false;
+  });
+  updateRoleAccessSelectedCount();
+});
+
+openCreateUserModal?.addEventListener("click", () => openUserDialog());
+
+userRoleTableBody?.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-edit-user]");
+  if (button) {
+    openUserDialog(button);
+  }
+});
+
+[closeUserModal, cancelUserModal].forEach((button) => {
+  button?.addEventListener("click", closeUserDialog);
+});
+
+userModalBackdrop?.addEventListener("click", (event) => {
+  if (event.target === userModalBackdrop) {
+    closeUserDialog();
+  }
+});
+
+userForm?.addEventListener("submit", (event) => {
+  event.preventDefault();
+  saveUser();
+});
+
+[userRoleSearch, userDivisionFilter].forEach((control) => {
+  control?.addEventListener("input", filterUserRolePage);
+  control?.addEventListener("change", filterUserRolePage);
+});
 
 [closeCreateModal, cancelCreateModal].forEach((button) => {
   button?.addEventListener("click", () => {
@@ -500,9 +670,6 @@ detailModalCard?.addEventListener("click", (event) => {
     return;
   }
 
-  if (detailViewType === "penerimaan-barang") {
-    handlePenerimaanAction(approvalButton.dataset.approvalAction, approvalButton.dataset.approvalCode);
-  }
 });
 
 itemPickerBackdrop?.addEventListener("click", (event) => {
@@ -555,6 +722,67 @@ receiptPoPickerBackdrop?.addEventListener("click", (event) => {
   }
 });
 
+openReturnItemPickerButton?.addEventListener("click", () => {
+  pendingReturnItemKey = selectedReturnItem?.key || "";
+  renderReturnItemPicker(returnItemPickerSearch?.value || "");
+  openManagedModal(returnItemPickerBackdrop, returnItemPickerCard, returnItemPickerSearch);
+});
+
+returnItemPickerSearch?.addEventListener("input", (event) => {
+  renderReturnItemPicker(event.target.value);
+});
+
+returnItemPickerList?.addEventListener("change", (event) => {
+  if (event.target.matches("[name='return_item']")) {
+    pendingReturnItemKey = event.target.value;
+  }
+});
+
+returnItemPickerList?.addEventListener("click", (event) => {
+  const row = event.target.closest("[data-return-item-key]");
+  const radio = row?.querySelector("[name='return_item']");
+  if (!radio || radio.disabled) {
+    return;
+  }
+
+  radio.checked = true;
+  pendingReturnItemKey = radio.value;
+});
+
+confirmReturnItemPicker?.addEventListener("click", confirmReturnItemSelection);
+
+[closeReturnItemPicker, cancelReturnItemPicker].forEach((button) => {
+  button?.addEventListener("click", closeReturnItemPickerDialog);
+});
+
+returnItemPickerBackdrop?.addEventListener("click", (event) => {
+  if (event.target === returnItemPickerBackdrop) {
+    closeReturnItemPickerDialog();
+  }
+});
+
+[closeReturnQtyReason, cancelReturnQtyReason].forEach((button) => {
+  button?.addEventListener("click", () => {
+    closeManagedModal(returnQtyReasonBackdrop, returnQtyReasonCard, returnQtyReasonForm);
+  });
+});
+
+returnQtyReasonBackdrop?.addEventListener("click", (event) => {
+  if (event.target === returnQtyReasonBackdrop) {
+    closeManagedModal(returnQtyReasonBackdrop, returnQtyReasonCard, returnQtyReasonForm);
+  }
+});
+
+returnQtyReasonForm?.addEventListener("submit", (event) => {
+  event.preventDefault();
+
+  if (!returnQtyReasonForm.reportValidity()) {
+    return;
+  }
+
+  submitReturBarang();
+});
+
 quickItemBackdrop?.addEventListener("click", (event) => {
   if (event.target === quickItemBackdrop) {
     quickItemForm?.reset();
@@ -576,6 +804,11 @@ requestForm?.addEventListener("submit", (event) => {
 
   if (detailViewType === "pengajuan-jasa") {
     submitPengajuanJasa();
+    return;
+  }
+
+  if (detailViewType === "retur-barang") {
+    submitReturBarang();
     return;
   }
 
@@ -990,7 +1223,7 @@ function renderRoleSwitcher() {
   const roleSelect = document.createElement("label");
   roleSelect.className = "role-switcher";
   roleSelect.innerHTML = `
-    <span>Role</span>
+    <span>Role aktif</span>
     <select id="roleSwitcher" aria-label="Pilih role prototype">
       ${roleOptions
         .map(
@@ -1022,6 +1255,300 @@ function getActiveRoleLabel() {
   return roleOptions.find((role) => role.value === activeRole)?.label || "Pemohon";
 }
 
+function loadRoleAccessOverrides() {
+  try {
+    const stored = JSON.parse(localStorage.getItem("procurement-role-access") || "{}");
+    return Object.fromEntries(
+      Object.entries(stored).filter(([, accesses]) => Array.isArray(accesses))
+    );
+  } catch {
+    return {};
+  }
+}
+
+function getRoleAccesses(role = activeRole) {
+  return roleAccessOverrides[role] || roleAccessDefaults[role] || [];
+}
+
+function roleHasAccess(role, accessCode) {
+  const accesses = getRoleAccesses(role);
+  return accesses.includes("*") || accesses.includes(accessCode);
+}
+
+function hasAccess(accessCode) {
+  return roleHasAccess(activeRole, accessCode);
+}
+
+function openRoleAccessDialog(button) {
+  if (!hasAccess("role.manage_access")) {
+    showAlert("warning", "Akses dibatasi", "Role aktif tidak dapat mengubah akses role.");
+    return;
+  }
+
+  editingRoleAccess = button.dataset.manageRole || "";
+  const accesses = getRoleAccesses(editingRoleAccess);
+  if (roleAccessTitle) {
+    roleAccessTitle.textContent = button.dataset.roleName || "Atur Akses Role";
+  }
+  if (roleAccessCode) {
+    roleAccessCode.textContent = button.dataset.roleCode || "ROLE";
+  }
+  if (roleAccessUserCount) {
+    const count = document.querySelector(`[data-role-user-count="${editingRoleAccess}"]`)?.textContent || button.dataset.roleUsers || "0";
+    roleAccessUserCount.textContent = `${count} user`;
+  }
+  if (roleAccessSearch) {
+    roleAccessSearch.value = "";
+  }
+  filterRoleAccessOptions("");
+  roleAccessForm?.querySelectorAll("[name='role_access']").forEach((field) => {
+    field.checked = accesses.includes("*") || accesses.includes(field.value);
+  });
+  updateRoleAccessSelectedCount();
+  openManagedModal(roleAccessBackdrop, roleAccessCard, roleAccessSearch || roleAccessForm?.querySelector("input"));
+}
+
+function closeRoleAccessDialog() {
+  editingRoleAccess = "";
+  closeManagedModal(roleAccessBackdrop, roleAccessCard, roleAccessForm);
+}
+
+function saveRoleAccess() {
+  if (!editingRoleAccess || !roleAccessForm) {
+    return;
+  }
+
+  const accesses = Array.from(roleAccessForm.querySelectorAll("[name='role_access']:checked"), (field) => field.value);
+  const stillHasRoleManager = roleOptions.some((role) => {
+    if (role.value === editingRoleAccess) {
+      return accesses.includes("role.manage_access");
+    }
+    return roleHasAccess(role.value, "role.manage_access");
+  });
+  if (!stillHasRoleManager) {
+    showAlert("error", "Akses wajib dipertahankan", "Minimal satu role harus memiliki akses Atur akses role.");
+    return;
+  }
+
+  const allAccessCount = roleAccessForm.querySelectorAll("[name='role_access']").length;
+  const storedAccesses = editingRoleAccess === "admin" && accesses.length === allAccessCount ? ["*"] : accesses;
+  roleAccessOverrides[editingRoleAccess] = storedAccesses;
+  localStorage.setItem("procurement-role-access", JSON.stringify(roleAccessOverrides));
+
+  document.querySelectorAll(`[data-role-access-count="${editingRoleAccess}"]`).forEach((cell) => {
+    cell.textContent = storedAccesses.includes("*") ? "Semua" : String(storedAccesses.length);
+  });
+
+  closeRoleAccessDialog();
+  applyRoleAccess();
+  showAlert("success", "Akses role disimpan", "Perubahan berlaku untuk seluruh user dengan role tersebut.");
+}
+
+function filterRoleAccessOptions(query = "") {
+  if (!roleAccessForm) {
+    return;
+  }
+
+  const normalized = String(query).trim().toLowerCase();
+  roleAccessForm.querySelectorAll("[data-permission-label]").forEach((option) => {
+    option.hidden = Boolean(normalized) && !option.textContent.toLowerCase().includes(normalized);
+  });
+  roleAccessForm.querySelectorAll("[data-permission-group]").forEach((group) => {
+    group.hidden = !Array.from(group.querySelectorAll("[data-permission-label]")).some((option) => !option.hidden);
+  });
+}
+
+function updateRoleAccessSelectedCount() {
+  if (!roleAccessSelectedCount || !roleAccessForm) {
+    return;
+  }
+  const total = roleAccessForm.querySelectorAll("[name='role_access']:checked").length;
+  roleAccessSelectedCount.textContent = `${total} akses aktif`;
+}
+
+function getRoleAccessSummary(role) {
+  const accesses = getRoleAccesses(role);
+  if (accesses.includes("*")) {
+    return "Semua modul";
+  }
+  const meaningful = accesses.filter((code) => !["dashboard.view", "report.view"].includes(code));
+  const labels = meaningful.slice(0, 2).map((code) => {
+    const field = roleAccessForm?.querySelector(`[name='role_access'][value="${CSS.escape(code)}"]`);
+    return field?.closest("[data-permission-label]")?.querySelector("strong")?.textContent || code;
+  });
+  if (!labels.length) {
+    return accesses.length ? "Dashboard / laporan" : "Belum ada akses";
+  }
+  return `${labels.join(" · ")}${meaningful.length > 2 ? ` +${meaningful.length - 2}` : ""}`;
+}
+
+function getUserField(name) {
+  return userForm?.querySelector(`[data-user-field="${name}"]`);
+}
+
+function openUserDialog(button = null) {
+  if (!hasAccess("master.organization.manage")) {
+    showAlert("warning", "Akses dibatasi", "Role aktif tidak dapat mengubah data user.");
+    return;
+  }
+
+  userForm?.reset();
+  editingUserCode = button?.dataset.code || "";
+  if (userModalTitle) {
+    userModalTitle.textContent = editingUserCode ? "Edit User" : "Tambah User";
+  }
+  if (userModalKicker) {
+    userModalKicker.textContent = editingUserCode || "USER BARU";
+  }
+
+  const values = editingUserCode
+    ? button.dataset
+    : { code: getNextUserCode(), status: "aktif" };
+  ["code", "name", "username", "email", "phone", "division", "role", "status"].forEach((name) => {
+    setFieldValue(getUserField(name), values[name] || "");
+  });
+  getUserField("code")?.toggleAttribute("readonly", Boolean(editingUserCode));
+  openManagedModal(userModalBackdrop, userModalCard, editingUserCode ? getUserField("name") : getUserField("code"));
+}
+
+function closeUserDialog() {
+  editingUserCode = "";
+  closeManagedModal(userModalBackdrop, userModalCard, userForm);
+}
+
+function saveUser() {
+  if (!userForm?.reportValidity() || !userRoleTableBody) {
+    return;
+  }
+
+  const isEditing = Boolean(editingUserCode);
+  const data = Object.fromEntries(
+    ["code", "name", "username", "email", "phone", "division", "role", "status"].map((name) => [
+      name,
+      String(getUserField(name)?.value || "").trim()
+    ])
+  );
+  const duplicate = userRoleTableBody.querySelector(`[data-user-row="${CSS.escape(data.code)}"]`);
+  if (duplicate && data.code !== editingUserCode) {
+    showAlert("error", "Kode user sudah ada", "Gunakan kode user lain.");
+    getUserField("code")?.focus();
+    return;
+  }
+
+  const existingRow = editingUserCode
+    ? userRoleTableBody.querySelector(`[data-user-row="${CSS.escape(editingUserCode)}"]`)
+    : null;
+  const existingButton = existingRow?.querySelector("[data-edit-user]");
+  const previousRole = existingButton?.dataset.role || "";
+  const assignment = existingButton?.dataset.assignment || "";
+  const row = existingRow || document.createElement("tr");
+  row.dataset.userRow = data.code;
+  row.innerHTML = buildUserRowMarkup(data, assignment);
+  if (!existingRow) {
+    userRoleTableBody.prepend(row);
+  }
+
+  if (previousRole && previousRole !== data.role) {
+    adjustRoleUserCount(previousRole, -1);
+  }
+  if (!previousRole || previousRole !== data.role) {
+    adjustRoleUserCount(data.role, 1);
+  }
+
+  closeUserDialog();
+  showAlert("success", isEditing ? "User diperbarui" : "User ditambahkan", `${data.name} menggunakan satu role: ${getRoleLabel(data.role)}.`);
+}
+
+function buildUserRowMarkup(data, assignment = "") {
+  const assignmentMarkup = assignment
+    ? `<span class="status-chip info">${escapeHtml(assignment)}</span>`
+    : "-";
+  const statusClass = data.status === "aktif" ? "success" : "danger";
+  return `
+    <td>${escapeHtml(data.code)}</td>
+    <td><div class="cell-stack"><strong>${escapeHtml(data.name)}</strong><span>${escapeHtml(data.email)}</span></div></td>
+    <td>${escapeHtml(getDivisionLabel(data.division))}</td>
+    <td>${escapeHtml(getRoleLabel(data.role))}</td>
+    <td>${assignmentMarkup}</td>
+    <td><span class="status-chip ${statusClass}">${escapeHtml(data.status)}</span></td>
+    <td><button class="table-action" type="button" data-edit-user="true" data-code="${escapeHtml(data.code)}" data-name="${escapeHtml(data.name)}" data-username="${escapeHtml(data.username)}" data-email="${escapeHtml(data.email)}" data-phone="${escapeHtml(data.phone)}" data-division="${escapeHtml(data.division)}" data-role="${escapeHtml(data.role)}" data-status="${escapeHtml(data.status)}" data-assignment="${escapeHtml(assignment)}">Edit</button></td>
+  `;
+}
+
+function getNextUserCode() {
+  const numbers = Array.from(document.querySelectorAll("[data-user-row]"), (row) => {
+    const match = row.dataset.userRow.match(/(\d+)$/);
+    return match ? Number(match[1]) : 0;
+  });
+  return `USR-${String(Math.max(3, ...numbers) + 1).padStart(4, "0")}`;
+}
+
+function getRoleLabel(role) {
+  return roleOptions.find((option) => option.value === role)?.label || role || "-";
+}
+
+function getDivisionLabel(code) {
+  return {
+    "DIV-001": "General Affairs",
+    "DIV-002": "Purchasing",
+    "DIV-003": "Akunting"
+  }[code] || code || "-";
+}
+
+function adjustRoleUserCount(role, delta) {
+  const cell = document.querySelector(`[data-role-user-count="${role}"]`);
+  if (!cell) {
+    return;
+  }
+  cell.textContent = String(Math.max(0, Number(cell.textContent || 0) + delta));
+}
+
+function filterUserRolePage() {
+  const query = String(userRoleSearch?.value || "").trim().toLowerCase();
+  const division = String(userDivisionFilter?.value || "");
+  document.querySelectorAll("[data-user-row]").forEach((row) => {
+    const userDivision = row.querySelector("[data-edit-user]")?.dataset.division || "";
+    row.hidden = Boolean((query && !row.textContent.toLowerCase().includes(query)) || (division && userDivision !== division));
+  });
+  document.querySelectorAll("#roleAccessTableBody tr").forEach((row) => {
+    row.hidden = Boolean(query && !row.textContent.toLowerCase().includes(query));
+  });
+}
+
+function initializeAccessTabs() {
+  if (!accessTabButtons.length) {
+    return;
+  }
+  accessTabButtons.forEach((button) => {
+    button.addEventListener("click", () => setAccessTab(button.dataset.accessTab));
+  });
+  const storedTab = localStorage.getItem("procurement-access-page-tab");
+  setAccessTab(["users", "roles"].includes(storedTab) ? storedTab : "users");
+}
+
+function setAccessTab(tab) {
+  accessTabButtons.forEach((button) => {
+    const isActive = button.dataset.accessTab === tab;
+    button.classList.toggle("active", isActive);
+    button.setAttribute("aria-selected", String(isActive));
+  });
+  accessTabPanels.forEach((panel) => {
+    panel.hidden = panel.dataset.accessTabPanel !== tab;
+  });
+  if (openCreateUserModal) {
+    openCreateUserModal.hidden = tab !== "users";
+  }
+  if (userRoleSearch) {
+    userRoleSearch.value = "";
+    userRoleSearch.placeholder = tab === "users" ? "Cari user, divisi, atau role" : "Cari role atau akses";
+  }
+  if (tab === "roles" && userDivisionFilter) {
+    userDivisionFilter.value = "";
+  }
+  filterUserRolePage();
+  localStorage.setItem("procurement-access-page-tab", tab);
+}
+
 function getRoleInitials() {
   const role = getActiveRoleLabel();
   return role
@@ -1047,6 +1574,30 @@ function applyRoleAccess() {
     openCreateModal.disabled = !canCreate;
     openCreateModal.title = canCreate ? "" : `${getActiveRoleLabel()} tidak punya akses membuat data di halaman ini`;
   }
+
+  if (openCreateUserModal) {
+    const canManageUsers = hasAccess("master.organization.manage");
+    openCreateUserModal.disabled = !canManageUsers;
+    openCreateUserModal.title = canManageUsers ? "" : "Role aktif tidak dapat menambah user";
+  }
+
+  document.querySelectorAll("[data-edit-user]").forEach((button) => {
+    button.disabled = !hasAccess("master.organization.manage");
+  });
+
+  document.querySelectorAll("[data-manage-role]").forEach((button) => {
+    button.disabled = !hasAccess("role.manage_access");
+  });
+
+  document.querySelectorAll("[data-role-access-count]").forEach((cell) => {
+    const role = cell.dataset.roleAccessCount;
+    const accesses = getRoleAccesses(role);
+    cell.textContent = accesses.includes("*") ? "Semua" : String(accesses.length);
+  });
+
+  document.querySelectorAll("[data-role-access-summary]").forEach((cell) => {
+    cell.textContent = getRoleAccessSummary(cell.dataset.roleAccessSummary);
+  });
 }
 
 function renderSidebarNavigation() {
@@ -1062,8 +1613,8 @@ function renderSidebarNavigation() {
 }
 
 function renderNavModule(module) {
-  const items = getVisibleNavItems(module.items || []);
-  if (!canSeeNavItem(module) || !items.length) {
+  const items = getVisibleNavItems(module.items || [], module.access);
+  if (!items.length) {
     return "";
   }
 
@@ -1120,12 +1671,16 @@ function renderNavIcon(path) {
   `;
 }
 
-function getVisibleNavItems(items) {
-  return items.filter(canSeeNavItem);
+function getVisibleNavItems(items, fallbackAccess = "") {
+  return items.filter((item) => canSeeNavItem(item, fallbackAccess));
 }
 
-function canSeeNavItem(item) {
-  return activeRole === "admin" || !item.roles || item.roles.includes(activeRole);
+function canSeeNavItem(item, fallbackAccess = "") {
+  const accessCode = item.access || fallbackAccess;
+  if (accessCode) {
+    return hasAccess(accessCode);
+  }
+  return true;
 }
 
 function getNavLinkClasses(item) {
@@ -1175,24 +1730,31 @@ function bindSidebarModuleHeads() {
 }
 
 function canCreateInCurrentContext() {
-  if (activeRole === "admin") {
-    return true;
-  }
-
   if (detailViewType === "pengajuan-barang" || detailViewType === "pengajuan-jasa") {
-    return activeRole === "pemohon";
+    return hasAccess("pengajuan.create");
   }
 
   if (
     detailViewType === "procurement-pembelian" ||
     detailViewType === "procurement-penawaran" ||
     detailViewType === "procurement-po" ||
-    detailViewType === "penerimaan-barang"
+    detailViewType === "penerimaan-barang" ||
+    detailViewType === "retur-barang"
   ) {
-    return activeRole === "purchasing";
+    return detailViewType === "penerimaan-barang" || detailViewType === "retur-barang"
+      ? hasAccess("penerimaan.manage")
+      : hasAccess("procurement.manage");
   }
 
-  return activeRole === "admin";
+  if (entitySingular.toLowerCase() === "barang" || entitySingular.toLowerCase() === "vendor") {
+    return hasAccess("master.procurement.manage");
+  }
+
+  if (entitySingular.toLowerCase() === "divisi") {
+    return hasAccess("master.organization.manage");
+  }
+
+  return false;
 }
 
 function registerDetailButton(button) {
@@ -1204,7 +1766,9 @@ function registerDetailButton(button) {
   button.addEventListener("click", () => {
     activeDetailCode = button.dataset.code || "";
     renderDetailModal(detailRecords[button.dataset.code], button.dataset.code);
-    showStatusAlert(button.dataset);
+    if (detailViewType !== "retur-barang") {
+      showStatusAlert(button.dataset);
+    }
     openManagedModal(detailModalBackdrop, detailModalCard);
   });
 }
@@ -1271,9 +1835,8 @@ function setEditMode(data) {
 
 function startDraftEdit(code) {
   const record = detailRecords[code];
-  if (!record || !canEditDraftRecord(record)) {
-    const editableStatus = detailViewType === "penerimaan-barang" ? "menunggu" : "draft";
-    showAlert("warning", "Tidak bisa diedit", `Data hanya bisa diubah saat status masih ${editableStatus}.`);
+  if (!record || !canEditPendingRecord(record)) {
+    showAlert("warning", "Tidak bisa diedit", "Data sudah diputuskan atau sedang berada di tahap berikutnya.");
     return;
   }
 
@@ -1283,18 +1846,23 @@ function startDraftEdit(code) {
   openManagedModal(createModalBackdrop, createModalCard, primaryField || requestForm);
 }
 
-function canEditDraftRecord(record) {
-  const editableStatus = detailViewType === "penerimaan-barang" ? "menunggu" : "draft";
-  if (String(record?.header?.status || "") !== editableStatus) {
+function canEditPendingRecord(record) {
+  const editableStatuses = {
+    "pengajuan-barang": ["menunggu_persetujuan_divisi"],
+    "pengajuan-jasa": ["menunggu_persetujuan_divisi"],
+    "procurement-pembelian": ["menunggu_persetujuan_purchasing"],
+    "procurement-penawaran": ["menunggu_persetujuan_purchasing"],
+    "procurement-po": ["menunggu_persetujuan_purchasing"],
+    "penerimaan-barang": [],
+    "retur-barang": []
+  };
+  const allowedStatuses = editableStatuses[detailViewType] || [];
+  if (!allowedStatuses.includes(String(record?.header?.status || ""))) {
     return false;
   }
 
-  if (activeRole === "admin") {
-    return true;
-  }
-
   if (detailViewType === "pengajuan-barang" || detailViewType === "pengajuan-jasa") {
-    return activeRole === "pemohon";
+    return hasAccess("pengajuan.create");
   }
 
   if (
@@ -1303,7 +1871,9 @@ function canEditDraftRecord(record) {
     detailViewType === "procurement-po" ||
     detailViewType === "penerimaan-barang"
   ) {
-    return activeRole === "purchasing";
+    return detailViewType === "penerimaan-barang"
+      ? hasAccess("penerimaan.manage")
+      : hasAccess("procurement.manage");
   }
 
   return false;
@@ -1327,10 +1897,11 @@ function prepareCreateModalForEdit(record, code) {
   selectedReceiptPo = null;
   draftReceiptItems = [];
   selectedReceiptItemKeys = new Set();
+  clearSelectedReturnItem();
   clearSelectedItem();
 
   if (createModalKicker) {
-    createModalKicker.textContent = detailViewType === "penerimaan-barang" ? "Edit Penerimaan" : "Edit Draft";
+    createModalKicker.textContent = "Edit";
   }
 
   if (createModalTitle) {
@@ -1411,7 +1982,7 @@ function fillDraftEditForm(record, code) {
     draftReceiptItems = (record.items || []).map((item, index) => ({
       ...item,
       noUrut: Number(item.noUrut || index + 1),
-      status: item.status || "menunggu"
+      status: item.status || getReceiptItemStatus(item)
     }));
     renderReceiptItems();
   }
@@ -1859,7 +2430,7 @@ function submitPengajuanBarang() {
       submitDate: formatDateDisplay(new Date()),
       targetDate: formatDateInput(targetDateValue),
       reason: String(getField("reason")?.value || "").trim(),
-      status: "draft",
+      status: "menunggu_persetujuan_divisi",
       statusKind: "waiting"
     },
     items: draftRequestItems.map((item, index) => ({
@@ -1869,8 +2440,8 @@ function submitPengajuanBarang() {
     approval: [
       {
         kind: "warning",
-        title: "Draft Pemohon",
-        text: "Pengajuan baru disimpan dan menunggu submit ke alur approval berikutnya."
+        title: "Kepala Divisi",
+        text: "Menunggu keputusan"
       }
     ]
   };
@@ -1896,8 +2467,8 @@ function submitPengajuanBarang() {
   resetCreateState();
   showAlert(
     "success",
-    isEditingDraft ? "Draft pengajuan barang diperbarui" : "Pengajuan barang tersimpan",
-    `${code} sudah masuk ke tabel utama dan bisa dibuka lewat View.`
+    isEditingDraft ? "Pengajuan barang diperbarui" : "Pengajuan barang tersimpan",
+    `${code} menunggu keputusan Kepala Divisi.`
   );
 }
 
@@ -1938,7 +2509,7 @@ function submitPengajuanJasa() {
       targetDate: formatDateInput(targetDateValue),
       reason: String(getField("reason")?.value || "").trim(),
       serviceNeed: String(getField("serviceNeed")?.value || "").trim(),
-      status: "draft",
+      status: "menunggu_persetujuan_divisi",
       statusKind: "waiting"
     },
     services: draftServiceItems.map((item, index) => ({
@@ -1948,8 +2519,8 @@ function submitPengajuanJasa() {
     approval: [
       {
         kind: "warning",
-        title: "Pemohon",
-        text: "Draft"
+        title: "Kepala Divisi",
+        text: "Menunggu keputusan"
       }
     ]
   };
@@ -1975,9 +2546,74 @@ function submitPengajuanJasa() {
   resetCreateState();
   showAlert(
     "success",
-    isEditingDraft ? "Draft pengajuan jasa diperbarui" : "Pengajuan jasa tersimpan",
-    `${code} sudah masuk ke tabel utama dan bisa dibuka lewat View.`
+    isEditingDraft ? "Pengajuan jasa diperbarui" : "Pengajuan jasa tersimpan",
+    `${code} menunggu keputusan Kepala Divisi.`
   );
+}
+
+function submitReturBarang() {
+  if (!selectedReturnItem) {
+    showAlert("error", "Barang belum dipilih", "Pilih satu barang dari detail penerimaan.");
+    openReturnItemPickerButton?.focus();
+    return;
+  }
+
+  const availableQty = getReturnAvailableQty(selectedReturnItem);
+  const requestedQty = Number(getField("returnQty")?.value || 0);
+  const reason = String(getField("returnReason")?.value || "").trim();
+  const returnQty = requestedQty;
+
+  if (availableQty <= 0) {
+    showAlert("error", "Saldo retur habis", "Seluruh barang pada penerimaan ini sudah diretur.");
+    return;
+  }
+
+  if (!Number.isFinite(returnQty) || returnQty <= 0 || returnQty > availableQty) {
+    showAlert("error", "Qty retur tidak valid", `Qty retur harus lebih dari 0 dan maksimal ${formatQuantity(availableQty)} ${selectedReturnItem.unit}.`);
+    getField("returnQty")?.focus();
+    return;
+  }
+
+  if (!reason) {
+    showAlert("error", "Alasan retur wajib diisi", "Tuliskan alasan barang dikembalikan ke vendor.");
+    getField("returnReason")?.focus();
+    return;
+  }
+
+  const code = String(primaryField?.value || "").trim();
+  if (!code || detailRecords[code]) {
+    showAlert("error", "No retur tidak valid", "Gunakan nomor retur yang belum pernah dipakai.");
+    primaryField?.focus();
+    return;
+  }
+
+  const record = {
+    header: {
+      code,
+      returnDate: String(getField("returnDate")?.value || formatDateDisplay(new Date())),
+      status: "menunggu_tanggapan_vendor"
+    },
+    item: {
+      receiptCode: selectedReturnItem.receiptCode,
+      receiptLine: selectedReturnItem.receiptLine,
+      poCode: selectedReturnItem.poCode,
+      itemName: selectedReturnItem.itemName,
+      vendor: selectedReturnItem.vendor,
+      receivedQty: Number(selectedReturnItem.receivedQty || 0),
+      returnQty,
+      unit: selectedReturnItem.unit,
+      condition: selectedReturnItem.condition,
+      reason
+    }
+  };
+
+  selectedReturnItem.returnedQty = Number(selectedReturnItem.returnedQty || 0) + returnQty;
+  detailRecords[code] = record;
+  prependReturBarangRow(record);
+  closeManagedModal(returnQtyReasonBackdrop, returnQtyReasonCard, returnQtyReasonForm);
+  closeManagedModal(createModalBackdrop, createModalCard, requestForm, { resetForm: false });
+  resetCreateState();
+  showAlert("success", "Retur berhasil disimpan", `${code} menunggu tanggapan vendor.`);
 }
 
 function submitGenericForm() {
@@ -1992,7 +2628,7 @@ function submitGenericForm() {
       return;
     }
 
-    const status = "draft";
+    const status = "menunggu_persetujuan_purchasing";
     const record = {
       header: {
         code: savedRef,
@@ -2058,7 +2694,7 @@ function submitGenericForm() {
       return;
     }
 
-    const status = "draft";
+    const status = "menunggu_persetujuan_purchasing";
     const record = {
       header: {
         quoteCode,
@@ -2093,7 +2729,7 @@ function submitGenericForm() {
       return;
     }
 
-    const status = "draft";
+    const status = "menunggu_persetujuan_purchasing";
     const record = {
       header: {
         code: savedRef,
@@ -2140,7 +2776,6 @@ function submitGenericForm() {
       return;
     }
 
-    const status = "menunggu";
     const receiptDate = String(formData.get("tgl_penerimaan") || "").trim() || formatDateDisplay(new Date());
 
     if (isEditingDraft) {
@@ -2152,8 +2787,9 @@ function submitGenericForm() {
       ...item,
       noUrut: index + 1,
       noUrutPo: Number(item.noUrutPo || index + 1),
-      status
+      status: getReceiptItemStatus(item)
     }));
+    const status = getReceiptAggregateStatus(items);
     const record = {
       header: {
         code: savedRef,
@@ -2173,7 +2809,7 @@ function submitGenericForm() {
     detailViewType === "penerimaan-barang" && isEditingDraft
       ? "Penerimaan berhasil diperbarui"
       : isEditingDraft
-        ? "Draft berhasil diperbarui"
+        ? "Data berhasil diperbarui"
         : "Data berhasil disimpan";
   showAlert(
     "success",
@@ -2237,12 +2873,6 @@ function handlePengajuanApprovalAction(action, code) {
     return;
   }
 
-  if (action === "submit_division") {
-    movePengajuanStatus(record, "menunggu_persetujuan_divisi");
-    showPengajuanActionResult(code, "Pengajuan dikirim", `${code} masuk ke approval Kepala Divisi dengan status pending.`);
-    return;
-  }
-
   if (action === "approve_division") {
     movePengajuanStatus(record, "menunggu_persetujuan_kepala_akunting");
     showPengajuanActionResult(code, "Pengajuan disetujui Kadiv", `${code} masuk ke approval Kepala Akunting.`);
@@ -2268,16 +2898,11 @@ function handlePengajuanApprovalAction(action, code) {
 }
 
 function canRunPengajuanAction(action, status) {
-  if (activeRole === "admin") {
-    return true;
-  }
-
   const actionRules = {
-    submit_division: activeRole === "pemohon" && status === "draft",
-    approve_division: activeRole === "kepala_divisi" && status === "menunggu_persetujuan_divisi",
-    reject_division: activeRole === "kepala_divisi" && status === "menunggu_persetujuan_divisi",
-    approve_head_accounting: activeRole === "kepala_akunting" && status === "menunggu_persetujuan_kepala_akunting",
-    reject_head_accounting: activeRole === "kepala_akunting" && status === "menunggu_persetujuan_kepala_akunting"
+    approve_division: hasAccess("pengajuan.approve_divisi") && status === "menunggu_persetujuan_divisi",
+    reject_division: hasAccess("pengajuan.approve_divisi") && status === "menunggu_persetujuan_divisi",
+    approve_head_accounting: hasAccess("pengajuan.approve_akunting") && status === "menunggu_persetujuan_kepala_akunting",
+    reject_head_accounting: hasAccess("pengajuan.approve_akunting") && status === "menunggu_persetujuan_kepala_akunting"
   };
 
   return Boolean(actionRules[action]);
@@ -2312,12 +2937,6 @@ function handlePenawaranApprovalAction(action, code) {
     return;
   }
 
-  if (action === "submit_purchasing") {
-    record.header.status = "menunggu_persetujuan_purchasing";
-    showPenawaranActionResult(code, "Penawaran diajukan", `${code} masuk ke approval Kepala Purchasing.`);
-    return;
-  }
-
   if (action === "approve_purchasing") {
     if (!areAllQuoteItemsSelected(record.quotes || [])) {
       showAlert("error", "Vendor belum lengkap", "Kepala Purchasing harus memilih satu vendor untuk setiap barang.");
@@ -2334,12 +2953,12 @@ function handlePenawaranApprovalAction(action, code) {
   }
 
   if (action === "reject_purchasing") {
-    record.header.status = "draft";
+    record.header.status = "ditolak";
     record.quotes = (record.quotes || []).map((quote) => ({
       ...quote,
-      status: "direview"
+      status: "ditolak"
     }));
-    showPenawaranActionResult(code, "Penawaran dikembalikan", `${code} kembali menjadi draft dan dapat diedit Purchasing.`);
+    showPenawaranActionResult(code, "Penawaran ditolak", `${code} dihentikan oleh Kepala Purchasing.`);
   }
 }
 
@@ -2351,14 +2970,9 @@ function areAllQuoteItemsSelected(quotes = []) {
 }
 
 function canRunPenawaranAction(action, status) {
-  if (activeRole === "admin") {
-    return true;
-  }
-
   const actionRules = {
-    submit_purchasing: activeRole === "purchasing" && ["draft", "proses_penawaran"].includes(status),
-    approve_purchasing: activeRole === "kepala_purchasing" && status === "menunggu_persetujuan_purchasing",
-    reject_purchasing: activeRole === "kepala_purchasing" && status === "menunggu_persetujuan_purchasing"
+    approve_purchasing: hasAccess("procurement.approve") && status === "menunggu_persetujuan_purchasing",
+    reject_purchasing: hasAccess("procurement.approve") && status === "menunggu_persetujuan_purchasing"
   };
 
   return Boolean(actionRules[action]);
@@ -2382,12 +2996,6 @@ function handlePoApprovalAction(action, code) {
     return;
   }
 
-  if (action === "submit_po") {
-    record.header.status = "menunggu_persetujuan_purchasing";
-    showPoActionResult(code, "PO diajukan", `${code} masuk ke approval Kepala Purchasing.`);
-    return;
-  }
-
   if (action === "approve_po") {
     record.header.status = "disetujui";
     showPoActionResult(code, "PO disetujui", `${code} sudah terbit dan detail PO terkunci.`);
@@ -2401,14 +3009,9 @@ function handlePoApprovalAction(action, code) {
 }
 
 function canRunPoAction(action, status) {
-  if (activeRole === "admin") {
-    return true;
-  }
-
   const actionRules = {
-    submit_po: activeRole === "purchasing" && status === "draft",
-    approve_po: activeRole === "kepala_purchasing" && status === "menunggu_persetujuan_purchasing",
-    reject_po: activeRole === "kepala_purchasing" && status === "menunggu_persetujuan_purchasing"
+    approve_po: hasAccess("procurement.approve") && status === "menunggu_persetujuan_purchasing",
+    reject_po: hasAccess("procurement.approve") && status === "menunggu_persetujuan_purchasing"
   };
 
   return Boolean(actionRules[action]);
@@ -2421,84 +3024,30 @@ function showPoActionResult(code, title, message) {
   showAlert("success", title, message);
 }
 
-function handlePenerimaanAction(action, code) {
-  if (detailViewType !== "penerimaan-barang" || !code) {
-    return;
-  }
-
-  const record = detailRecords[code];
-  if (!record || !canRunPenerimaanAction(action, record.header.status)) {
-    showAlert("warning", "Akses dibatasi", `${getActiveRoleLabel()} tidak dapat menjalankan aksi ini.`);
-    return;
-  }
-
-  if (action === "start_receipt_check") {
-    record.items = (record.items || []).map((item) => ({ ...item, status: "diperiksa" }));
-    record.header.status = "diperiksa";
-    showPenerimaanActionResult(code, "Pemeriksaan dimulai", `${code} masuk ke pemeriksaan barang.`);
-    return;
-  }
-
-  if (action === "complete_receipt") {
-    record.items = (record.items || []).map((item) => ({
-      ...item,
-      status: Number(item.receivedQty || 0) < Number(item.qty || 0) ? "diterima_sebagian" : "selesai"
-    }));
-    record.header.status = getReceiptAggregateStatus(record.items);
-    showPenerimaanActionResult(code, "Penerimaan selesai", `${code} selesai dan dapat menjadi dasar proses berikutnya.`);
-    return;
-  }
-
-  if (action === "mark_receipt_issue") {
-    record.items = (record.items || []).map((item) => ({
-      ...item,
-      status: item.condition === "sesuai" ? "diperiksa" : "bermasalah"
-    }));
-    record.header.status = "bermasalah";
-    showPenerimaanActionResult(code, "Penerimaan bermasalah", `${code} ditandai ada masalah untuk tindak lanjut retur/koreksi.`);
-  }
-}
-
-function canRunPenerimaanAction(action, status) {
-  if (activeRole === "admin") {
-    return true;
-  }
-
-  const actionRules = {
-    start_receipt_check: activeRole === "purchasing" && status === "menunggu",
-    complete_receipt: activeRole === "purchasing" && status === "diperiksa",
-    mark_receipt_issue: activeRole === "purchasing" && status === "diperiksa"
-  };
-
-  return Boolean(actionRules[action]);
-}
-
-function showPenerimaanActionResult(code, title, message) {
-  const record = detailRecords[code];
-  updateRequestRowStatus(code, record.header.status);
-  renderDetailModal(record, code);
-  showAlert("success", title, message);
-}
-
 function getReceiptAggregateStatus(items = []) {
-  const statuses = Array.from(new Set(items.map((item) => item.status || "menunggu")));
-  if (!statuses.length || statuses.every((status) => status === "menunggu")) {
-    return "menunggu";
+  const statuses = Array.from(new Set(items.map((item) => item.status).filter(Boolean)));
+  if (!statuses.length) {
+    return "-";
   }
   if (statuses.includes("bermasalah")) {
     return "bermasalah";
   }
-  if (statuses.includes("diperiksa")) {
-    return "diperiksa";
-  }
   if (statuses.includes("diterima_sebagian")) {
     return "diterima_sebagian";
   }
-  if (statuses.every((status) => status === "selesai" || status === "diterima")) {
-    return "selesai";
+  if (statuses.every((status) => status === "diterima")) {
+    return "diterima";
   }
 
-  return statuses.length === 1 ? statuses[0] : "diproses";
+  return statuses.length === 1 ? statuses[0] : "diterima_sebagian";
+}
+
+function getReceiptItemStatus(item) {
+  if (item.condition && item.condition !== "sesuai") {
+    return "bermasalah";
+  }
+
+  return Number(item.receivedQty || 0) < Number(item.qty || 0) ? "diterima_sebagian" : "diterima";
 }
 
 function updateRequestRowStatus(code, status) {
@@ -2674,6 +3223,169 @@ function prependPenerimaanBarangRow(record) {
   registerDetailButton(row.querySelector("[data-detail='true']"));
 }
 
+function prependReturBarangRow(record) {
+  if (!mainTableBody) {
+    return;
+  }
+
+  mainTableBody.querySelectorAll(".master-slave-row").forEach((row) => {
+    row.classList.remove("is-active");
+  });
+
+  const { header, item } = record;
+  const row = document.createElement("tr");
+  row.className = "master-slave-row is-active";
+  row.innerHTML = `
+    <td>${escapeHtml(header.code)}</td>
+    <td>${escapeHtml(header.returnDate)}</td>
+    <td>${escapeHtml(`${item.receiptCode} / ${item.receiptLine}`)}</td>
+    <td>${escapeHtml(item.itemName)}</td>
+    <td>${escapeHtml(`${formatQuantity(item.returnQty)} ${item.unit}`)}</td>
+    <td>${escapeHtml(item.vendor)}</td>
+    <td><span class="status-chip ${getStatusChipClass(header.status)}">${escapeHtml(header.status)}</span></td>
+    <td><button class="table-action" type="button" data-detail="true" data-code="${escapeHtml(header.code)}" data-status="${escapeHtml(header.status)}">Detail</button></td>
+  `;
+
+  mainTableBody.prepend(row);
+  registerDetailButton(row.querySelector("[data-detail='true']"));
+  if (returnTransactionCount) {
+    returnTransactionCount.textContent = `${mainTableBody.querySelectorAll("tr").length} transaksi`;
+  }
+}
+
+function getReturnAvailableQty(item) {
+  return Math.max(0, Number(item?.receivedQty || 0) - Number(item?.returnedQty || 0));
+}
+
+function formatQuantity(value) {
+  return new Intl.NumberFormat("id-ID", { maximumFractionDigits: 2 }).format(Number(value || 0));
+}
+
+function renderReturnItemPicker(query = "") {
+  if (!returnItemPickerList) {
+    return;
+  }
+
+  const normalizedQuery = String(query || "").trim().toLowerCase();
+  const filteredItems = returnableItems.filter((item) =>
+    [item.receiptCode, item.poCode, item.itemName, item.vendor]
+      .some((value) => String(value || "").toLowerCase().includes(normalizedQuery))
+  );
+
+  returnItemPickerList.innerHTML = filteredItems.length
+    ? filteredItems.map((item) => {
+        const availableQty = getReturnAvailableQty(item);
+        const disabled = availableQty <= 0;
+        return `
+          <tr data-return-item-key="${escapeHtml(item.key)}" class="${disabled ? "is-disabled" : ""}">
+            <td><input type="radio" name="return_item" value="${escapeHtml(item.key)}" ${pendingReturnItemKey === item.key ? "checked" : ""} ${disabled ? "disabled" : ""} aria-label="Pilih ${escapeHtml(item.itemName)}" /></td>
+            <td><strong>${escapeHtml(item.receiptCode)} / ${escapeHtml(item.receiptLine)}</strong><small>${escapeHtml(item.poCode)}</small></td>
+            <td><strong>${escapeHtml(item.itemName)}</strong><small>${escapeHtml(item.vendor)}</small></td>
+            <td>${escapeHtml(`${formatQuantity(item.receivedQty)} ${item.unit}`)}</td>
+            <td>${escapeHtml(`${formatQuantity(item.returnedQty)} ${item.unit}`)}</td>
+            <td><span class="status-chip ${disabled ? "waiting" : "success"}">${escapeHtml(disabled ? "habis" : `${formatQuantity(availableQty)} ${item.unit}`)}</span></td>
+          </tr>
+        `;
+      }).join("")
+    : `<tr><td colspan="6" class="empty-table-cell">Data penerimaan tidak ditemukan.</td></tr>`;
+}
+
+function confirmReturnItemSelection() {
+  const item = returnableItems.find((candidate) => candidate.key === pendingReturnItemKey);
+  if (!item || getReturnAvailableQty(item) <= 0) {
+    showAlert("warning", "Pilih barang", "Pilih barang yang masih memiliki saldo retur.");
+    return;
+  }
+
+  selectedReturnItem = item;
+  renderSelectedReturnItem();
+  closeManagedModal(returnItemPickerBackdrop, returnItemPickerCard, null, { resetForm: false });
+  openReturnQtyReasonModal();
+}
+
+function closeReturnItemPickerDialog() {
+  pendingReturnItemKey = selectedReturnItem?.key || "";
+  closeManagedModal(returnItemPickerBackdrop, returnItemPickerCard, null, { resetForm: false });
+}
+
+function renderSelectedReturnItem() {
+  if (!selectedReturnItem || !returnSelectedItemSummary) {
+    return;
+  }
+
+  const availableQty = getReturnAvailableQty(selectedReturnItem);
+  setFieldValue(getField("returnReference"), `${selectedReturnItem.receiptCode} / ${selectedReturnItem.receiptLine} - ${selectedReturnItem.itemName}`);
+  setFieldValue(getField("returnAvailable"), `${formatQuantity(availableQty)} ${selectedReturnItem.unit}`);
+  returnSelectedItemSummary.hidden = false;
+  returnSelectedItemSummary.innerHTML = `
+    <strong>${escapeHtml(selectedReturnItem.itemName)}</strong>
+    <p>${escapeHtml(`${selectedReturnItem.poCode} - ${selectedReturnItem.vendor}`)}</p>
+    <div class="return-summary-meta">
+      <span>Diterima <b>${escapeHtml(`${formatQuantity(selectedReturnItem.receivedQty)} ${selectedReturnItem.unit}`)}</b></span>
+      <span>Sudah retur <b>${escapeHtml(`${formatQuantity(selectedReturnItem.returnedQty)} ${selectedReturnItem.unit}`)}</b></span>
+      <span>Saldo <b>${escapeHtml(`${formatQuantity(availableQty)} ${selectedReturnItem.unit}`)}</b></span>
+      <span>Kondisi <b>${escapeHtml(selectedReturnItem.condition || "-")}</b></span>
+    </div>
+  `;
+  syncReturnQuantityBounds();
+}
+
+function syncReturnQuantityBounds() {
+  const qtyField = getField("returnQty");
+  if (!qtyField || !selectedReturnItem) {
+    return;
+  }
+
+  const availableQty = getReturnAvailableQty(selectedReturnItem);
+  qtyField.max = String(availableQty);
+  qtyField.readOnly = false;
+  qtyField.value = String(availableQty);
+}
+
+function openReturnQtyReasonModal() {
+  if (!selectedReturnItem || !returnQtyReasonBackdrop || !returnQtyReasonCard) {
+    return;
+  }
+
+  const availableQty = getReturnAvailableQty(selectedReturnItem);
+  setFieldValue(getField("returnAvailable"), `${formatQuantity(availableQty)} ${selectedReturnItem.unit}`);
+  syncReturnQuantityBounds();
+  setFieldValue(getField("returnReason"), "");
+
+  if (returnQtyItemSummary) {
+    returnQtyItemSummary.innerHTML = `
+      <strong>${escapeHtml(selectedReturnItem.itemName)}</strong>
+      <p>${escapeHtml(`${selectedReturnItem.receiptCode} / ${selectedReturnItem.receiptLine} - ${selectedReturnItem.poCode}`)}</p>
+      <div class="return-summary-meta">
+        <span>Vendor <b>${escapeHtml(selectedReturnItem.vendor)}</b></span>
+        <span>Saldo <b>${escapeHtml(`${formatQuantity(availableQty)} ${selectedReturnItem.unit}`)}</b></span>
+      </div>
+    `;
+  }
+
+  openManagedModal(returnQtyReasonBackdrop, returnQtyReasonCard, getField("returnQty"));
+}
+
+function clearSelectedReturnItem() {
+  selectedReturnItem = null;
+  pendingReturnItemKey = "";
+  setFieldValue(getField("returnReference"), "");
+  setFieldValue(getField("returnAvailable"), "");
+  setFieldValue(getField("returnQty"), "");
+  if (getField("returnQty")) {
+    getField("returnQty").readOnly = false;
+    getField("returnQty").removeAttribute("max");
+  }
+  setFieldValue(getField("returnReason"), "");
+  if (returnSelectedItemSummary) {
+    returnSelectedItemSummary.hidden = true;
+    returnSelectedItemSummary.innerHTML = "";
+  }
+  if (returnQtyItemSummary) {
+    returnQtyItemSummary.innerHTML = "";
+  }
+}
+
 function getPoOfferSummary(items = []) {
   const offerCodes = Array.from(new Set((items || []).map((item) => item.quoteCode).filter(Boolean)));
   if (!offerCodes.length) {
@@ -2708,6 +3420,7 @@ function resetCreateState() {
   selectedReceiptPo = null;
   draftReceiptItems = [];
   selectedReceiptItemKeys = new Set();
+  clearSelectedReturnItem();
   clearSelectedItem();
   populateContextDefaults();
   applyCreateDefaults();
@@ -2764,8 +3477,12 @@ function closeAllModals(options = {}) {
   closeManagedModal(poDetailEditBackdrop, poDetailEditCard, poDetailEditForm, options);
   closeManagedModal(receiptPoPickerBackdrop, receiptPoPickerCard, null, { resetForm: false });
   closeManagedModal(receiptItemInputBackdrop, receiptItemInputCard, receiptItemInputForm, options);
+  closeManagedModal(returnItemPickerBackdrop, returnItemPickerCard, null, { resetForm: false });
+  closeManagedModal(returnQtyReasonBackdrop, returnQtyReasonCard, returnQtyReasonForm, options);
   closeManagedModal(itemPickerBackdrop, itemPickerCard, null, { resetForm: false });
   closeManagedModal(quickItemBackdrop, quickItemCard, quickItemForm, options);
+  closeManagedModal(roleAccessBackdrop, roleAccessCard, roleAccessForm, options);
+  closeManagedModal(userModalBackdrop, userModalCard, userForm, options);
 }
 
 function areAllModalsClosed() {
@@ -2781,8 +3498,12 @@ function areAllModalsClosed() {
     poDetailEditBackdrop,
     receiptPoPickerBackdrop,
     receiptItemInputBackdrop,
+    returnItemPickerBackdrop,
+    returnQtyReasonBackdrop,
     itemPickerBackdrop,
-    quickItemBackdrop
+    quickItemBackdrop,
+    roleAccessBackdrop,
+    userModalBackdrop
   ].every((backdrop) => !backdrop || backdrop.hidden);
 }
 
@@ -2803,18 +3524,11 @@ function showStatusAlert(data) {
     return;
   }
 
-  if (
-    status.includes("menunggu") ||
-    status.includes("review") ||
-    status.includes("diajukan") ||
-    status.includes("usulan") ||
-    status.includes("proses") ||
-    status.includes("draft")
-  ) {
+  if (status.includes("menunggu") || status.includes("pending") || status.includes("usulan")) {
     showAlert(
       "warning",
-      `${entitySingular} masih diproses`,
-      `Data ini berada di status ${statusSource || "draft"} dan masih menunggu tahap berikutnya.`
+      `${entitySingular} menunggu tindak lanjut`,
+      `Data ini berada di status ${statusSource || "menunggu"}.`
     );
     return;
   }
@@ -2889,7 +3603,7 @@ function renderDetailModal(record, code) {
 
   if (detailViewType === "procurement-pembelian") {
     detailModalBody.innerHTML = buildProcurementPembelianMarkup(record);
-    renderDraftEditActions(record);
+    renderPendingEditActions(record);
     return;
   }
 
@@ -2908,6 +3622,13 @@ function renderDetailModal(record, code) {
   if (detailViewType === "penerimaan-barang") {
     detailModalBody.innerHTML = buildPenerimaanBarangMarkup(record);
     renderPenerimaanActions(record);
+    return;
+  }
+
+  if (detailViewType === "retur-barang") {
+    detailModalBody.innerHTML = buildReturBarangMarkup(record);
+    detailModalCard.classList.remove("modal-card-wide");
+    detailModalCard.classList.add("modal-card-content-fit");
     return;
   }
 
@@ -3038,17 +3759,9 @@ function buildBarangDetailMarkup(record) {
 function getPengajuanApprovalSteps(record) {
   const status = String(record?.header?.status || "");
 
-  if (status === "draft") {
-    return [
-      { kind: "warning", title: "Pemohon", text: "Draft" },
-      { kind: "", title: "Kepala Divisi", text: "Menunggu" },
-      { kind: "", title: "Kepala Akunting", text: "Menunggu" }
-    ];
-  }
-
   if (status === "menunggu_persetujuan_divisi") {
     return [
-      { kind: "success", title: "Pemohon", text: "Dikirim" },
+      { kind: "success", title: "Pemohon", text: "Disimpan" },
       { kind: "warning", title: "Kepala Divisi", text: "Pending" },
       { kind: "", title: "Kepala Akunting", text: "Menunggu" }
     ];
@@ -3056,7 +3769,7 @@ function getPengajuanApprovalSteps(record) {
 
   if (status === "menunggu_persetujuan_kepala_akunting") {
     return [
-      { kind: "success", title: "Pemohon", text: "Dikirim" },
+      { kind: "success", title: "Pemohon", text: "Disimpan" },
       { kind: "success", title: "Kepala Divisi", text: "Approved" },
       { kind: "warning", title: "Kepala Akunting", text: "Pending" }
     ];
@@ -3064,7 +3777,7 @@ function getPengajuanApprovalSteps(record) {
 
   if (status === "siap_procurement") {
     return [
-      { kind: "success", title: "Pemohon", text: "Dikirim" },
+      { kind: "success", title: "Pemohon", text: "Disimpan" },
       { kind: "success", title: "Kepala Divisi", text: "Approved" },
       { kind: "success", title: "Kepala Akunting", text: "Approved" }
     ];
@@ -3075,7 +3788,7 @@ function getPengajuanApprovalSteps(record) {
     const rejectedByHeadAccounting = rejectedStage === "kepala_akunting";
 
     return [
-      { kind: "success", title: "Pemohon", text: "Dikirim" },
+      { kind: "success", title: "Pemohon", text: "Disimpan" },
       { kind: rejectedByHeadAccounting ? "success" : "error", title: "Kepala Divisi", text: rejectedByHeadAccounting ? "Approved" : "Ditolak" },
       { kind: rejectedByHeadAccounting ? "error" : "", title: "Kepala Akunting", text: rejectedByHeadAccounting ? "Ditolak" : "-" }
     ];
@@ -3096,12 +3809,12 @@ function renderPengajuanApprovalActions(record) {
   const status = String(record?.header?.status || "");
   const actions = getPengajuanActionsForRole(status);
   if (!["pengajuan-barang", "pengajuan-jasa"].includes(detailViewType)) {
-    renderDraftEditActions(record);
+    renderPendingEditActions(record);
     return;
   }
 
   detailStatusActions.innerHTML = [
-    getDraftEditButton(record),
+    getPendingEditButton(record),
     ...actions.map(
       (action) => `
         <button
@@ -3117,21 +3830,21 @@ function renderPengajuanApprovalActions(record) {
   ].join("");
 }
 
-function renderDraftEditActions(record) {
+function renderPendingEditActions(record) {
   if (!detailStatusActions) {
     return;
   }
 
-  detailStatusActions.innerHTML = getDraftEditButton(record);
+  detailStatusActions.innerHTML = getPendingEditButton(record);
 }
 
-function getDraftEditButton(record) {
-  if (!canEditDraftRecord(record)) {
+function getPendingEditButton(record) {
+  if (!canEditPendingRecord(record)) {
     return "";
   }
 
   const code = getRecordPrimaryCode(record);
-  const label = detailViewType === "penerimaan-barang" ? "Edit Penerimaan" : "Edit Draft";
+  const label = "Edit";
   return `
     <button
       class="secondary-button"
@@ -3150,7 +3863,7 @@ function getRecordPrimaryCode(record) {
 function renderActionButtons(record, actions) {
   const approvalCode = record?.header?.requestCode || record?.header?.code || activeDetailCode || "";
   return [
-    getDraftEditButton(record),
+    getPendingEditButton(record),
     ...actions
     .map(
       (action) => `
@@ -3169,9 +3882,6 @@ function renderActionButtons(record, actions) {
 
 function getPengajuanActionsForRole(status) {
   const allActions = {
-    draft: [
-      { action: "submit_division", label: "ajukan ke Kadiv", variant: "primary-button" }
-    ],
     menunggu_persetujuan_divisi: [
       { action: "reject_division", label: "tolak", variant: "secondary-button danger-button" },
       { action: "approve_division", label: "setujui", variant: "primary-button" }
@@ -3197,12 +3907,6 @@ function renderPenawaranApprovalActions(record) {
 
 function getPenawaranActionsForRole(status) {
   const allActions = {
-    draft: [
-      { action: "submit_purchasing", label: "ajukan approval", variant: "primary-button" }
-    ],
-    proses_penawaran: [
-      { action: "submit_purchasing", label: "ajukan approval", variant: "primary-button" }
-    ],
     menunggu_persetujuan_purchasing: [
       { action: "reject_purchasing", label: "tolak", variant: "secondary-button danger-button" },
       { action: "approve_purchasing", label: "approve", variant: "primary-button" }
@@ -3215,30 +3919,23 @@ function getPenawaranActionsForRole(status) {
 function getPenawaranApprovalSteps(record) {
   const status = String(record?.header?.status || "");
 
-  if (status === "draft" || status === "proses_penawaran") {
-    return [
-      { kind: "warning", title: "Purchasing", text: status === "draft" ? "Draft" : "Proses" },
-      { kind: "", title: "Kepala Purchasing", text: "Menunggu" }
-    ];
-  }
-
   if (status === "menunggu_persetujuan_purchasing") {
     return [
-      { kind: "success", title: "Purchasing", text: "Diajukan" },
+      { kind: "success", title: "Purchasing", text: "Disimpan" },
       { kind: "warning", title: "Kepala Purchasing", text: "Pending" }
     ];
   }
 
   if (status === "disetujui") {
     return [
-      { kind: "success", title: "Purchasing", text: "Diajukan" },
+      { kind: "success", title: "Purchasing", text: "Disimpan" },
       { kind: "success", title: "Kepala Purchasing", text: "Approved" }
     ];
   }
 
   if (status === "ditolak") {
     return [
-      { kind: "success", title: "Purchasing", text: "Diajukan" },
+      { kind: "success", title: "Purchasing", text: "Disimpan" },
       { kind: "error", title: "Kepala Purchasing", text: "Ditolak" }
     ];
   }
@@ -3261,9 +3958,6 @@ function renderPoApprovalActions(record) {
 
 function getPoActionsForRole(status) {
   const allActions = {
-    draft: [
-      { action: "submit_po", label: "ajukan approval", variant: "primary-button" }
-    ],
     menunggu_persetujuan_purchasing: [
       { action: "reject_po", label: "tolak", variant: "secondary-button danger-button" },
       { action: "approve_po", label: "approve", variant: "primary-button" }
@@ -3276,30 +3970,23 @@ function getPoActionsForRole(status) {
 function getPoApprovalSteps(record) {
   const status = String(record?.header?.status || "");
 
-  if (status === "draft") {
-    return [
-      { kind: "warning", title: "Purchasing", text: "Draft" },
-      { kind: "", title: "Kepala Purchasing", text: "Menunggu" }
-    ];
-  }
-
   if (status === "menunggu_persetujuan_purchasing") {
     return [
-      { kind: "success", title: "Purchasing", text: "Diajukan" },
+      { kind: "success", title: "Purchasing", text: "Disimpan" },
       { kind: "warning", title: "Kepala Purchasing", text: "Pending" }
     ];
   }
 
   if (status === "disetujui" || status === "selesai") {
     return [
-      { kind: "success", title: "Purchasing", text: "Diajukan" },
+      { kind: "success", title: "Purchasing", text: "Disimpan" },
       { kind: "success", title: "Kepala Purchasing", text: status === "selesai" ? "Selesai" : "Approved" }
     ];
   }
 
   if (status === "dibatalkan") {
     return [
-      { kind: "success", title: "Purchasing", text: "Diajukan" },
+      { kind: "success", title: "Purchasing", text: "Disimpan" },
       { kind: "error", title: "Kepala Purchasing", text: "Ditolak" }
     ];
   }
@@ -3315,32 +4002,7 @@ function renderPenerimaanActions(record) {
     return;
   }
 
-  const status = String(record?.header?.status || "");
-  const hasIssue = (record.items || []).some((item) => item.condition && item.condition !== "sesuai");
-  const actions = getPenerimaanActionsForRole(status).filter((action) => {
-    if (action.action === "mark_receipt_issue") {
-      return hasIssue;
-    }
-    if (action.action === "complete_receipt") {
-      return !hasIssue;
-    }
-    return true;
-  });
-  detailStatusActions.innerHTML = renderActionButtons(record, actions);
-}
-
-function getPenerimaanActionsForRole(status) {
-  const allActions = {
-    menunggu: [
-      { action: "start_receipt_check", label: "mulai pemeriksaan", variant: "primary-button" }
-    ],
-    diperiksa: [
-      { action: "mark_receipt_issue", label: "ada masalah", variant: "secondary-button danger-button" },
-      { action: "complete_receipt", label: "selesai", variant: "primary-button" }
-    ]
-  };
-
-  return (allActions[status] || []).filter((action) => canRunPenerimaanAction(action.action, status));
+  detailStatusActions.innerHTML = "";
 }
 
 function openDraftItemDialog(index = -1) {
@@ -3942,7 +4604,7 @@ function toggleQuoteTax(index) {
 }
 
 function toggleQuoteSelected(index) {
-  if (!["kepala_purchasing", "admin"].includes(activeRole)) {
+  if (!hasAccess("procurement.approve")) {
     showAlert("warning", "Akses dibatasi", `${getActiveRoleLabel()} tidak dapat memilih barang/vendor penawaran.`);
     return;
   }
@@ -3961,7 +4623,7 @@ function toggleQuoteSelected(index) {
 }
 
 function toggleDetailQuoteSelected(code, index) {
-  if (!["kepala_purchasing", "admin"].includes(activeRole)) {
+  if (!hasAccess("procurement.approve")) {
     showAlert("warning", "Akses dibatasi", `${getActiveRoleLabel()} tidak dapat memilih barang/vendor penawaran.`);
     return;
   }
@@ -4020,7 +4682,7 @@ function renderQuoteItems() {
       `;
       const rows = group.items
         .map(({ item, index }) => {
-        const canSelectQuote = ["kepala_purchasing", "admin"].includes(activeRole);
+        const canSelectQuote = hasAccess("procurement.approve");
 
         return `
           <tr>
@@ -4857,8 +5519,7 @@ function sumPurchaseReceivedQty(details = []) {
 
 function buildProcurementPenawaranMarkup(record) {
   const canSelectQuote =
-    ["kepala_purchasing", "admin"].includes(activeRole) &&
-    record.header.status === "menunggu_persetujuan_purchasing";
+    hasAccess("procurement.approve") && record.header.status === "menunggu_persetujuan_purchasing";
   const approvalRows = getPenawaranApprovalSteps(record)
     .map(
       (step) => `
@@ -5113,7 +5774,7 @@ function buildPenerimaanBarangMarkup(record) {
           <td>${escapeHtml(item.receivedQty || "-")} ${escapeHtml(item.unit || "")}</td>
           <td>${escapeHtml(item.condition || "-")}</td>
           <td>${escapeHtml(item.notes || "-")}</td>
-          <td><span class="status-chip ${getStatusChipClass(item.status)}">${escapeHtml(item.status || "menunggu")}</span></td>
+          <td><span class="status-chip ${getStatusChipClass(item.status || getReceiptItemStatus(item))}">${escapeHtml(item.status || getReceiptItemStatus(item))}</span></td>
         </tr>
       `
     )
@@ -5179,6 +5840,27 @@ function buildPenerimaanBarangMarkup(record) {
   `;
 }
 
+function buildReturBarangMarkup(record) {
+  const { header = {}, item = {} } = record || {};
+  return `
+    <section class="form-section detail-summary-compact">
+      <div class="detail-list">
+        <div class="detail-row"><div class="detail-label">No Retur</div><div class="detail-value">${escapeHtml(header.code || "-")}</div></div>
+        <div class="detail-row"><div class="detail-label">Tanggal</div><div class="detail-value">${escapeHtml(header.returnDate || "-")}</div></div>
+        <div class="detail-row"><div class="detail-label">Status</div><div class="detail-value"><span class="status-chip ${getStatusChipClass(header.status)}">${escapeHtml(header.status || "-")}</span></div></div>
+        <div class="detail-row"><div class="detail-label">Penerimaan</div><div class="detail-value">${escapeHtml(`${item.receiptCode || "-"} / ${item.receiptLine || "-"}`)}</div></div>
+        <div class="detail-row"><div class="detail-label">No PO</div><div class="detail-value">${escapeHtml(item.poCode || "-")}</div></div>
+        <div class="detail-row"><div class="detail-label">Vendor</div><div class="detail-value">${escapeHtml(item.vendor || "-")}</div></div>
+        <div class="detail-row"><div class="detail-label">Barang</div><div class="detail-value">${escapeHtml(item.itemName || "-")}</div></div>
+        <div class="detail-row"><div class="detail-label">Kondisi Terima</div><div class="detail-value">${escapeHtml(item.condition || "-")}</div></div>
+        <div class="detail-row"><div class="detail-label">Qty Diterima</div><div class="detail-value">${escapeHtml(`${formatQuantity(item.receivedQty)} ${item.unit || ""}`)}</div></div>
+        <div class="detail-row"><div class="detail-label">Qty Retur</div><div class="detail-value">${escapeHtml(`${formatQuantity(item.returnQty)} ${item.unit || ""}`)}</div></div>
+        <div class="detail-row field-span-2"><div class="detail-label">Alasan</div><div class="detail-value">${escapeHtml(item.reason || "-")}</div></div>
+      </div>
+    </section>
+  `;
+}
+
 function getField(name) {
   return document.querySelector(`[data-field="${name}"]`);
 }
@@ -5204,6 +5886,10 @@ function getPrimaryDraftValue() {
     return getNextWorkflowReference("RCV");
   }
 
+  if (detailViewType === "retur-barang") {
+    return getNextWorkflowReference("RTR");
+  }
+
   if (entitySingular.toLowerCase() === "barang") {
     return getNextItemCode();
   }
@@ -5220,11 +5906,11 @@ function applyCreateDefaults() {
   }
 
   if (detailViewType === "procurement-penawaran" && statusField) {
-    statusField.value = "draft";
+    statusField.value = "menunggu_persetujuan_purchasing";
   }
 
   if (detailViewType === "procurement-po" && statusField) {
-    statusField.value = "draft";
+    statusField.value = "menunggu_persetujuan_purchasing";
   }
 
   if (detailViewType === "procurement-po") {
@@ -5235,9 +5921,11 @@ function applyCreateDefaults() {
     setFieldValue(getField("receiptDate"), formatDateDisplay(new Date()));
     setFieldValue(getField("receivedBy"), "USR-PUR-001 - Rani Purchasing");
     setFieldValue(getField("condition"), "sesuai");
-    if (statusField) {
-      statusField.value = "draft";
-    }
+  }
+
+  if (detailViewType === "retur-barang") {
+    setFieldValue(getField("returnDate"), formatDateDisplay(new Date()));
+    clearSelectedReturnItem();
   }
 
   if (entitySingular.toLowerCase() !== "barang") {
@@ -5265,18 +5953,32 @@ function getStatusChipClass(statusValue) {
   if (
     status.includes("aktif") ||
     status.includes("approved") ||
+    status.includes("disetujui") ||
     status.includes("siap") ||
     status.includes("selesai") ||
-    status.includes("diterima")
+    status.includes("diterima") ||
+    status.includes("dibayar") ||
+    status.includes("berhasil") ||
+    status.includes("valid") ||
+    status.includes("terbit") ||
+    status.includes("dicairkan") ||
+    status.includes("diarsipkan")
   ) {
     return "success";
   }
 
-  if (status.includes("nonaktif") || status.includes("ditolak") || status.includes("dibatalkan") || status.includes("masalah")) {
+  if (
+    status.includes("nonaktif") ||
+    status.includes("ditolak") ||
+    status.includes("dibatalkan") ||
+    status.includes("gagal") ||
+    status.includes("masalah") ||
+    status.includes("rusak")
+  ) {
     return "danger";
   }
 
-  if (status.includes("review") || status.includes("diperiksa")) {
+  if (status.includes("dikirim") || status.includes("pelaksanaan") || status.includes("diproses")) {
     return "info";
   }
 

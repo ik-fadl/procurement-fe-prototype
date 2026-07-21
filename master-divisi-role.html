@@ -1,9 +1,9 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="id">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Divisi dan Role - Procurement UI Prototype</title>
+    <title>Master Divisi - Procurement UI Prototype</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -12,315 +12,54 @@
     />
     <link rel="stylesheet" href="./styles.css" />
   </head>
-  <body
-    data-theme="light"
-    data-entity-singular="Divisi"
-    data-entity-plural="Divisi dan Role"
-  >
+  <body data-theme="light" data-entity-singular="Divisi" data-entity-plural="Master Divisi">
     <div class="app-shell">
       <aside class="sidebar" id="sidebar">
         <div class="sidebar-brand">
           <div class="brand-word">Procurement</div>
-          <button class="collapse-button" type="button" aria-label="Collapse sidebar">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M10 7.4 8.6 6 2.6 12l6 6 1.4-1.4L6.4 13H22v-2H6.4L10 7.4Z" />
-            </svg>
+          <button class="collapse-button" type="button" aria-label="Tutup sidebar">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 7.4 8.6 6 2.6 12l6 6 1.4-1.4L6.4 13H22v-2H6.4L10 7.4Z" /></svg>
           </button>
         </div>
-
-        <nav class="sidebar-nav">
-          <div class="nav-module">
-            <button class="nav-module-head" type="button" aria-expanded="false">
-              <span class="nav-module-title">
-                <span class="nav-module-icon">
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M6 4h12v4H6V4Zm0 6h12v10H6V10Zm2 2v2h3v-2H8Zm0 4v2h8v-2H8Z" />
-                  </svg>
-                </span>
-                Dashboard
-              </span>
-              <span class="nav-module-arrow">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="m7 10 5 5 5-5H7Z" />
-                </svg>
-              </span>
-            </button>
-            <div class="nav-submenu" hidden>
-              <a class="nav-sublink is-disabled" href="#">Ringkas</a>
-              <a class="nav-sublink is-disabled" href="#">Inbox</a>
-            </div>
-          </div>
-          <div class="nav-module">
-            <button class="nav-module-head" type="button" aria-expanded="true">
-              <span class="nav-module-title">
-                <span class="nav-module-icon">
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M6 3h8l5 5v13H6V3Zm8 1.5V9h4.5L14 4.5Z" />
-                  </svg>
-                </span>
-                Master
-              </span>
-              <span class="nav-module-arrow">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="m7 10 5 5 5-5H7Z" />
-                </svg>
-              </span>
-            </button>
-            <div class="nav-submenu">
-              <a class="nav-sublink" href="./index.html">Barang</a>
-              <a class="nav-sublink" href="./master-vendor.html">Vendor</a>
-              <a class="nav-sublink active" href="./master-divisi-role.html">Divisi</a>
-              <a class="nav-sublink" href="./master-divisi-role.html">Role & User</a>
-            </div>
-          </div>
-          <div class="nav-module">
-            <button class="nav-module-head" type="button" aria-expanded="false">
-              <span class="nav-module-title">
-                <span class="nav-module-icon">
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M6 3h8l5 5v13H6V3Zm8 1.5V9h4.5L14 4.5Z" />
-                  </svg>
-                </span>
-                Pengajuan
-              </span>
-              <span class="nav-module-arrow">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="m7 10 5 5 5-5H7Z" />
-                </svg>
-              </span>
-            </button>
-            <div class="nav-submenu" hidden>
-              <a class="nav-sublink" href="./pengajuan-barang.html">Barang</a>
-              <a class="nav-sublink" href="./pengajuan-jasa.html">Jasa</a>
-            </div>
-          </div>
-          <div class="nav-module">
-            <button class="nav-module-head" type="button" aria-expanded="false">
-              <span class="nav-module-title">
-                <span class="nav-module-icon">
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M5 4h14v3H5V4Zm0 5h14v11H5V9Zm2 2v2h10v-2H7Zm0 4v2h7v-2H7Z" />
-                  </svg>
-                </span>
-                Approval
-              </span>
-              <span class="nav-module-arrow">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="m7 10 5 5 5-5H7Z" />
-                </svg>
-              </span>
-            </button>
-            <div class="nav-submenu" hidden>
-              <a class="nav-sublink is-disabled" href="#">Approval Divisi</a>
-              <a class="nav-sublink is-disabled" href="#">Review</a>
-              <a class="nav-sublink is-disabled" href="#">Approval Akun</a>
-              <a class="nav-sublink is-disabled" href="#">Approval Purchasing</a>
-              <a class="nav-sublink is-disabled" href="#">Approval Dir.</a>
-            </div>
-          </div>
-          <div class="nav-module">
-            <button class="nav-module-head" type="button" aria-expanded="false">
-              <span class="nav-module-title">
-                <span class="nav-module-icon">
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M4 5h16v3H4V5Zm2 5h12v9H6v-9Zm2 2v5h8v-5H8Z" />
-                  </svg>
-                </span>
-                Penawaran & PO
-              </span>
-              <span class="nav-module-arrow">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="m7 10 5 5 5-5H7Z" />
-                </svg>
-              </span>
-            </button>
-            <div class="nav-submenu" hidden>
-              <a class="nav-sublink" href="./procurement-penawaran.html">Penawaran</a>
-              <a class="nav-sublink" href="./procurement-po.html">Buat PO</a>
-            </div>
-          </div>
-          <div class="nav-module">
-            <button class="nav-module-head" type="button" aria-expanded="false">
-              <span class="nav-module-title">
-                <span class="nav-module-icon">
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M5 4h14v4H5V4Zm0 6h14v10H5V10Zm2 2v6h4v-6H7Z" />
-                  </svg>
-                </span>
-                Terima & Retur
-              </span>
-              <span class="nav-module-arrow">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="m7 10 5 5 5-5H7Z" />
-                </svg>
-              </span>
-            </button>
-            <div class="nav-submenu" hidden>
-              <a class="nav-sublink" href="./penerimaan-barang.html">Penerimaan</a>
-              <a class="nav-sublink is-disabled" href="#">Retur</a>
-            </div>
-          </div>
-          <div class="nav-module">
-            <a class="nav-module-link is-disabled" href="#">
-              <span class="nav-module-title">
-                <span class="nav-module-icon">
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M4 6h16v12H4V6Zm2 2v8h12V8H6Zm2 2h8v2H8v-2Z" />
-                  </svg>
-                </span>
-                Monitor Jasa
-              </span>
-            </a>
-          </div>
-          <div class="nav-module">
-            <a class="nav-module-link is-disabled" href="#">
-              <span class="nav-module-title">
-                <span class="nav-module-icon">
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M5 5h14v14H5V5Zm2 2v10h10V7H7Zm2 2h6v2H9V9Zm0 4h6v2H9v-2Z" />
-                  </svg>
-                </span>
-                Tagihan
-              </span>
-            </a>
-          </div>
-          <div class="nav-module">
-            <button class="nav-module-head" type="button" aria-expanded="false">
-              <span class="nav-module-title">
-                <span class="nav-module-icon">
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M4 5h16v4H4V5Zm0 6h16v8H4v-8Zm2 2v4h5v-4H6Z" />
-                  </svg>
-                </span>
-                AP & Pay
-              </span>
-              <span class="nav-module-arrow">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="m7 10 5 5 5-5H7Z" />
-                </svg>
-              </span>
-            </button>
-            <div class="nav-submenu" hidden>
-              <a class="nav-sublink is-disabled" href="#">Anggaran</a>
-              <a class="nav-sublink is-disabled" href="#">Bayar</a>
-            </div>
-          </div>
-          <div class="nav-module">
-            <button class="nav-module-head" type="button" aria-expanded="false">
-              <span class="nav-module-title">
-                <span class="nav-module-icon">
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M7 3h10l4 4v14H3V3h4Zm1 2v14h10V8.5L15.5 5H8Zm2 4h6v2h-6V9Zm0 4h6v2h-6v-2Z" />
-                  </svg>
-                </span>
-                Aset
-              </span>
-              <span class="nav-module-arrow">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="m7 10 5 5 5-5H7Z" />
-                </svg>
-              </span>
-            </button>
-            <div class="nav-submenu" hidden>
-              <a class="nav-sublink is-disabled" href="#">Item Aset</a>
-              <a class="nav-sublink is-disabled" href="#">Aktivasi</a>
-            </div>
-          </div>
-          <div class="nav-module">
-            <button class="nav-module-head" type="button" aria-expanded="false">
-              <span class="nav-module-title">
-                <span class="nav-module-icon">
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M5 4h14v16H5V4Zm2 2v12h10V6H7Zm2 2h6v2H9V8Zm0 4h6v2H9v-2Z" />
-                  </svg>
-                </span>
-                Laporan
-              </span>
-              <span class="nav-module-arrow">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="m7 10 5 5 5-5H7Z" />
-                </svg>
-              </span>
-            </button>
-            <div class="nav-submenu" hidden>
-              <a class="nav-sublink is-disabled" href="#">Histori</a>
-              <a class="nav-sublink is-disabled" href="#">Arsip</a>
-              <a class="nav-sublink is-disabled" href="#">Ringkas</a>
-            </div>
-          </div>
-        </nav>
+        <nav class="sidebar-nav"></nav>
       </aside>
 
       <main class="main-panel">
         <header class="topbar">
           <div class="topbar-left">
-            <button class="icon-button mobile-only" id="sidebarToggle" type="button" aria-label="Toggle sidebar">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M4 7h16v2H4V7Zm0 8h16v2H4v-2Zm0-4h16v2H4v-2Z" />
-              </svg>
+            <button class="icon-button mobile-only" id="sidebarToggle" type="button" aria-label="Buka sidebar">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16v2H4V7Zm0 8h16v2H4v-2Zm0-4h16v2H4v-2Z" /></svg>
             </button>
-            <label class="search-shell" aria-label="Search">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="m15.5 14 5 5-1.5 1.5-5-5v-.8l-.3-.3A6 6 0 1 1 15.5 14ZM10 14a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" />
-              </svg>
-              <input type="text" placeholder="Cari divisi, kepala divisi, atau role default" />
+            <label class="search-shell" aria-label="Cari divisi">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15.5 14 5 5-1.5 1.5-5-5v-.8l-.3-.3A6 6 0 1 1 15.5 14ZM10 14a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" /></svg>
+              <input type="text" placeholder="Cari kode, nama, atau kepala divisi" />
             </label>
           </div>
-
           <div class="topbar-right">
-            <button class="utility-button" type="button" aria-label="Apps">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M5 5h5v5H5V5Zm9 0h5v5h-5V5ZM5 14h5v5H5v-5Zm9 0h5v5h-5v-5Z" />
-              </svg>
+            <button class="theme-toggle" id="themeToggle" type="button" aria-label="Ganti tema">
+              <svg class="theme-icon theme-icon-sun" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12Zm0-16h1v3h-1V2Zm0 17h1v3h-1v-3ZM2 11h3v1H2v-1Zm17 0h3v1h-3v-1Z" /></svg>
+              <svg class="theme-icon theme-icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 2.2A8.8 8.8 0 1 0 21.8 15 7.4 7.4 0 0 1 14.7 2.2Z" /></svg>
             </button>
-            <button class="utility-button" type="button" aria-label="Notifications">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M12 22a2.5 2.5 0 0 0 2.4-2H9.6A2.5 2.5 0 0 0 12 22Zm7-6V11a7 7 0 1 0-14 0v5L3 18v1h18v-1l-2-2Z" />
-              </svg>
-            </button>
-            <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle theme">
-              <svg class="theme-icon theme-icon-sun" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12Zm0-16h1v3h-1V2Zm0 17h1v3h-1v-3ZM2 11h3v1H2v-1Zm17 0h3v1h-3v-1ZM4.9 18.4l.7.7 2.1-2.1-.7-.7-2.1 2.1Zm11.2-11.2.7.7 2.1-2.1-.7-.7-2.1 2.1ZM4.9 5.6l2.1 2.1.7-.7-2.1-2.1-.7.7Zm11.2 11.2 2.1 2.1.7-.7-2.1-2.1-.7.7Z" />
-              </svg>
-              <svg class="theme-icon theme-icon-moon" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M14.7 2.2A8.8 8.8 0 1 0 21.8 15 7.4 7.4 0 0 1 14.7 2.2Z" />
-              </svg>
-            </button>
-            <button class="avatar-button" type="button" aria-label="Profile">
-              <span class="avatar-photo">IF</span>
-            </button>
+            <button class="avatar-button" type="button" aria-label="Profil"><span class="avatar-photo">IF</span></button>
           </div>
         </header>
 
         <section class="page-head">
           <div>
-            <p class="eyebrow">Master-Slave Page</p>
-            <h2>Divisi dan Role</h2>
-            <p class="page-copy">
-              <strong>Head</strong> halaman ini adalah daftar divisi.
-              <strong>Detail</strong>-nya adalah role dan catatan akses yang
-              diturunkan ke modal. Pola ini menggambarkan master-slave karena
-              role bergantung pada konteks divisi.
-            </p>
+            <p class="eyebrow">MASTER</p>
+            <h2>Divisi</h2>
+            <p class="page-copy">Kelola struktur divisi dan tunjuk satu user aktif sebagai kepala divisi.</p>
           </div>
           <div class="page-actions">
-            <button class="secondary-button" type="button">Sinkron User</button>
-            <button class="primary-button" id="openCreateModal" type="button">Tambah Divisi / Role</button>
+            <button class="primary-button" id="openCreateModal" type="button">Tambah Divisi</button>
           </div>
         </section>
 
         <section class="panel panel-table">
           <div class="panel-head">
-            <div>
-              <p class="eyebrow">Head</p>
-              <h3>Tabel Divisi</h3>
-            </div>
-            <div class="toolbar">
-              <span class="filter-chip">Divisi aktif</span>
-              <span class="filter-chip">Klik baris untuk lihat role</span>
-            </div>
+            <div><h3>Daftar Divisi</h3></div>
+            <div class="toolbar"><span class="filter-chip">3 divisi</span></div>
           </div>
-
           <div class="table-wrap">
             <table>
               <thead>
@@ -328,84 +67,35 @@
                   <th>Kode</th>
                   <th>Nama Divisi</th>
                   <th>Kepala Divisi</th>
-                  <th>Status</th>
                   <th>Total User</th>
-                  <th>Total Role</th>
-                  <th>Detail</th>
+                  <th>Status</th>
+                  <th>Aksi</th>
                 </tr>
               </thead>
               <tbody>
-                <tr class="master-slave-row is-active" data-select-division data-division-code="DIV-001">
+                <tr>
                   <td>DIV-001</td>
                   <td>General Affairs</td>
                   <td>Rina Putri</td>
-                  <td><span class="status-chip success">aktif</span></td>
                   <td>12</td>
-                  <td>3</td>
-                  <td>
-                    <button
-                      class="table-action"
-                      type="button"
-                      data-edit="true"
-                      data-division-code="DIV-001"
-                      data-division-name="General Affairs"
-                      data-head-name="Rina Putri"
-                      data-division-status="Aktif"
-                      data-role-code="ROL-GA"
-                      data-role-name="Pemohon / GA"
-                      data-role-description="Role pengusul kebutuhan operasional dan fasilitas kantor."
-                    >
-                      Edit
-                    </button>
-                  </td>
+                  <td><span class="status-chip success">aktif</span></td>
+                  <td><button class="table-action" type="button" data-edit="true" data-division-code="DIV-001" data-division-name="General Affairs" data-head-name="USR-GA-001 - Rina Putri" data-division-status="Aktif">Edit</button></td>
                 </tr>
-                <tr class="master-slave-row" data-select-division data-division-code="DIV-002">
+                <tr>
                   <td>DIV-002</td>
                   <td>Purchasing</td>
                   <td>Adi Wibowo</td>
-                  <td><span class="status-chip success">aktif</span></td>
                   <td>6</td>
-                  <td>4</td>
-                  <td>
-                    <button
-                      class="table-action"
-                      type="button"
-                      data-edit="true"
-                      data-division-code="DIV-002"
-                      data-division-name="Purchasing"
-                      data-head-name="Adi Wibowo"
-                      data-division-status="Aktif"
-                      data-role-code="ROL-PCH"
-                      data-role-name="Purchasing"
-                      data-role-description="Berwenang mengelola vendor, penawaran, PO, SPK, dan tindak lanjut procurement."
-                    >
-                      Edit
-                    </button>
-                  </td>
+                  <td><span class="status-chip success">aktif</span></td>
+                  <td><button class="table-action" type="button" data-edit="true" data-division-code="DIV-002" data-division-name="Purchasing" data-head-name="USR-PUR-004 - Adi Wibowo" data-division-status="Aktif">Edit</button></td>
                 </tr>
-                <tr class="master-slave-row" data-select-division data-division-code="DIV-003">
+                <tr>
                   <td>DIV-003</td>
                   <td>Akunting</td>
                   <td>Susi Lestari</td>
-                  <td><span class="status-chip review">review</span></td>
                   <td>8</td>
-                  <td>3</td>
-                  <td>
-                    <button
-                      class="table-action"
-                      type="button"
-                      data-edit="true"
-                      data-division-code="DIV-003"
-                      data-division-name="Akunting"
-                      data-head-name="Susi Lestari"
-                      data-division-status="Review"
-                      data-role-code="ROL-AKT"
-                      data-role-name="Akunting"
-                      data-role-description="Sedang review penyesuaian role antara staf review, approval, dan kontrol payment."
-                    >
-                      Edit
-                    </button>
-                  </td>
+                  <td><span class="status-chip success">aktif</span></td>
+                  <td><button class="table-action" type="button" data-edit="true" data-division-code="DIV-003" data-division-name="Akunting" data-head-name="USR-AKT-001 - Susi Lestari" data-division-status="Aktif">Edit</button></td>
                 </tr>
               </tbody>
             </table>
@@ -415,115 +105,34 @@
     </div>
 
     <div class="modal-backdrop" id="modalBackdrop" hidden aria-hidden="true">
-      <div class="modal-card" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="modalTitle">
+      <div class="modal-card modal-card-content-fit" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="modalTitle">
         <div class="modal-head">
-          <div>
-            <p class="eyebrow" id="modalKicker">Detail Data</p>
-            <h3 id="modalTitle">Detail Divisi</h3>
-          </div>
-          <button class="icon-button tiny" id="closeModal" type="button" aria-label="Close modal">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="m18.3 5.7-1-1L12 10 6.7 4.7l-1 1L11 11l-5.3 5.3 1 1L12 12l5.3 5.3 1-1L13 11l5.3-5.3Z" />
-            </svg>
+          <div><p class="eyebrow" id="modalKicker">DIVISI</p><h3 id="modalTitle">Data Divisi</h3></div>
+          <button class="icon-button tiny" id="closeModal" type="button" aria-label="Tutup modal">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m18.3 5.7-1-1L12 10 6.7 4.7l-1 1L11 11l-5.3 5.3 1 1L12 12l5.3 5.3 1-1L13 11l5.3-5.3Z" /></svg>
           </button>
         </div>
-
         <form class="modal-form" id="requestForm">
           <section class="form-section">
-            <div class="form-section-head">
-              <strong>Head: Data Divisi</strong>
-              <p>
-                Mengikuti entitas `divisi`: kode divisi, nama divisi, kepala
-                divisi, dan status aktif.
-              </p>
-            </div>
-
             <div class="form-grid">
-              <label>
-                <span>Kode Divisi</span>
-                <input
-                  data-field="divisionCode"
-                  data-primary-field
-                  name="divisionCode"
-                  type="text"
-                  placeholder="DIV-004"
-                />
-              </label>
-              <label>
-                <span>Nama Divisi</span>
-                <input
-                  data-field="divisionName"
-                  name="divisionName"
-                  type="text"
-                  placeholder="Information Technology"
-                />
-              </label>
+              <label><span>Kode Divisi</span><input data-field="divisionCode" data-primary-field name="divisionCode" type="text" placeholder="DIV-004" required /></label>
+              <label><span>Nama Divisi</span><input data-field="divisionName" name="divisionName" type="text" placeholder="Information Technology" required /></label>
             </div>
-
             <div class="form-grid">
               <label>
                 <span>Kepala Divisi</span>
-                <input
-                  data-field="headName"
-                  name="headName"
-                  type="text"
-                  placeholder="Nama kepala divisi"
-                />
-              </label>
-              <label>
-                <span>Status Divisi</span>
-                <select data-field="divisionStatus" name="divisionStatus">
-                  <option value="Aktif">Aktif</option>
-                  <option value="Review">Review</option>
-                  <option value="Nonaktif">Nonaktif</option>
+                <select data-field="headName" name="headName" required>
+                  <option value="">Pilih user aktif</option>
+                  <option value="USR-GA-001 - Rina Putri">USR-GA-001 - Rina Putri</option>
+                  <option value="USR-PUR-004 - Adi Wibowo">USR-PUR-004 - Adi Wibowo</option>
+                  <option value="USR-AKT-001 - Susi Lestari">USR-AKT-001 - Susi Lestari</option>
                 </select>
               </label>
+              <label><span>Status</span><select data-field="divisionStatus" name="divisionStatus"><option value="Aktif">Aktif</option><option value="Nonaktif">Nonaktif</option></select></label>
             </div>
           </section>
-
-          <section class="form-section">
-            <div class="form-section-head">
-              <strong>Detail: Role Turunan</strong>
-              <p>
-                Mengikuti entitas `role` dan relasinya ke `user`: kode role,
-                nama role, dan deskripsi hak akses yang dipasang ke divisi.
-              </p>
-            </div>
-
-            <div class="form-grid">
-              <label>
-                <span>Kode Role</span>
-                <input
-                  data-field="roleCode"
-                  name="roleCode"
-                  type="text"
-                  placeholder="ROL-IT"
-                />
-              </label>
-              <label>
-                <span>Nama Role</span>
-                <input
-                  data-field="roleName"
-                  name="roleName"
-                  type="text"
-                  placeholder="Admin / User / Approver"
-                />
-              </label>
-            </div>
-
-            <label class="field-span-2">
-              <span>Deskripsi Hak Akses</span>
-              <textarea
-                data-field="roleDescription"
-                name="roleDescription"
-                rows="5"
-                placeholder="Jelaskan hak akses role pada modul pengajuan, approval, procurement, atau payment"
-              ></textarea>
-            </label>
-          </section>
-
           <div class="modal-actions">
-            <button class="secondary-button" id="cancelModal" type="button">Tutup</button>
+            <button class="secondary-button" id="cancelModal" type="button">Batal</button>
             <button class="primary-button" type="submit">Simpan</button>
           </div>
         </form>
@@ -532,18 +141,11 @@
 
     <div class="inline-alert" id="inlineAlert" hidden>
       <div class="inline-alert-icon"></div>
-      <div>
-        <strong id="inlineAlertTitle">Status</strong>
-        <p id="inlineAlertText">Alert detail</p>
-      </div>
-      <button class="icon-button tiny" id="dismissAlert" type="button" aria-label="Dismiss alert">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="m18.3 5.7-1-1L12 10 6.7 4.7l-1 1L11 11l-5.3 5.3 1 1L12 12l5.3 5.3 1-1L13 11l5.3-5.3Z" />
-        </svg>
+      <div><strong id="inlineAlertTitle">Status</strong><p id="inlineAlertText">Detail</p></div>
+      <button class="icon-button tiny" id="dismissAlert" type="button" aria-label="Tutup alert">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m18.3 5.7-1-1L12 10 6.7 4.7l-1 1L11 11l-5.3 5.3 1 1L12 12l5.3 5.3 1-1L13 11l5.3-5.3Z" /></svg>
       </button>
     </div>
-
     <script src="./script.js"></script>
   </body>
 </html>
-

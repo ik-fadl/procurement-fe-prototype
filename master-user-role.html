@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>User dan Role - Procurement UI Prototype</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body data-theme="light" data-entity-singular="User" data-entity-plural="User dan Role" data-access-page="true">
+    <div class="app-shell">
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+          <div class="brand-word">Procurement</div>
+          <button class="collapse-button" type="button" aria-label="Tutup sidebar">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 7.4 8.6 6 2.6 12l6 6 1.4-1.4L6.4 13H22v-2H6.4L10 7.4Z" /></svg>
+          </button>
+        </div>
+        <nav class="sidebar-nav"></nav>
+      </aside>
+
+      <main class="main-panel">
+        <header class="topbar">
+          <div class="topbar-left">
+            <button class="icon-button mobile-only" id="sidebarToggle" type="button" aria-label="Buka sidebar">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16v2H4V7Zm0 8h16v2H4v-2Zm0-4h16v2H4v-2Z" /></svg>
+            </button>
+            <label class="search-shell" aria-label="Cari user atau role">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15.5 14 5 5-1.5 1.5-5-5v-.8l-.3-.3A6 6 0 1 1 15.5 14ZM10 14a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" /></svg>
+              <input id="userRoleSearch" type="search" placeholder="Cari user, divisi, role, atau akses" />
+            </label>
+          </div>
+          <div class="topbar-right">
+            <button class="theme-toggle" id="themeToggle" type="button" aria-label="Ganti tema">
+              <svg class="theme-icon theme-icon-sun" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12Zm0-16h1v3h-1V2Zm0 17h1v3h-1v-3ZM2 11h3v1H2v-1Zm17 0h3v1h-3v-1Z" /></svg>
+              <svg class="theme-icon theme-icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 2.2A8.8 8.8 0 1 0 21.8 15 7.4 7.4 0 0 1 14.7 2.2Z" /></svg>
+            </button>
+            <button class="avatar-button" type="button" aria-label="Profil"><span class="avatar-photo">IF</span></button>
+          </div>
+        </header>
+
+        <section class="page-head">
+          <div>
+            <p class="eyebrow">MASTER AKSES</p>
+            <h2>User & Role</h2>
+            <p class="page-copy">Setiap user memiliki satu role. Perubahan akses role berlaku untuk seluruh user dengan role tersebut.</p>
+          </div>
+          <div class="page-actions">
+            <button class="primary-button" id="openCreateUserModal" type="button">Tambah User</button>
+          </div>
+        </section>
+
+        <div class="access-page-tabs" role="tablist" aria-label="Data user dan role">
+          <button class="access-page-tab active" type="button" role="tab" aria-selected="true" data-access-tab="users">Data User</button>
+          <button class="access-page-tab" type="button" role="tab" aria-selected="false" data-access-tab="roles">Role & Akses</button>
+        </div>
+
+        <section class="panel panel-table access-tab-panel" role="tabpanel" data-access-tab-panel="users">
+          <div class="panel-head">
+            <div><h3>Data User</h3></div>
+            <div class="toolbar">
+              <span class="filter-chip">3 user aktif</span>
+              <label class="compact-filter"><span>Divisi</span><select id="userDivisionFilter"><option value="">Semua</option><option value="DIV-001">General Affairs</option><option value="DIV-002">Purchasing</option><option value="DIV-003">Akunting</option></select></label>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Kode User</th>
+                  <th>Nama / Kontak</th>
+                  <th>Divisi</th>
+                  <th>Role</th>
+                  <th>Penugasan</th>
+                  <th>Status</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="userRoleTableBody">
+                <tr data-user-row="USR-AKT-001">
+                  <td>USR-AKT-001</td>
+                  <td><div class="cell-stack"><strong>Susi Lestari</strong><span>susi.lestari@company.id</span></div></td>
+                  <td>Akunting</td>
+                  <td>Kepala Akunting</td>
+                  <td><span class="status-chip info">Kepala Divisi</span></td>
+                  <td><span class="status-chip success">aktif</span></td>
+                  <td><button class="table-action" type="button" data-edit-user="true" data-code="USR-AKT-001" data-name="Susi Lestari" data-username="susi.lestari" data-email="susi.lestari@company.id" data-phone="081234567801" data-division="DIV-003" data-role="kepala_akunting" data-status="aktif" data-assignment="Kepala Divisi">Edit</button></td>
+                </tr>
+                <tr data-user-row="USR-GA-001">
+                  <td>USR-GA-001</td>
+                  <td><div class="cell-stack"><strong>Rina Putri</strong><span>rina.putri@company.id</span></div></td>
+                  <td>General Affairs</td>
+                  <td>Kepala Divisi</td>
+                  <td><span class="status-chip info">Kepala Divisi</span></td>
+                  <td><span class="status-chip success">aktif</span></td>
+                  <td><button class="table-action" type="button" data-edit-user="true" data-code="USR-GA-001" data-name="Rina Putri" data-username="rina.putri" data-email="rina.putri@company.id" data-phone="081234567802" data-division="DIV-001" data-role="kepala_divisi" data-status="aktif" data-assignment="Kepala Divisi">Edit</button></td>
+                </tr>
+                <tr data-user-row="USR-PUR-001">
+                  <td>USR-PUR-001</td>
+                  <td><div class="cell-stack"><strong>Rani Purchasing</strong><span>rani.purchasing@company.id</span></div></td>
+                  <td>Purchasing</td>
+                  <td>Purchasing</td>
+                  <td>-</td>
+                  <td><span class="status-chip success">aktif</span></td>
+                  <td><button class="table-action" type="button" data-edit-user="true" data-code="USR-PUR-001" data-name="Rani Purchasing" data-username="rani.purchasing" data-email="rani.purchasing@company.id" data-phone="081234567803" data-division="DIV-002" data-role="purchasing" data-status="aktif" data-assignment="">Edit</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel panel-table access-tab-panel" role="tabpanel" data-access-tab-panel="roles" hidden>
+          <div class="panel-head">
+            <div><h3>Data Role dan Akses</h3></div>
+            <div class="toolbar"><span class="filter-chip">Akses berbasis role</span></div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Kode</th>
+                  <th>Role</th>
+                  <th>Deskripsi</th>
+                  <th>User</th>
+                  <th>Akses Aktif</th>
+                  <th>Akses Utama</th>
+                  <th>Status</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="roleAccessTableBody">
+                <tr>
+                  <td>ROL-ADM</td><td>Admin</td><td>Administrasi sistem dan master akses</td><td data-role-user-count="admin">2</td>
+                  <td><div class="access-summary"><strong data-role-access-count="admin">Semua</strong><span>permission</span></div></td>
+                  <td><span class="access-code-list" data-role-access-summary="admin">Semua modul</span></td>
+                  <td><span class="status-chip success">aktif</span></td>
+                  <td><button class="table-action" type="button" data-manage-role="admin" data-role-code="ROL-ADM" data-role-name="Admin" data-role-users="2">Atur Akses</button></td>
+                </tr>
+                <tr>
+                  <td>ROL-KA</td><td>Kepala Akunting</td><td>Approval pengajuan dan payment</td><td data-role-user-count="kepala_akunting">1</td>
+                  <td><div class="access-summary"><strong data-role-access-count="kepala_akunting">7</strong><span>permission</span></div></td>
+                  <td><span class="access-code-list" data-role-access-summary="kepala_akunting">Approval akunting · Payment</span></td>
+                  <td><span class="status-chip success">aktif</span></td>
+                  <td><button class="table-action" type="button" data-manage-role="kepala_akunting" data-role-code="ROL-KA" data-role-name="Kepala Akunting" data-role-users="1">Atur Akses</button></td>
+                </tr>
+                <tr>
+                  <td>ROL-KD</td><td>Kepala Divisi</td><td>Approval kebutuhan sesuai penugasan divisi</td><td data-role-user-count="kepala_divisi">4</td>
+                  <td><div class="access-summary"><strong data-role-access-count="kepala_divisi">4</strong><span>permission</span></div></td>
+                  <td><span class="access-code-list" data-role-access-summary="kepala_divisi">Approval divisi</span></td>
+                  <td><span class="status-chip success">aktif</span></td>
+                  <td><button class="table-action" type="button" data-manage-role="kepala_divisi" data-role-code="ROL-KD" data-role-name="Kepala Divisi" data-role-users="4">Atur Akses</button></td>
+                </tr>
+                <tr>
+                  <td>ROL-PUR</td><td>Purchasing</td><td>Penawaran, PO, penerimaan, dan retur</td><td data-role-user-count="purchasing">6</td>
+                  <td><div class="access-summary"><strong data-role-access-count="purchasing">8</strong><span>permission</span></div></td>
+                  <td><span class="access-code-list" data-role-access-summary="purchasing">Procurement · Penerimaan</span></td>
+                  <td><span class="status-chip success">aktif</span></td>
+                  <td><button class="table-action" type="button" data-manage-role="purchasing" data-role-code="ROL-PUR" data-role-name="Purchasing" data-role-users="6">Atur Akses</button></td>
+                </tr>
+                <tr>
+                  <td>ROL-KP</td><td>Kepala Purchasing</td><td>Keputusan penawaran dan PO</td><td data-role-user-count="kepala_purchasing">1</td>
+                  <td><div class="access-summary"><strong data-role-access-count="kepala_purchasing">4</strong><span>permission</span></div></td>
+                  <td><span class="access-code-list" data-role-access-summary="kepala_purchasing">Approval procurement</span></td>
+                  <td><span class="status-chip success">aktif</span></td>
+                  <td><button class="table-action" type="button" data-manage-role="kepala_purchasing" data-role-code="ROL-KP" data-role-name="Kepala Purchasing" data-role-users="1">Atur Akses</button></td>
+                </tr>
+                <tr>
+                  <td>ROL-AKT</td><td>Akunting</td><td>Administrasi dokumen dan kontrol payment</td><td data-role-user-count="akunting">5</td>
+                  <td><div class="access-summary"><strong data-role-access-count="akunting">5</strong><span>permission</span></div></td>
+                  <td><span class="access-code-list" data-role-access-summary="akunting">Payment · FEAB</span></td>
+                  <td><span class="status-chip success">aktif</span></td>
+                  <td><button class="table-action" type="button" data-manage-role="akunting" data-role-code="ROL-AKT" data-role-name="Akunting" data-role-users="5">Atur Akses</button></td>
+                </tr>
+                <tr>
+                  <td>ROL-FIN</td><td>Finance</td><td>Menyiapkan dan menjalankan pembayaran</td><td data-role-user-count="finance">3</td>
+                  <td><div class="access-summary"><strong data-role-access-count="finance">5</strong><span>permission</span></div></td>
+                  <td><span class="access-code-list" data-role-access-summary="finance">Payment · FEAB</span></td>
+                  <td><span class="status-chip success">aktif</span></td>
+                  <td><button class="table-action" type="button" data-manage-role="finance" data-role-code="ROL-FIN" data-role-name="Finance" data-role-users="3">Atur Akses</button></td>
+                </tr>
+                <tr>
+                  <td>ROL-KSR</td><td>Kasir</td><td>Eksekusi transaksi dan bukti pembayaran</td><td data-role-user-count="kasir">2</td>
+                  <td><div class="access-summary"><strong data-role-access-count="kasir">5</strong><span>permission</span></div></td>
+                  <td><span class="access-code-list" data-role-access-summary="kasir">Payment · Kasbon</span></td>
+                  <td><span class="status-chip success">aktif</span></td>
+                  <td><button class="table-action" type="button" data-manage-role="kasir" data-role-code="ROL-KSR" data-role-name="Kasir" data-role-users="2">Atur Akses</button></td>
+                </tr>
+                <tr>
+                  <td>ROL-KF</td><td>Kepala Finance</td><td>Kontrol proses pembayaran finance</td><td data-role-user-count="kepala_finance">1</td>
+                  <td><div class="access-summary"><strong data-role-access-count="kepala_finance">6</strong><span>permission</span></div></td>
+                  <td><span class="access-code-list" data-role-access-summary="kepala_finance">Payment · Approval</span></td>
+                  <td><span class="status-chip success">aktif</span></td>
+                  <td><button class="table-action" type="button" data-manage-role="kepala_finance" data-role-code="ROL-KF" data-role-name="Kepala Finance" data-role-users="1">Atur Akses</button></td>
+                </tr>
+                <tr>
+                  <td>ROL-DIR</td><td>Direktur</td><td>Approval payment sesuai threshold</td><td data-role-user-count="direktur">2</td>
+                  <td><div class="access-summary"><strong data-role-access-count="direktur">4</strong><span>permission</span></div></td>
+                  <td><span class="access-code-list" data-role-access-summary="direktur">Approval payment</span></td>
+                  <td><span class="status-chip success">aktif</span></td>
+                  <td><button class="table-action" type="button" data-manage-role="direktur" data-role-code="ROL-DIR" data-role-name="Direktur" data-role-users="2">Atur Akses</button></td>
+                </tr>
+                <tr>
+                  <td>ROL-AA</td><td>Admin Asset</td><td>Aktivasi dan pengelolaan data aset</td><td data-role-user-count="admin_asset">2</td>
+                  <td><div class="access-summary"><strong data-role-access-count="admin_asset">3</strong><span>permission</span></div></td>
+                  <td><span class="access-code-list" data-role-access-summary="admin_asset">Kelola aset</span></td>
+                  <td><span class="status-chip success">aktif</span></td>
+                  <td><button class="table-action" type="button" data-manage-role="admin_asset" data-role-code="ROL-AA" data-role-name="Admin Asset" data-role-users="2">Atur Akses</button></td>
+                </tr>
+                <tr>
+                  <td>ROL-PEM</td><td>Pemohon</td><td>Membuat dan memantau pengajuan sendiri</td><td data-role-user-count="pemohon">26</td>
+                  <td><div class="access-summary"><strong data-role-access-count="pemohon">5</strong><span>permission</span></div></td>
+                  <td><span class="access-code-list" data-role-access-summary="pemohon">Pengajuan · Laporan</span></td>
+                  <td><span class="status-chip success">aktif</span></td>
+                  <td><button class="table-action" type="button" data-manage-role="pemohon" data-role-code="ROL-PEM" data-role-name="Pemohon" data-role-users="26">Atur Akses</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div class="modal-backdrop" id="userModalBackdrop" hidden aria-hidden="true">
+      <div class="modal-card modal-card-content-fit" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="userModalTitle">
+        <div class="modal-head">
+          <div><p class="eyebrow" id="userModalKicker">USER</p><h3 id="userModalTitle">Tambah User</h3></div>
+          <button class="icon-button tiny" id="closeUserModal" type="button" aria-label="Tutup modal"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m18.3 5.7-1-1L12 10 6.7 4.7l-1 1L11 11l-5.3 5.3 1 1L12 12l5.3 5.3 1-1L13 11l5.3-5.3Z" /></svg></button>
+        </div>
+        <form class="modal-form" id="userForm">
+          <section class="form-section">
+            <div class="form-grid">
+              <label><span>Kode User</span><input name="user_code" data-user-field="code" type="text" placeholder="USR-0004" required /></label>
+              <label><span>Nama</span><input name="user_name" data-user-field="name" type="text" placeholder="Nama lengkap" required /></label>
+            </div>
+            <div class="form-grid">
+              <label><span>Username</span><input name="username" data-user-field="username" type="text" placeholder="nama.user" required /></label>
+              <label><span>Email</span><input name="email" data-user-field="email" type="email" placeholder="nama@company.id" required /></label>
+            </div>
+            <div class="form-grid">
+              <label><span>No. HP</span><input name="phone" data-user-field="phone" type="tel" placeholder="08xxxxxxxxxx" /></label>
+              <label>
+                <span>Divisi</span>
+                <select name="division" data-user-field="division" required>
+                  <option value="">Pilih divisi</option>
+                  <option value="DIV-001">General Affairs</option>
+                  <option value="DIV-002">Purchasing</option>
+                  <option value="DIV-003">Akunting</option>
+                </select>
+              </label>
+            </div>
+            <div class="form-grid">
+              <label>
+                <span>Role</span>
+                <select name="role" data-user-field="role" required>
+                  <option value="">Pilih satu role</option>
+                  <option value="pemohon">Pemohon</option>
+                  <option value="kepala_divisi">Kepala Divisi</option>
+                  <option value="akunting">Akunting</option>
+                  <option value="kepala_akunting">Kepala Akunting</option>
+                  <option value="purchasing">Purchasing</option>
+                  <option value="kepala_purchasing">Kepala Purchasing</option>
+                  <option value="finance">Finance</option>
+                  <option value="kasir">Kasir</option>
+                  <option value="kepala_finance">Kepala Finance</option>
+                  <option value="direktur">Direktur</option>
+                  <option value="admin_asset">Admin Asset</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </label>
+              <label><span>Status</span><select name="status" data-user-field="status"><option value="aktif">Aktif</option><option value="nonaktif">Nonaktif</option></select></label>
+            </div>
+          </section>
+          <div class="modal-actions">
+            <button class="secondary-button" id="cancelUserModal" type="button">Batal</button>
+            <button class="primary-button" type="submit">Simpan User</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="modal-backdrop" id="roleAccessBackdrop" hidden aria-hidden="true">
+      <div class="modal-card modal-card-access" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="roleAccessTitle">
+        <div class="modal-head role-access-head">
+          <div>
+            <p class="eyebrow" id="roleAccessCode">ROLE</p>
+            <h3 id="roleAccessTitle">Atur Akses Role</h3>
+            <p class="role-access-meta"><span id="roleAccessUserCount">0 user</span><span id="roleAccessSelectedCount">0 akses aktif</span></p>
+          </div>
+          <button class="icon-button tiny" id="closeRoleAccessModal" type="button" aria-label="Tutup modal"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m18.3 5.7-1-1L12 10 6.7 4.7l-1 1L11 11l-5.3 5.3 1 1L12 12l5.3 5.3 1-1L13 11l5.3-5.3Z" /></svg></button>
+        </div>
+        <form class="modal-form role-access-form" id="roleAccessForm">
+          <div class="role-access-toolbar">
+            <label class="search-shell role-access-search">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15.5 14 5 5-1.5 1.5-5-5v-.8l-.3-.3A6 6 0 1 1 15.5 14ZM10 14a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" /></svg>
+              <input id="roleAccessSearch" type="search" placeholder="Cari akses" />
+            </label>
+            <div class="table-action-group">
+              <button class="table-action" id="selectAllRoleAccess" type="button">Pilih Semua</button>
+              <button class="table-action" id="clearRoleAccess" type="button">Kosongkan</button>
+            </div>
+          </div>
+
+          <div class="permission-groups" id="roleAccessGroups">
+            <fieldset class="permission-group" data-permission-group>
+              <legend>Umum dan Master</legend>
+              <div class="permission-list">
+                <label class="permission-option" data-permission-label><input type="checkbox" name="role_access" value="dashboard.view" /><span><strong>Dashboard</strong><small>Lihat dashboard dan task inbox</small></span></label>
+                <label class="permission-option" data-permission-label><input type="checkbox" name="role_access" value="master.procurement.view" /><span><strong>Lihat master procurement</strong><small>Barang dan vendor</small></span></label>
+                <label class="permission-option" data-permission-label><input type="checkbox" name="role_access" value="master.procurement.manage" /><span><strong>Kelola master procurement</strong><small>Tambah dan ubah barang/vendor</small></span></label>
+                <label class="permission-option" data-permission-label><input type="checkbox" name="role_access" value="master.organization.view" /><span><strong>Lihat organisasi</strong><small>Divisi, role, dan user</small></span></label>
+              <label class="permission-option" data-permission-label><input type="checkbox" name="role_access" value="master.organization.manage" /><span><strong>Kelola organisasi</strong><small>Tambah dan ubah divisi serta user</small></span></label>
+                <label class="permission-option" data-permission-label><input type="checkbox" name="role_access" value="role.manage_access" /><span><strong>Atur akses role</strong><small>Ubah permission seluruh role</small></span></label>
+              </div>
+            </fieldset>
+
+            <fieldset class="permission-group" data-permission-group>
+              <legend>Pengajuan dan Approval</legend>
+              <div class="permission-list">
+                <label class="permission-option" data-permission-label><input type="checkbox" name="role_access" value="pengajuan.view" /><span><strong>Lihat pengajuan</strong><small>Barang dan jasa</small></span></label>
+                <label class="permission-option" data-permission-label><input type="checkbox" name="role_access" value="pengajuan.create" /><span><strong>Buat pengajuan</strong><small>Tambah dan ubah pengajuan sendiri</small></span></label>
+                <label class="permission-option" data-permission-label><input type="checkbox" name="role_access" value="pengajuan.approve_divisi" /><span><strong>Approval divisi</strong><small>Tetap dibatasi penugasan kepala divisi</small></span></label>
+                <label class="permission-option" data-permission-label><input type="checkbox" name="role_access" value="pengajuan.approve_akunting" /><span><strong>Approval akunting</strong><small>Keputusan Kepala Akunting</small></span></label>
+              </div>
+            </fieldset>
+
+            <fieldset class="permission-group" data-permission-group>
+              <legend>Procurement</legend>
+              <div class="permission-list">
+                <label class="permission-option" data-permission-label><input type="checkbox" name="role_access" value="procurement.view" /><span><strong>Lihat procurement</strong><small>Penawaran, pembelian, dan PO</small></span></label>
+                <label class="permission-option" data-permission-label><input type="checkbox" name="role_access" value="procurement.manage" /><span><strong>Kelola procurement</strong><small>Input penawaran dan PO</small></span></label>
+                <label class="permission-option" data-permission-label><input type="checkbox" name="role_access" value="procurement.approve" /><span><strong>Approval procurement</strong><small>Pilih vendor dan approve PO</small></span></label>
+                <label class="permission-option" data-permission-label><input type="checkbox" name="role_access" value="penerimaan.manage" /><span><strong>Penerimaan dan retur</strong><small>Barang datang dan retur vendor</small></span></label>
+                <label class="permission-option" data-permission-label><input type="checkbox" name="role_access" value="jasa.view" /><span><strong>Monitoring jasa</strong><small>Lihat pelaksanaan jasa</small></span></label>
+              </div>
+            </fieldset>
+
+            <fieldset class="permission-group" data-permission-group>
+              <legend>Finance, Aset dan Laporan</legend>
+              <div class="permission-list">
+                <label class="permission-option" data-permission-label><input type="checkbox" name="role_access" value="payment.view" /><span><strong>Lihat payment</strong><small>Tagihan dan pembayaran</small></span></label>
+                <label class="permission-option" data-permission-label><input type="checkbox" name="role_access" value="payment.manage" /><span><strong>Kelola payment</strong><small>Proses transaksi pembayaran</small></span></label>
+                <label class="permission-option" data-permission-label><input type="checkbox" name="role_access" value="payment.approve" /><span><strong>Approval payment</strong><small>Sesuai threshold transaksi</small></span></label>
+                <label class="permission-option" data-permission-label><input type="checkbox" name="role_access" value="expense.manage" /><span><strong>FEAB dan kasbon</strong><small>Kelola realisasi biaya</small></span></label>
+                <label class="permission-option" data-permission-label><input type="checkbox" name="role_access" value="asset.manage" /><span><strong>Kelola aset</strong><small>Aktivasi dan data aset</small></span></label>
+                <label class="permission-option" data-permission-label><input type="checkbox" name="role_access" value="report.view" /><span><strong>Lihat laporan</strong><small>Histori, arsip, dan ringkasan</small></span></label>
+              </div>
+            </fieldset>
+          </div>
+
+          <div class="modal-actions">
+            <button class="secondary-button" id="cancelRoleAccessModal" type="button">Batal</button>
+            <button class="primary-button" type="submit">Simpan Akses</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="inline-alert" id="inlineAlert" hidden>
+      <div class="inline-alert-icon"></div>
+      <div><strong id="inlineAlertTitle">Status</strong><p id="inlineAlertText">Detail</p></div>
+      <button class="icon-button tiny" id="dismissAlert" type="button" aria-label="Tutup alert"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m18.3 5.7-1-1L12 10 6.7 4.7l-1 1L11 11l-5.3 5.3 1 1L12 12l5.3 5.3 1-1L13 11l5.3-5.3Z" /></svg></button>
+    </div>
+    <script src="./script.js"></script>
+  </body>
+</html>

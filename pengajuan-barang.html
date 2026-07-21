@@ -74,7 +74,7 @@
               <a class="nav-sublink" href="./index.html">Barang</a>
               <a class="nav-sublink" href="./master-vendor.html">Vendor</a>
               <a class="nav-sublink" href="./master-divisi-role.html">Divisi</a>
-              <a class="nav-sublink" href="./master-divisi-role.html">Role & User</a>
+              <a class="nav-sublink" href="./master-user-role.html">User & Role</a>
             </div>
           </div>
           <div class="nav-module">
@@ -161,7 +161,7 @@
             </button>
             <div class="nav-submenu" hidden>
               <a class="nav-sublink" href="./penerimaan-barang.html">Penerimaan</a>
-              <a class="nav-sublink is-disabled" href="#">Retur</a>
+              <a class="nav-sublink" href="./retur-barang.html">Retur</a>
             </div>
           </div>
           <div class="nav-module">
@@ -333,14 +333,14 @@
                   <td>normal</td>
                   <td>10 Jul 2026</td>
                   <td>20 Jul 2026</td>
-                  <td><span class="status-chip waiting">draft</span></td>
+                  <td><span class="status-chip waiting">menunggu_persetujuan_divisi</span></td>
                   <td>
                     <button
                       class="table-action"
                       type="button"
                       data-detail="true"
                       data-code="2026/PP/GA/07/0015"
-                      data-status="draft"
+                      data-status="menunggu_persetujuan_divisi"
                     >
                       View
                     </button>
@@ -773,7 +773,7 @@
             "submitDate": "10 Jul 2026",
             "targetDate": "20 Jul 2026",
             "reason": "Pengadaan monitor tambahan untuk tim administrasi cabang.",
-            "status": "draft",
+            "status": "menunggu_persetujuan_divisi",
             "statusKind": "waiting"
           },
           "items": [
@@ -789,14 +789,14 @@
               "classification": "Aset",
               "estimate": "Rp7.500.000",
               "attachment": "kebutuhan-monitor-admin.pdf",
-              "notes": "Draft pemohon, belum masuk approval."
+              "notes": "Menunggu keputusan Kepala Divisi."
             }
           ],
           "approval": [
             {
               "kind": "warning",
-              "title": "Pemohon",
-              "text": "Draft belum dikirim ke Kepala Divisi."
+              "title": "Kepala Divisi",
+              "text": "Menunggu keputusan"
             }
           ]
         },

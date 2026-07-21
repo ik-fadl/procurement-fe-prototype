@@ -71,7 +71,7 @@
               <a class="nav-sublink" href="./index.html">Barang</a>
               <a class="nav-sublink" href="./master-vendor.html">Vendor</a>
               <a class="nav-sublink" href="./master-divisi-role.html">Divisi</a>
-              <a class="nav-sublink" href="./master-divisi-role.html">Role & User</a>
+              <a class="nav-sublink" href="./master-user-role.html">User & Role</a>
             </div>
           </div>
           <div class="nav-module">
@@ -158,7 +158,7 @@
             </button>
             <div class="nav-submenu" hidden>
               <a class="nav-sublink" href="./penerimaan-barang.html">Penerimaan</a>
-              <a class="nav-sublink is-disabled" href="#">Retur</a>
+              <a class="nav-sublink" href="./retur-barang.html">Retur</a>
             </div>
           </div>
           <div class="nav-module">
@@ -344,7 +344,7 @@
                   <td>8</td>
                   <td>8</td>
                   <td>
-                    <button class="table-action" type="button" data-detail="true" data-code="PBL-2026-0006" data-status="draft">
+                    <button class="table-action" type="button" data-detail="true" data-code="PBL-2026-0006" data-status="diterima">
                       View
                     </button>
                   </td>
@@ -415,23 +415,23 @@
           ]
         },
         "PBL-2026-0006": {
-          "purchase_order_head": { "no_po": "PO-2026-0181", "tgl_po": "06 Jul 2026", "status": "disetujui", "catatan": "Penerimaan masih draft." },
+          "purchase_order_head": { "no_po": "PO-2026-0181", "tgl_po": "06 Jul 2026", "status": "disetujui", "catatan": "Barang sudah diterima." },
           "purchase_order_detail": [
-            { "no_po": "PO-2026-0181", "no_penawaran": "PNW-2026-0045", "no_pengajuan": "2026/PP/GA/07/0016", "nama_divisi": "General Affairs", "nama_vendor": "PT Office Hub", "uraian": "Meja Kerja Modular", "jumlah": "8", "jumlah_diterima": "8", "jumlah_retur": "0", "satuan": "Set", "harga_satuan": "Rp2.300.000", "subtotal": "Rp18.400.000", "status": "draft_penerimaan" }
+            { "no_po": "PO-2026-0181", "no_penawaran": "PNW-2026-0045", "no_pengajuan": "2026/PP/GA/07/0016", "nama_divisi": "General Affairs", "nama_vendor": "PT Office Hub", "uraian": "Meja Kerja Modular", "jumlah": "8", "jumlah_diterima": "8", "jumlah_retur": "0", "satuan": "Set", "harga_satuan": "Rp2.300.000", "subtotal": "Rp18.400.000", "status": "diterima" }
           ],
-          "penerimaan_barang": { "no_penerimaan": "RCV-2026-0001", "no_po": "PO-2026-0181", "tgl_penerimaan": "16 Jul 2026", "user_terima": "USR-PUR-001", "qty_diterima": "8", "kondisi_barang": "sesuai", "status": "draft", "catatan": "Draft penerimaan belum final." },
+          "penerimaan_barang": { "no_penerimaan": "RCV-2026-0001", "no_urut": 1, "no_po": "PO-2026-0181", "no_urut_po": 1, "tgl_penerimaan": "16 Jul 2026", "user_terima": "USR-PUR-001", "qty_diterima": "8", "kondisi_barang": "sesuai", "status": "diterima", "catatan": "Barang sesuai." },
           "retur_barang": null,
           "tagihan": null,
           "permintaan_pembayaran": null,
           "transaksi_pembayaran": null,
           "lampiran_dokumen": [
             { "no_lampiran": "LMP-PO-0181", "modul_lampiran": "purchase_order", "jenis_lampiran": "po", "nama_file": "PO-2026-0181.pdf", "status": "tersedia" },
-            { "no_lampiran": "LMP-RCV-0001", "modul_lampiran": "penerimaan_barang", "jenis_lampiran": "penerimaan", "nama_file": "RCV-2026-0001", "status": "draft" }
+            { "no_lampiran": "LMP-RCV-0001", "modul_lampiran": "penerimaan_barang", "jenis_lampiran": "penerimaan", "nama_file": "RCV-2026-0001", "status": "tersedia" }
           ],
           "histori_proses": [
             { "tanggal": "02 Jul 2026", "modul": "pengajuan", "status": "siap_procurement", "catatan": "Pengajuan selesai approval." },
             { "tanggal": "06 Jul 2026", "modul": "purchase_order_head", "status": "disetujui", "catatan": "PO disetujui." },
-            { "tanggal": "16 Jul 2026", "modul": "penerimaan_barang", "status": "draft", "catatan": "Draft penerimaan dibuat." }
+            { "tanggal": "16 Jul 2026", "modul": "penerimaan_barang", "status": "diterima", "catatan": "Barang diterima sesuai." }
           ]
         },
         "PBL-2026-0005": {
