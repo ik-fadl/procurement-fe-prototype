@@ -1907,29 +1907,33 @@ body[data-detail-view] #detailModalBody.modal-form {
 
 .approval-strip {
   padding: 2px 4px 8px;
+  width: 100%;
+  min-width: 0;
 }
 
 .approval-flow {
-  display: grid;
+  display: flex;
   gap: 0;
+  width: 100%;
+  min-width: 0;
 }
 
 .approval-flow-horizontal {
-  grid-template-columns: repeat(3, minmax(128px, 1fr));
-  overflow-x: auto;
+  flex-wrap: nowrap;
+  overflow: hidden;
   padding: 0 0 2px;
-  scrollbar-width: thin;
 }
 
 .approval-flow-compact {
-  grid-template-columns: repeat(2, minmax(128px, 1fr));
+  flex-wrap: nowrap;
 }
 
 .approval-step {
+  flex: 1 1 0;
   display: grid;
   grid-template-rows: minmax(24px, auto) 18px minmax(18px, auto);
   justify-items: center;
-  min-width: 128px;
+  min-width: 0;
   text-align: center;
 }
 
@@ -1938,6 +1942,10 @@ body[data-detail-view] #detailModalBody.modal-form {
   color: var(--text-soft);
   font-size: 10px;
   line-height: 1.25;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .approval-track {
@@ -1985,6 +1993,10 @@ body[data-detail-view] #detailModalBody.modal-form {
   font-size: 9px;
   font-weight: 700;
   line-height: 1.25;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .approval-dot {
@@ -2204,8 +2216,7 @@ body[data-theme="dark"] [data-select-receipt-item]:hover {
 
   .mini-grid-head,
   .mini-grid-row,
-  .form-grid,
-  .approval-flow-horizontal {
+  .form-grid {
     grid-template-columns: 1fr;
   }
 
@@ -2215,11 +2226,6 @@ body[data-theme="dark"] [data-select-receipt-item]:hover {
 
   .approval-step {
     grid-template-rows: auto 16px auto;
-  }
-
-  .approval-track::before,
-  .approval-track::after {
-    display: none;
   }
 
   .reference-search {

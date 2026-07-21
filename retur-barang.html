@@ -38,7 +38,7 @@
           <div>
             <p class="eyebrow">TERIMA & RETUR</p>
             <h2>Retur Barang</h2>
-            <p class="page-copy">Retur dibuat dari item penerimaan yang sudah tercatat.</p>
+            <p class="page-copy">Retur dibuat dari item penerimaan, lalu disetujui Kadiv dan Kepala Akunting sebelum penerimaan pengganti.</p>
           </div>
           <div class="page-actions"><button class="primary-button" id="openCreateModal" type="button">Tambah Retur</button></div>
         </section>
@@ -51,8 +51,9 @@
                 <tr>
                   <th>No Retur</th>
                   <th>Tanggal</th>
-                  <th>No Penerimaan</th>
-                  <th>Barang</th>
+                  <th>No PO</th>
+                  <th>No Pengajuan</th>
+                  <th>Item Retur</th>
                   <th>Qty Retur</th>
                   <th>Vendor</th>
                   <th>Status</th>
@@ -61,14 +62,14 @@
               </thead>
               <tbody id="requestTableBody">
                 <tr class="master-slave-row is-active">
-                  <td>RTR-2026-0008</td><td>20 Jul 2026</td><td>RCV-2026-0001 / 1</td><td>Laptop Operasional</td><td>1 Unit</td><td>PT NetCom</td>
-                  <td><span class="status-chip waiting">menunggu_tanggapan_vendor</span></td>
-                  <td><button class="table-action" type="button" data-detail="true" data-code="RTR-2026-0008" data-status="menunggu_tanggapan_vendor">Detail</button></td>
+                  <td>RTR-2026-0008</td><td>20 Jul 2026</td><td>PO-2026-0188</td><td>2026/PP/IT/07/0004</td><td>2 barang</td><td>2 Unit</td><td>PT NetCom</td>
+                  <td><span class="status-chip waiting">menunggu_persetujuan_divisi</span></td>
+                  <td><button class="table-action" type="button" data-detail="true" data-code="RTR-2026-0008" data-status="menunggu_persetujuan_divisi">Detail</button></td>
                 </tr>
                 <tr class="master-slave-row">
-                  <td>RTR-2026-0007</td><td>18 Jul 2026</td><td>RCV-2026-0002 / 1</td><td>Kursi Tamu Kantor</td><td>10 Pcs</td><td>PT Sarana Office</td>
-                  <td><span class="status-chip info">diproses_vendor</span></td>
-                  <td><button class="table-action" type="button" data-detail="true" data-code="RTR-2026-0007" data-status="diproses_vendor">Detail</button></td>
+                  <td>RTR-2026-0007</td><td>18 Jul 2026</td><td>PO-2026-0176</td><td>2026/PP/GA/07/0016</td><td>1 barang</td><td>10 Pcs</td><td>PT Sarana Office</td>
+                  <td><span class="status-chip success">siap_penerimaan</span></td>
+                  <td><button class="table-action" type="button" data-detail="true" data-code="RTR-2026-0007" data-status="siap_penerimaan">Detail</button></td>
                 </tr>
               </tbody>
             </table>
@@ -91,17 +92,34 @@
             </div>
 
             <label>
-              <span>Barang Diterima</span>
+              <span>Barang Diretur</span>
               <div class="field-with-action">
-                <input data-field="returnReference" name="referensi_penerimaan" type="text" placeholder="Pilih item penerimaan" readonly required />
-                <button class="secondary-button" id="openReturnItemPicker" type="button">Pilih Barang</button>
+                <input data-field="returnReference" name="referensi_penerimaan" type="text" placeholder="Pilih barang dari satu PO" readonly required />
+                <button class="secondary-button" id="openReturnItemPicker" type="button">Tambah Barang</button>
               </div>
             </label>
 
             <div class="selected-item-summary return-item-summary" id="returnSelectedItemSummary" hidden></div>
+            <div class="table-wrap table-wrap-compact">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Barang</th>
+                    <th>Penerimaan</th>
+                    <th>Qty Retur</th>
+                    <th>Alasan</th>
+                    <th>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="returnItemsTableBody">
+                  <tr><td colspan="5" class="empty-table-cell">Belum ada barang diretur.</td></tr>
+                </tbody>
+              </table>
+            </div>
           </section>
           <div class="modal-actions">
             <button class="secondary-button" id="cancelCreateModal" type="button">Batal</button>
+            <button class="primary-button" type="submit">Simpan Retur</button>
           </div>
         </form>
       </div>
@@ -146,7 +164,7 @@
           </section>
           <div class="modal-actions">
             <button class="secondary-button" id="cancelReturnQtyReason" type="button">Batal</button>
-            <button class="primary-button" type="submit">Simpan Retur</button>
+            <button class="primary-button" type="submit">Simpan Item</button>
           </div>
         </form>
       </div>
@@ -166,15 +184,15 @@
 
     <script id="returnableItemsData" type="application/json">
       [
-        {"key":"RCV-2026-0001|1","receiptCode":"RCV-2026-0001","receiptLine":1,"poCode":"PO-2026-0188","itemName":"Laptop Operasional","vendor":"PT NetCom","receivedQty":4,"returnedQty":1,"unit":"Unit","condition":"sesuai"},
-        {"key":"RCV-2026-0001|2","receiptCode":"RCV-2026-0001","receiptLine":2,"poCode":"PO-2026-0188","itemName":"Access Point Dual Band","vendor":"PT NetCom","receivedQty":2,"returnedQty":0,"unit":"Pcs","condition":"rusak"},
-        {"key":"RCV-2026-0002|1","receiptCode":"RCV-2026-0002","receiptLine":1,"poCode":"PO-2026-0176","itemName":"Kursi Tamu Kantor","vendor":"PT Sarana Office","receivedQty":10,"returnedQty":10,"unit":"Pcs","condition":"tidak_sesuai"}
+        {"key":"RCV-2026-0001|1","receiptCode":"RCV-2026-0001","receiptLine":1,"poCode":"PO-2026-0188","poDate":"15 Jul 2026","requestCode":"2026/PP/IT/07/0004","division":"IT","itemName":"Laptop Operasional","vendor":"PT NetCom","orderedQty":4,"receivedQty":4,"returnedQty":1,"unit":"Unit","condition":"sesuai","unitPrice":"Rp8.150.000","subtotal":"Rp32.600.000"},
+        {"key":"RCV-2026-0001|2","receiptCode":"RCV-2026-0001","receiptLine":2,"poCode":"PO-2026-0188","poDate":"15 Jul 2026","requestCode":"2026/PP/IT/07/0004","division":"IT","itemName":"Access Point Dual Band","vendor":"PT NetCom","orderedQty":2,"receivedQty":2,"returnedQty":0,"unit":"Pcs","condition":"rusak","unitPrice":"Rp1.250.000","subtotal":"Rp2.500.000"},
+        {"key":"RCV-2026-0002|1","receiptCode":"RCV-2026-0002","receiptLine":1,"poCode":"PO-2026-0176","poDate":"12 Jul 2026","requestCode":"2026/PP/GA/07/0016","division":"GA","itemName":"Kursi Tamu Kantor","vendor":"PT Sarana Office","orderedQty":10,"receivedQty":10,"returnedQty":10,"unit":"Pcs","condition":"tidak_sesuai","unitPrice":"Rp1.275.000","subtotal":"Rp12.750.000"}
       ]
     </script>
     <script id="detailRecordsData" type="application/json">
       {
-        "RTR-2026-0008":{"header":{"code":"RTR-2026-0008","returnDate":"20 Jul 2026","status":"menunggu_tanggapan_vendor"},"item":{"receiptCode":"RCV-2026-0001","receiptLine":1,"poCode":"PO-2026-0188","itemName":"Laptop Operasional","vendor":"PT NetCom","receivedQty":4,"returnQty":1,"unit":"Unit","reason":"Satu unit mengalami kerusakan layar saat dibuka."}},
-        "RTR-2026-0007":{"header":{"code":"RTR-2026-0007","returnDate":"18 Jul 2026","status":"diproses_vendor"},"item":{"receiptCode":"RCV-2026-0002","receiptLine":1,"poCode":"PO-2026-0176","itemName":"Kursi Tamu Kantor","vendor":"PT Sarana Office","receivedQty":10,"returnQty":10,"unit":"Pcs","reason":"Warna dan spesifikasi tidak sesuai PO."}}
+        "RTR-2026-0008":{"header":{"code":"RTR-2026-0008","returnDate":"20 Jul 2026","status":"menunggu_persetujuan_divisi","poCode":"PO-2026-0188","poDate":"15 Jul 2026","requestCode":"2026/PP/IT/07/0004","division":"IT","vendor":"PT NetCom"},"items":[{"receiptCode":"RCV-2026-0001","receiptLine":1,"poCode":"PO-2026-0188","poDate":"15 Jul 2026","requestCode":"2026/PP/IT/07/0004","division":"IT","itemName":"Laptop Operasional","vendor":"PT NetCom","orderedQty":4,"receivedQty":4,"returnQty":1,"unit":"Unit","condition":"sesuai","unitPrice":"Rp8.150.000","subtotal":"Rp32.600.000","reason":"Satu unit mengalami kerusakan layar saat dibuka."},{"receiptCode":"RCV-2026-0001","receiptLine":2,"poCode":"PO-2026-0188","poDate":"15 Jul 2026","requestCode":"2026/PP/IT/07/0004","division":"IT","itemName":"Access Point Dual Band","vendor":"PT NetCom","orderedQty":2,"receivedQty":2,"returnQty":1,"unit":"Pcs","condition":"rusak","unitPrice":"Rp1.250.000","subtotal":"Rp2.500.000","reason":"Unit tidak menyala saat pemeriksaan awal."}]},
+        "RTR-2026-0007":{"header":{"code":"RTR-2026-0007","returnDate":"18 Jul 2026","status":"siap_penerimaan","poCode":"PO-2026-0176","poDate":"12 Jul 2026","requestCode":"2026/PP/GA/07/0016","division":"GA","vendor":"PT Sarana Office"},"items":[{"receiptCode":"RCV-2026-0002","receiptLine":1,"poCode":"PO-2026-0176","poDate":"12 Jul 2026","requestCode":"2026/PP/GA/07/0016","division":"GA","itemName":"Kursi Tamu Kantor","vendor":"PT Sarana Office","orderedQty":10,"receivedQty":10,"returnQty":10,"unit":"Pcs","condition":"tidak_sesuai","unitPrice":"Rp1.275.000","subtotal":"Rp12.750.000","reason":"Warna dan spesifikasi tidak sesuai PO."}]}
       }
     </script>
 
