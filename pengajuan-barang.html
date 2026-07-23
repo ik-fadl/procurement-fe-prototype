@@ -333,7 +333,7 @@
                   <td>normal</td>
                   <td>10 Jul 2026</td>
                   <td>20 Jul 2026</td>
-                  <td><span class="status-chip waiting">menunggu_persetujuan_divisi</span></td>
+                  <td><span class="status-chip waiting">menunggu_persetujuan_kepala_purchasing</span></td>
                   <td>
                     <button
                       class="table-action"
@@ -359,7 +359,7 @@
                       type="button"
                       data-detail="true"
                       data-code="2026/PP/GA/07/0013"
-                      data-status="menunggu_persetujuan_divisi"
+                      data-status="menunggu_persetujuan_kepala_purchasing"
                     >
                       View
                     </button>
@@ -508,6 +508,7 @@
                       <th>Merk</th>
                       <th>Tipe</th>
                       <th>Klasifikasi</th>
+                      <th>Estimasi Harga</th>
                       <th>Lampiran</th>
                       <th>Catatan</th>
                       <th>Aksi</th>
@@ -515,7 +516,7 @@
                   </thead>
                   <tbody id="draftItemsTableBody">
                     <tr id="draftItemsEmptyRow">
-                      <td colspan="10" class="draft-empty-cell">
+                      <td colspan="11" class="draft-empty-cell">
                         Belum ada item di daftar. Pilih barang lalu klik
                         <strong>Tambah Item</strong>.
                       </td>
@@ -606,6 +607,13 @@
                 <span>Qty</span>
                 <input data-field="qty" name="qty" type="number" min="1" placeholder="1" required />
               </label>
+              <label>
+                <span>Estimasi Harga</span>
+                <input data-field="estimate" name="estimasi_harga" type="number" min="0" step="1000" placeholder="7500000" required />
+              </label>
+            </div>
+
+            <div class="form-grid">
               <label>
                 <span>Lampiran</span>
                 <input
@@ -773,7 +781,7 @@
             "submitDate": "10 Jul 2026",
             "targetDate": "20 Jul 2026",
             "reason": "Pengadaan monitor tambahan untuk tim administrasi cabang.",
-            "status": "menunggu_persetujuan_divisi",
+            "status": "menunggu_persetujuan_kepala_purchasing",
             "statusKind": "waiting"
           },
           "items": [
@@ -843,14 +851,19 @@
           ],
           "approval": [
             {
-              "kind": "warning",
+              "kind": "success",
               "title": "Kepala Divisi",
-              "text": "Tahap pertama sebelum approval Kepala Akunting."
+              "text": "Approved."
             },
             {
-              "kind": "review",
+              "kind": "success",
               "title": "Kepala Akunting",
-              "text": "Approval akhir pengajuan dan penetapan klasifikasi aset atau non-aset."
+              "text": "Approved."
+            },
+            {
+              "kind": "warning",
+              "title": "Kepala Purchasing",
+              "text": "Menunggu keputusan."
             }
           ]
         },

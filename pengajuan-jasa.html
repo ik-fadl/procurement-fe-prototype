@@ -432,8 +432,12 @@
 
             <div class="form-grid">
               <label>
-                <span>Jenis Pengajuan</span>
-                <input data-field="requestType" name="jenis_pengajuan" type="text" value="jasa" readonly />
+                <span>Prioritas</span>
+                <select data-field="priority" name="prioritas" required>
+                  <option value="">Pilih prioritas</option>
+                  <option value="normal">normal</option>
+                  <option value="urgent">urgent</option>
+                </select>
               </label>
               <label>
                 <span>Jenis Pengadaan Jasa</span>
@@ -441,17 +445,6 @@
                   <option value="">Pilih jenis</option>
                   <option value="rutin">rutin</option>
                   <option value="tidak_rutin">tidak_rutin</option>
-                </select>
-              </label>
-            </div>
-
-            <div class="form-grid">
-              <label>
-                <span>Prioritas</span>
-                <select data-field="priority" name="prioritas" required>
-                  <option value="">Pilih prioritas</option>
-                  <option value="normal">normal</option>
-                  <option value="urgent">urgent</option>
                 </select>
               </label>
             </div>
@@ -492,6 +485,22 @@
                 rows="4"
                 required
                 placeholder="Ringkasan kebutuhan jasa"
+              ></textarea>
+            </label>
+          </section>
+
+          <section class="form-section">
+            <div class="form-section-head">
+              <strong>Lampiran</strong>
+            </div>
+
+            <label class="field-span-2">
+              <span>Multi Dokumen</span>
+              <textarea
+                data-field="serviceAttachments"
+                name="lampiran"
+                rows="3"
+                placeholder="quotation-vendor.pdf | PDF&#10;foto-kondisi-awal.jpg | JPG"
               ></textarea>
             </label>
           </section>
@@ -623,6 +632,11 @@
             "targetDate": "22 Jul 2026",
             "reason": "Dibutuhkan jasa instalasi ulang jaringan dan konfigurasi access point untuk dua cabang yang sedang relokasi.",
             "serviceNeed": "Instalasi ulang jaringan cabang dan konfigurasi access point.",
+            "serviceAttachments": [
+              { "name": "quotation-vendor.pdf", "format": "PDF" },
+              { "name": "foto-kondisi-awal.jpg", "format": "JPG" },
+              { "name": "sow-instalasi-jaringan.docx", "format": "DOCX" }
+            ],
             "status": "menunggu_persetujuan_divisi",
             "statusKind": "waiting"
           },
@@ -660,6 +674,9 @@
             "targetDate": "14 Jul 2026",
             "reason": "Pengajuan cleaning service event kantor tidak disetujui karena belum sesuai prioritas operasional.",
             "serviceNeed": "Cleaning service event kantor.",
+            "serviceAttachments": [
+              { "name": "foto-area-event.jpg", "format": "JPG" }
+            ],
             "status": "ditolak",
             "statusKind": "danger"
           },
@@ -692,6 +709,10 @@
             "targetDate": "18 Jul 2026",
             "reason": "Kebutuhan jasa maintenance berkala untuk perangkat jaringan kantor pusat.",
             "serviceNeed": "Maintenance jaringan berkala.",
+            "serviceAttachments": [
+              { "name": "quotation-maintenance.pdf", "format": "PDF" },
+              { "name": "checklist-preventive-maintenance.xlsx", "format": "XLSX" }
+            ],
             "status": "menunggu_persetujuan_kepala_akunting",
             "statusKind": "info"
           },

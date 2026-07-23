@@ -299,7 +299,6 @@
           </div>
           <div class="page-actions">
             <button class="secondary-button" type="button">Filter Status</button>
-            <button class="primary-button" id="openCreateModal" type="button">Buat PO</button>
           </div>
         </section>
 
@@ -326,13 +325,13 @@
               <tbody id="requestTableBody">
                 <tr class="master-slave-row is-active">
                   <td>PO-2026-0188</td>
-                  <td>PNW-2026-0034</td>
+                  <td>PNW-2026-0033</td>
                   <td>PT NetCom</td>
                   <td>09 Jul 2026</td>
-                  <td>1 penawaran</td>
-                  <td><span class="status-chip waiting">menunggu_persetujuan_purchasing</span></td>
+                  <td>2 item</td>
+                  <td><span class="status-chip success">disetujui</span></td>
                   <td>
-                    <button class="table-action" type="button" data-detail="true" data-code="PO-2026-0188" data-status="menunggu_persetujuan_purchasing">
+                    <button class="table-action" type="button" data-detail="true" data-code="PO-2026-0188" data-status="disetujui">
                       View
                     </button>
                   </td>
@@ -539,25 +538,25 @@
                     <th>Vendor</th>
                     <th>Harga</th>
                     <th>Pengiriman</th>
-                    <th>Lead Time</th>
+                    <th>Estimasi Datang</th>
                     <th>Aksi</th>
                   </tr>
                 </thead>
                 <tbody id="poRequestPickerList">
-                  <tr data-select-po-offer-source="PNW-2026-0034" data-request-code="2026/PP/IT/07/0004" data-vendor="PT NetCom" data-price="Rp32.600.000" data-delivery="dikirim_vendor" data-lead-time="2026-07-22">
-                    <td><strong>PNW-2026-0034</strong></td>
+                  <tr data-select-po-offer-source="PNW-2026-0033" data-request-code="2026/PP/IT/07/0004" data-vendor="PT NetCom" data-price="Rp40.237.500" data-delivery="dikirim_vendor" data-lead-time="5 hari">
+                    <td><strong>PNW-2026-0033</strong></td>
                     <td>PT NetCom</td>
                     <td>Rp32.600.000</td>
                     <td>dikirim_vendor</td>
-                    <td>2026-07-22</td>
+                    <td>5 hari</td>
                     <td><button class="table-action" type="button">Pilih</button></td>
                   </tr>
-                  <tr data-select-po-offer-source="PNW-2026-0041" data-request-code="2026/PP/GA/07/0016" data-vendor="PT Sarana Office" data-price="Rp7.150.000" data-delivery="dikirim_vendor" data-lead-time="2026-07-20">
+                  <tr data-select-po-offer-source="PNW-2026-0041" data-request-code="2026/PP/GA/07/0016" data-vendor="PT Sarana Office" data-price="Rp7.150.000" data-delivery="dikirim_vendor" data-lead-time="4 hari">
                     <td><strong>PNW-2026-0041</strong></td>
                     <td>PT Sarana Office</td>
                     <td>Rp7.150.000</td>
                     <td>dikirim_vendor</td>
-                    <td>2026-07-20</td>
+                    <td>4 hari</td>
                     <td><button class="table-action" type="button">Pilih</button></td>
                   </tr>
                 </tbody>
@@ -662,23 +661,66 @@
         "PO-2026-0188": {
           "header": {
             "code": "PO-2026-0188",
-            "offerCode": "PNW-2026-0034",
+            "offerCode": "PNW-2026-0033",
+            "requestCode": "2026/PP/IT/07/0004",
             "vendor": "PT NetCom",
+            "vendorUp": "Hendra Kurniawan",
             "poDate": "09 Jul 2026",
-            "status": "menunggu_persetujuan_purchasing",
-            "notes": "Menunggu keputusan Kepala Purchasing."
+            "status": "disetujui",
+            "notes": "Dibuat otomatis dari penawaran PNW-2026-0033 yang disetujui Kepala Purchasing."
           },
           "items": [
             {
-              "quoteCode": "PNW-2026-0034",
+              "quoteCode": "PNW-2026-0033",
               "requestCode": "2026/PP/IT/07/0004",
+              "itemCode": "BRG-0044",
               "itemName": "Access Point Dual Band",
               "qty": "4",
+              "originalQty": "4",
               "unit": "Unit",
+              "itemCategory": "Jaringan",
+              "itemBudget": "Rp28.000.000",
               "vendor": "PT NetCom",
-              "totalPrice": "Rp6.500.000",
-              "subtotal": "Rp26.000.000",
-              "note": "Sesuai penawaran vendor terpilih."
+              "vendorUp": "Hendra Kurniawan",
+              "unitPrice": "Rp32.600.000",
+              "shippingCost": "Rp350.000",
+              "discount": "Rp0",
+              "taxIncluded": true,
+              "tax": "hitung_ppn_11",
+              "paymentMethod": "TOP-030",
+              "paymentNote": "Transfer term 30 hari",
+              "deliveryCategory": "franco",
+              "delivery": "dikirim_vendor",
+              "leadTime": "5 hari",
+              "totalPrice": "Rp36.574.500",
+              "subtotal": "Rp36.574.500",
+              "note": "Snapshot dari penawaran vendor terpilih."
+            },
+            {
+              "quoteCode": "PNW-2026-0033",
+              "requestCode": "2026/PP/IT/07/0004",
+              "itemCode": "BRG-0045",
+              "itemName": "Managed Switch 24 Port",
+              "qty": "2",
+              "originalQty": "2",
+              "unit": "Unit",
+              "itemCategory": "Jaringan",
+              "itemBudget": "Rp7.000.000",
+              "vendor": "PT NetCom",
+              "vendorUp": "Hendra Kurniawan",
+              "unitPrice": "Rp3.300.000",
+              "shippingCost": "Rp0",
+              "discount": "Rp0",
+              "taxIncluded": true,
+              "tax": "hitung_ppn_11",
+              "paymentMethod": "TOP-030",
+              "paymentNote": "Transfer term 30 hari",
+              "deliveryCategory": "franco",
+              "delivery": "dikirim_vendor",
+              "leadTime": "5 hari",
+              "totalPrice": "Rp3.663.000",
+              "subtotal": "Rp3.663.000",
+              "note": "Snapshot dari penawaran vendor terpilih."
             }
           ]
         },

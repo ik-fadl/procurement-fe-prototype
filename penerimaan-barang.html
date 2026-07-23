@@ -182,11 +182,11 @@
                   <td>15 Jul 2026</td>
                   <td>1 barang</td>
                   <td>PO-2026-0176</td>
-                  <td>10</td>
+                  <td>9</td>
                   <td>Rani Purchasing</td>
-                  <td><span class="status-chip success">diterima</span></td>
+                  <td><span class="status-chip danger">bermasalah</span></td>
                   <td>
-                    <button class="table-action" type="button" data-detail="true" data-code="RCV-2026-0002" data-status="diterima">View</button>
+                    <button class="table-action" type="button" data-detail="true" data-code="RCV-2026-0002" data-status="bermasalah">View</button>
                   </td>
                 </tr>
               </tbody>
@@ -237,16 +237,20 @@
                     <th>No</th>
                     <th>No PO</th>
                     <th>Nama Barang</th>
-                    <th>Qty Ref</th>
-                    <th>Qty Terima</th>
-                    <th>Kondisi</th>
+                    <th>Qty PO</th>
+                    <th>Dikirim</th>
+                    <th>Diterima</th>
+                    <th>Baik</th>
+                    <th>Rusak</th>
+                    <th>Kurang</th>
+                    <th>Retur</th>
                     <th>Catatan</th>
                     <th>Aksi</th>
                   </tr>
                 </thead>
                 <tbody id="receiptItemsTableBody">
                   <tr>
-                    <td colspan="8" class="empty-table-cell">Belum ada barang dipilih.</td>
+                    <td colspan="12" class="empty-table-cell">Belum ada barang dipilih.</td>
                   </tr>
                 </tbody>
               </table>
@@ -312,7 +316,7 @@
         <div class="modal-head">
           <div>
             <p class="eyebrow">Barang Datang</p>
-            <h3 id="receiptItemInputTitle">Jumlah & Kondisi</h3>
+            <h3 id="receiptItemInputTitle">Qty Penerimaan</h3>
           </div>
           <button class="icon-button tiny" id="closeReceiptItemInputModal" type="button" aria-label="Close modal">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m18.3 5.7-1-1L12 10 6.7 4.7l-1 1L11 11l-5.3 5.3 1 1L12 12l5.3 5.3 1-1L13 11l5.3-5.3Z" /></svg>
@@ -327,18 +331,28 @@
 
             <div class="form-grid">
               <label>
-                <span>Jumlah Diterima</span>
-                <input id="receiptPickerQty" type="number" min="0.01" step="0.01" placeholder="0" required />
+                <span>Qty Diterima</span>
+                <input id="receiptPickerReceivedQty" type="number" min="0.01" step="0.01" placeholder="0" required />
               </label>
               <label>
-                <span>Kondisi Barang</span>
-                <select id="receiptPickerCondition" required>
-                  <option value="sesuai">sesuai</option>
-                  <option value="kurang">kurang</option>
-                  <option value="rusak">rusak</option>
-                  <option value="tidak_sesuai">tidak_sesuai</option>
-                </select>
+                <span>Qty Baik</span>
+                <input id="receiptPickerGoodQty" type="number" min="0" step="0.01" placeholder="0" required />
               </label>
+            </div>
+
+            <div class="receipt-calc-strip" aria-label="Hasil hitung penerimaan">
+              <div>
+                <span>Rusak</span>
+                <strong id="receiptPickerDamagedQty">0</strong>
+              </div>
+              <div>
+                <span>Kurang</span>
+                <strong id="receiptPickerShortQty">0</strong>
+              </div>
+              <div>
+                <span>Diproses Retur</span>
+                <strong id="receiptPickerReturnQty">0</strong>
+              </div>
             </div>
 
             <label>
@@ -393,9 +407,13 @@
               "requestCode": "2026/PP/IT/07/0004",
               "itemName": "Access Point Dual Band",
               "qty": "4",
+              "shippedQty": "4",
               "receivedQty": "4",
+              "goodQty": "4",
+              "damagedQty": "0",
+              "shortQty": "0",
+              "returnProcessQty": "0",
               "unit": "Unit",
-              "condition": "sesuai",
               "status": "diterima",
               "notes": "Kemasan utuh.",
               "subtotal": "Rp26.000.000"
@@ -408,9 +426,13 @@
               "requestCode": "2026/PP/IT/07/0004",
               "itemName": "Managed Switch 24 Port",
               "qty": "2",
+              "shippedQty": "2",
               "receivedQty": "2",
+              "goodQty": "2",
+              "damagedQty": "0",
+              "shortQty": "0",
+              "returnProcessQty": "0",
               "unit": "Unit",
-              "condition": "sesuai",
               "status": "diterima",
               "notes": "Segel perangkat lengkap.",
               "subtotal": "Rp6.600.000"
@@ -422,7 +444,7 @@
             "code": "RCV-2026-0002",
             "receiptDate": "15 Jul 2026",
             "receivedBy": "USR-PUR-001 - Rani Purchasing",
-            "status": "diterima"
+            "status": "bermasalah"
           },
           "items": [
             {
@@ -433,11 +455,15 @@
               "requestCode": "2026/PP/OPS/07/0010",
               "itemName": "Kursi Tamu Kantor",
               "qty": "10",
-              "receivedQty": "10",
+              "shippedQty": "10",
+              "receivedQty": "9",
+              "goodQty": "7",
+              "damagedQty": "2",
+              "shortQty": "1",
+              "returnProcessQty": "3",
               "unit": "Pcs",
-              "condition": "sesuai",
-              "status": "diterima",
-              "notes": "Diterima tanpa kerusakan.",
+              "status": "bermasalah",
+              "notes": "2 rusak dan 1 kurang dari qty dikirim.",
               "subtotal": "Rp12.750.000"
             }
           ]

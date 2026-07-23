@@ -156,8 +156,11 @@ const receiptItemInputForm = document.getElementById("receiptItemInputForm");
 const closeReceiptItemInputModal = document.getElementById("closeReceiptItemInputModal");
 const cancelReceiptItemInputModal = document.getElementById("cancelReceiptItemInputModal");
 const receiptPickerSelectedInfo = document.getElementById("receiptPickerSelectedInfo");
-const receiptPickerQty = document.getElementById("receiptPickerQty");
-const receiptPickerCondition = document.getElementById("receiptPickerCondition");
+const receiptPickerReceivedQty = document.getElementById("receiptPickerReceivedQty");
+const receiptPickerGoodQty = document.getElementById("receiptPickerGoodQty");
+const receiptPickerDamagedQty = document.getElementById("receiptPickerDamagedQty");
+const receiptPickerShortQty = document.getElementById("receiptPickerShortQty");
+const receiptPickerReturnQty = document.getElementById("receiptPickerReturnQty");
 const receiptPickerNotes = document.getElementById("receiptPickerNotes");
 const receiptItemsTableBody = document.getElementById("receiptItemsTableBody");
 const returnableItemsDataNode = document.getElementById("returnableItemsData");
@@ -316,7 +319,7 @@ const roleAccessDefaults = {
     "retur.manage",
     "report.view"
   ],
-  kepala_purchasing: ["dashboard.view", "procurement.view", "procurement.approve", "report.view"],
+  kepala_purchasing: ["dashboard.view", "pengajuan.view", "procurement.view", "procurement.approve", "report.view"],
   finance: ["dashboard.view", "payment.view", "payment.manage", "expense.manage", "report.view"],
   kasir: ["dashboard.view", "payment.view", "payment.manage", "expense.manage", "report.view"],
   kepala_finance: ["dashboard.view", "payment.view", "payment.manage", "payment.approve", "expense.manage", "report.view"],
@@ -363,6 +366,7 @@ const navModules = [
     items: [
       { label: "Barang", href: "./index.html", access: "master.procurement.view", roles: ["admin", "purchasing"] },
       { label: "Vendor", href: "./master-vendor.html", access: "master.procurement.view", roles: ["admin", "purchasing"] },
+      { label: "Kategori Bayar", href: "./master-kategori-pembayaran.html", access: "master.procurement.view", roles: ["admin", "purchasing"] },
       { label: "Divisi", href: "./master-divisi-role.html", access: "master.organization.view", roles: ["admin"] },
       { label: "User & Role", href: "./master-user-role.html", access: "role.manage_access", roles: ["admin"] }
     ]
@@ -371,10 +375,10 @@ const navModules = [
     title: "Pengajuan",
     access: "pengajuan.view",
     icon: "M6 4h12v4H6V4Zm0 6h12v10H6V10Z",
-    roles: ["admin", "pemohon", "kepala_divisi", "kepala_akunting", "akunting", "purchasing"],
+    roles: ["admin", "pemohon", "kepala_divisi", "kepala_akunting", "kepala_purchasing", "akunting", "purchasing"],
     items: [
-      { label: "Barang", href: "./pengajuan-barang.html", roles: ["admin", "pemohon", "kepala_divisi", "kepala_akunting", "akunting", "purchasing"] },
-      { label: "Jasa", href: "./pengajuan-jasa.html", roles: ["admin", "pemohon", "kepala_divisi", "kepala_akunting", "akunting", "purchasing"] }
+      { label: "Barang", href: "./pengajuan-barang.html", roles: ["admin", "pemohon", "kepala_divisi", "kepala_akunting", "kepala_purchasing", "akunting", "purchasing"] },
+      { label: "Jasa", href: "./pengajuan-jasa.html", roles: ["admin", "pemohon", "kepala_divisi", "kepala_akunting", "kepala_purchasing", "akunting", "purchasing"] }
     ]
   },
   {
@@ -509,7 +513,10 @@ bindSidebarModuleHeads();
 
 openCreateModal?.addEventListener("click", () => {
   if (!canCreateInCurrentContext()) {
-    showAlert("warning", "Akses dibatasi", `${getActiveRoleLabel()} tidak dapat membuat ${entitySingular.toLowerCase()}.`);
+    const message = detailViewType === "retur-barang"
+      ? "Retur otomatis dibuat dari penerimaan bermasalah."
+      : `${getActiveRoleLabel()} tidak dapat membuat ${entitySingular.toLowerCase()}.`;
+    showAlert("warning", "Akses dibatasi", message);
     return;
   }
 
@@ -519,6 +526,12 @@ openCreateModal?.addEventListener("click", () => {
 
 document.querySelectorAll("[data-edit='true']").forEach((button) => {
   button.addEventListener("click", () => {
+    editingRecordCode =
+      button.dataset.code ||
+      button.dataset.divisionCode ||
+      button.dataset.kodePembayaran ||
+      button.dataset.kodeVendor ||
+      "";
     setEditMode(button.dataset);
     openManagedModal(createModalBackdrop, createModalCard, primaryField);
   });
@@ -831,7 +844,7 @@ requestForm?.addEventListener("submit", (event) => {
   }
 
   if (detailViewType === "retur-barang") {
-    submitReturBarang();
+    submitReturSupportDocument();
     return;
   }
 
@@ -993,6 +1006,10 @@ quoteItemForm?.addEventListener("change", (event) => {
   if (event.target.closest('[data-quote-field="vendorSource"]')) {
     updateQuoteVendorMode();
   }
+
+  if (event.target.closest('[data-quote-field="paymentMethod"]')) {
+    syncPaymentMethodNote();
+  }
 });
 
 closeQuoteItemModal?.addEventListener("click", closeQuoteItemDialog);
@@ -1133,8 +1150,7 @@ poDetailEditForm?.addEventListener("submit", (event) => {
 openReceiptPoPickerModalButton?.addEventListener("click", () => {
   selectedReceiptItemKeys = new Set();
   setFieldValue(receiptPoPickerSearch, "");
-  setFieldValue(receiptPickerQty, "");
-  setFieldValue(receiptPickerCondition, "sesuai");
+  resetReceiptQuantityFields();
   setFieldValue(receiptPickerNotes, "");
   renderReceiptPoPicker("");
   renderReceiptPickerSelection();
@@ -1186,22 +1202,11 @@ receiptItemInputForm?.addEventListener("submit", (event) => {
   }
 });
 
-receiptItemsTableBody?.addEventListener("input", (event) => {
-  const qtyField = event.target.closest("[data-receipt-qty]");
-  if (!qtyField) {
-    return;
-  }
-
-  updateReceiptItem(qtyField.dataset.receiptQty, { receivedQty: qtyField.value });
-});
-
-receiptItemsTableBody?.addEventListener("change", (event) => {
-  const conditionField = event.target.closest("[data-receipt-condition]");
-  if (!conditionField) {
-    return;
-  }
-
-  updateReceiptItem(conditionField.dataset.receiptCondition, { condition: conditionField.value });
+[
+  receiptPickerReceivedQty,
+  receiptPickerGoodQty
+].forEach((field) => {
+  field?.addEventListener("input", updateReceiptQuantityPreview);
 });
 
 receiptItemsTableBody?.addEventListener("click", (event) => {
@@ -1760,7 +1765,6 @@ function canCreateInCurrentContext() {
   if (
     detailViewType === "procurement-pembelian" ||
     detailViewType === "procurement-penawaran" ||
-    detailViewType === "procurement-po" ||
     detailViewType === "penerimaan-barang" ||
     detailViewType === "retur-barang"
   ) {
@@ -1769,13 +1773,17 @@ function canCreateInCurrentContext() {
     }
 
     if (detailViewType === "retur-barang") {
-      return hasAccess("retur.manage");
+      return false;
     }
 
     return hasAccess("procurement.manage");
   }
 
-  if (entitySingular.toLowerCase() === "barang" || entitySingular.toLowerCase() === "vendor") {
+  if (
+    entitySingular.toLowerCase() === "barang" ||
+    entitySingular.toLowerCase() === "vendor" ||
+    root.dataset.masterCrud === "kategori-pembayaran"
+  ) {
     return hasAccess("master.procurement.manage");
   }
 
@@ -1884,6 +1892,14 @@ function setEditMode(data) {
 
 function startDraftEdit(code) {
   const record = detailRecords[code];
+  if (detailViewType === "retur-barang" && record && canEditReturnSupport(record)) {
+    editingRecordCode = code;
+    prepareReturnSupportModal(record, code);
+    closeManagedModal(detailModalBackdrop, detailModalCard, null, { resetForm: false });
+    openManagedModal(createModalBackdrop, createModalCard, getField("supportDocument") || requestForm);
+    return;
+  }
+
   if (!record || !canEditPendingRecord(record)) {
     showAlert("warning", "Tidak bisa diedit", "Data sudah diputuskan atau sedang berada di tahap berikutnya.");
     return;
@@ -1932,6 +1948,22 @@ function canEditPendingRecord(record) {
   }
 
   return false;
+}
+
+function canEditReturnSupport(record) {
+  return (
+    detailViewType === "retur-barang" &&
+    hasAccess("retur.manage") &&
+    ["menunggu_persetujuan_divisi", "menunggu_persetujuan_kepala_akunting"].includes(String(record?.header?.status || ""))
+  );
+}
+
+function prepareReturnSupportModal(record, code) {
+  requestForm?.reset();
+  formFields.forEach(resetField);
+  setFieldValue(primaryField, code || record?.header?.code || "");
+  setFieldValue(getField("supportDocument"), record?.header?.supportDocument || "");
+  setFieldValue(getField("supportNotes"), record?.header?.supportNotes || "");
 }
 
 function prepareCreateModalForEdit(record, code) {
@@ -1988,13 +2020,13 @@ function fillDraftEditForm(record, code) {
   if (detailViewType === "pengajuan-jasa") {
     setFieldValue(getField("code"), header.code || code);
     setFieldValue(getField("division"), header.division || activeDivisionCode);
-    setFieldValue(getField("requestType"), header.requestType || "jasa");
     setFieldValue(getField("serviceProcurementType"), header.serviceProcurementType || "");
     setFieldValue(getField("priority"), header.priority || "");
     setFieldValue(getField("submitDate"), header.submitDate || formatDateDisplay(new Date()));
     setFieldValue(getField("targetDate"), parseDisplayDateToInput(header.targetDate));
     setFieldValue(getField("reason"), header.reason || "");
     setFieldValue(getField("serviceNeed"), header.serviceNeed || "");
+    setServiceAttachmentFields(header.serviceAttachments || []);
     draftServiceItems = (record.services || []).map((item) => ({ ...item }));
     return;
   }
@@ -2049,6 +2081,22 @@ function setFieldValue(field, value) {
   }
 
   field.value = value;
+}
+
+function setFieldChecked(field, checked) {
+  if (!field) {
+    return;
+  }
+
+  field.checked = Boolean(checked);
+}
+
+function setTextContent(element, value) {
+  if (!element) {
+    return;
+  }
+
+  element.textContent = value;
 }
 
 function setFieldReadOnly(field, readOnly) {
@@ -2245,17 +2293,17 @@ function filterRequestPicker(query = "") {
 function getRequestDetailItems(requestCode) {
   const detailMap = {
     "2026/PP/GA/07/0016": [
-      { code: "BRG-0021", name: "Kursi Kerja Ergonomis", qty: "6", unit: "Pcs" }
+      { code: "BRG-0021", name: "Kursi Kerja Ergonomis", category: "Furniture", qty: "6", unit: "Pcs", budget: "Rp7.500.000" }
     ],
     "2026/PP/PUR/07/0009": [
-      { code: "JASA-0009", name: "Maintenance Jaringan Berkala", qty: "1", unit: "Paket" }
+      { code: "JASA-0009", name: "Maintenance Jaringan Berkala", category: "Jasa IT", qty: "1", unit: "Paket", budget: "Rp45.000.000" }
     ],
     "2026/PP/IT/07/0004": [
-      { code: "BRG-0044", name: "Access Point Dual Band", qty: "4", unit: "Unit" },
-      { code: "BRG-0045", name: "Managed Switch 24 Port", qty: "2", unit: "Unit" }
+      { code: "BRG-0044", name: "Access Point Dual Band", category: "Jaringan", qty: "4", unit: "Unit", budget: "Rp28.000.000" },
+      { code: "BRG-0045", name: "Managed Switch 24 Port", category: "Jaringan", qty: "2", unit: "Unit", budget: "Rp7.000.000" }
     ],
     "2026/PP/OPS/07/0020": [
-      { code: "BRG-0001", name: "Laptop Operasional", qty: "3", unit: "Unit" }
+      { code: "BRG-0001", name: "Laptop Operasional", category: "Elektronik", qty: "3", unit: "Unit", budget: "Rp33.000.000" }
     ]
   };
 
@@ -2295,24 +2343,15 @@ function getPoOffersForRequest(row) {
   };
 
   const offerMap = {
-    "PNW-2026-0034": [
+    "PNW-2026-0033": [
       baseOffer,
       {
-        quoteCode: "PNW-2026-0035",
+        quoteCode: "PNW-2026-0033",
         requestCode: row.dataset.requestCode || "",
-        vendor: "PT Infrastruktur Digital",
-        price: "Rp34.100.000",
+        vendor: "PT NetCom",
+        price: "Rp3.663.000",
         delivery: "dikirim_vendor",
-        leadTime: "2026-07-24",
-        note: "Data barang terpilih dari penawaran yang sudah disetujui."
-      },
-      {
-        quoteCode: "PNW-2026-0036",
-        requestCode: row.dataset.requestCode || "",
-        vendor: "PT Sinar Network",
-        price: "Rp33.250.000",
-        delivery: "ekspedisi",
-        leadTime: "2026-07-25",
+        leadTime: "5 hari",
         note: "Data barang terpilih dari penawaran yang sudah disetujui."
       }
     ],
@@ -2324,7 +2363,7 @@ function getPoOffersForRequest(row) {
         vendor: "PT Office Hub",
         price: "Rp7.450.000",
         delivery: "dikirim_vendor",
-        leadTime: "2026-07-22",
+        leadTime: "4 hari",
         note: "Data barang terpilih dari penawaran yang sudah disetujui."
       },
       {
@@ -2333,7 +2372,7 @@ function getPoOffersForRequest(row) {
         vendor: "CV Karya Interior",
         price: "Rp7.300.000",
         delivery: "diambil",
-        leadTime: "2026-07-21",
+        leadTime: "3 hari",
         note: "Data barang terpilih dari penawaran yang sudah disetujui."
       }
     ]
@@ -2345,27 +2384,27 @@ function getPoOffersForRequest(row) {
 function getSelectedPoOffers() {
   return [
     {
-      quoteCode: "PNW-2026-0034",
+      quoteCode: "PNW-2026-0033",
       requestCode: "2026/PP/IT/07/0004",
       itemName: "Access Point Dual Band",
       qty: "4",
       unit: "Unit",
       vendor: "PT NetCom",
       paymentMethod: "TOP-030",
-      totalPrice: "Rp6.500.000",
-      subtotal: "Rp26.000.000",
+      totalPrice: "Rp36.574.500",
+      subtotal: "Rp36.574.500",
       note: "Penawaran berstatus terpilih."
     },
     {
-      quoteCode: "PNW-2026-0034",
+      quoteCode: "PNW-2026-0033",
       requestCode: "2026/PP/IT/07/0004",
       itemName: "Managed Switch 24 Port",
       qty: "2",
       unit: "Unit",
       vendor: "PT NetCom",
       paymentMethod: "TOP-030",
-      totalPrice: "Rp3.300.000",
-      subtotal: "Rp6.600.000",
+      totalPrice: "Rp3.663.000",
+      subtotal: "Rp3.663.000",
       note: "Penawaran berstatus terpilih."
     },
     {
@@ -2414,18 +2453,20 @@ function getReceivablePoSources() {
         {
           noUrutPo: 1,
           requestCode: "2026/PP/IT/07/0004",
+          quoteCode: "PNW-2026-0033",
           itemName: "Access Point Dual Band",
           qty: "4",
           unit: "Unit",
-          subtotal: "Rp26.000.000"
+          subtotal: "Rp36.574.500"
         },
         {
           noUrutPo: 2,
           requestCode: "2026/PP/IT/07/0004",
+          quoteCode: "PNW-2026-0033",
           itemName: "Managed Switch 24 Port",
           qty: "2",
           unit: "Unit",
-          subtotal: "Rp6.600.000"
+          subtotal: "Rp3.663.000"
         }
       ]
     },
@@ -2557,13 +2598,14 @@ function submitPengajuanJasa() {
     header: {
       code,
       division: String(getField("division")?.value || activeDivisionCode),
-      requestType: String(getField("requestType")?.value || "jasa"),
+      requestType: "jasa",
       serviceProcurementType: String(getField("serviceProcurementType")?.value || ""),
       priority: String(getField("priority")?.value || ""),
       submitDate: formatDateDisplay(new Date()),
       targetDate: formatDateInput(targetDateValue),
       reason: String(getField("reason")?.value || "").trim(),
       serviceNeed: String(getField("serviceNeed")?.value || "").trim(),
+      serviceAttachments: getServiceAttachmentFields(),
       status: "menunggu_persetujuan_divisi",
       statusKind: "waiting"
     },
@@ -2606,58 +2648,112 @@ function submitPengajuanJasa() {
   );
 }
 
-function submitReturBarang() {
-  if (!draftReturnItems.length) {
-    showAlert("error", "Barang belum dipilih", "Tambahkan minimal satu barang yang diretur.");
-    openReturnItemPickerButton?.focus();
-    return;
-  }
-
-  const poCodes = Array.from(new Set(draftReturnItems.map((item) => item.poCode).filter(Boolean)));
-  if (poCodes.length !== 1) {
-    showAlert("error", "PO tidak valid", "Satu nomor retur hanya boleh berisi barang dari satu PO.");
-    return;
-  }
-
+function submitReturSupportDocument() {
   const code = String(primaryField?.value || "").trim();
-  if (!code || detailRecords[code]) {
-    showAlert("error", "No retur tidak valid", "Gunakan nomor retur yang belum pernah dipakai.");
+  const record = detailRecords[code];
+  if (!code || !record) {
+    showAlert("error", "Retur tidak ditemukan", "Buka detail retur otomatis yang ingin dilengkapi dokumennya.");
     primaryField?.focus();
     return;
   }
 
-  const firstItem = draftReturnItems[0];
-  const record = {
-    header: {
-      code,
-      returnDate: String(getField("returnDate")?.value || formatDateDisplay(new Date())),
-      status: "menunggu_persetujuan_divisi",
-      poCode: firstItem.poCode,
-      poDate: firstItem.poDate,
-      requestCode: firstItem.requestCode,
-      division: firstItem.division,
-      vendor: firstItem.vendor
-    },
-    items: draftReturnItems.map((item) => ({ ...item }))
-  };
-
-  draftReturnItems.forEach((item) => {
-    const source = returnableItems.find((candidate) => candidate.key === item.key);
-    if (source) {
-      source.returnedQty = Number(source.returnedQty || 0) + Number(item.returnQty || 0);
-    }
-  });
+  record.header.supportDocument = String(getField("supportDocument")?.value || "").trim() || "-";
+  record.header.supportNotes = String(getField("supportNotes")?.value || "").trim() || "-";
   detailRecords[code] = record;
-  prependReturBarangRow(record);
   closeManagedModal(createModalBackdrop, createModalCard, requestForm, { resetForm: false });
+  renderDetailModal(record, code);
+  openManagedModal(detailModalBackdrop, detailModalCard, detailModalBody);
   resetCreateState();
-  showAlert("success", "Retur berhasil disimpan", `${code} menunggu persetujuan Kepala Divisi.`);
+  showAlert("success", "Dokumen retur disimpan", `${code} berhasil diperbarui.`);
+}
+
+function submitPaymentCategoryForm(formData, savedRef) {
+  const code = savedRef;
+  const name = String(formData.get("namaPembayaran") || "").trim();
+
+  if (!code) {
+    showAlert("error", "Kode wajib diisi", "Isi kode pembayaran sesuai referensi sistem atau kebutuhan master.");
+    primaryField?.focus();
+    return;
+  }
+
+  if (!name) {
+    showAlert("error", "Nama wajib diisi", "Isi nama kategori pembayaran.");
+    getField("namaPembayaran")?.focus();
+    return;
+  }
+
+  const duplicateButton = findPaymentCategoryEditButton(code);
+  if (duplicateButton && duplicateButton.dataset.kodePembayaran !== editingRecordCode) {
+    showAlert("error", "Kode sudah ada", "Gunakan kode pembayaran lain.");
+    primaryField?.focus();
+    return;
+  }
+
+  const oldButton = findPaymentCategoryEditButton(editingRecordCode || code);
+  oldButton?.closest("tr")?.remove();
+  prependPaymentCategoryRow({ code, name });
+  closeManagedModal(createModalBackdrop, createModalCard, requestForm, { resetForm: false });
+  showAlert("success", "Kategori pembayaran disimpan", `${code} siap dipakai pada penawaran dan transaksi terkait.`);
+  resetCreateState();
+}
+
+function findPaymentCategoryEditButton(code) {
+  if (!mainTableBody || !code) {
+    return null;
+  }
+
+  return Array.from(mainTableBody.querySelectorAll("[data-kode-pembayaran]")).find(
+    (button) => button.dataset.kodePembayaran === code
+  );
+}
+
+function prependPaymentCategoryRow({ code, name }) {
+  if (!mainTableBody) {
+    return;
+  }
+
+  mainTableBody.querySelectorAll(".master-slave-row").forEach((row) => {
+    row.classList.remove("is-active");
+  });
+
+  const row = document.createElement("tr");
+  row.className = "master-slave-row is-active";
+  row.innerHTML = `
+    <td>${escapeHtml(code)}</td>
+    <td>${escapeHtml(name)}</td>
+    <td>
+      <button
+        class="table-action"
+        type="button"
+        data-edit="true"
+        data-kode-pembayaran="${escapeHtml(code)}"
+        data-nama-pembayaran="${escapeHtml(name)}"
+      >
+        Edit
+      </button>
+    </td>
+  `;
+
+  const editButton = row.querySelector("[data-edit='true']");
+  editButton?.addEventListener("click", () => {
+    editingRecordCode = editButton.dataset.kodePembayaran || "";
+    setEditMode(editButton.dataset);
+    openManagedModal(createModalBackdrop, createModalCard, primaryField);
+  });
+
+  mainTableBody.prepend(row);
 }
 
 function submitGenericForm() {
   const formData = new FormData(requestForm);
   const savedRef = String(primaryField?.value || "").trim() || "Draft baru";
   const isEditingDraft = Boolean(editingRecordCode);
+
+  if (root.dataset.masterCrud === "kategori-pembayaran") {
+    submitPaymentCategoryForm(formData, savedRef, isEditingDraft);
+    return;
+  }
 
   if (detailViewType === "procurement-pembelian") {
     if (detailRecords[savedRef] && savedRef !== editingRecordCode) {
@@ -2805,12 +2901,21 @@ function submitGenericForm() {
     }
 
     const invalidItem = draftReceiptItems.find((item) => {
-      const qty = Number(item.receivedQty || 0);
+      const shippedQty = Number(item.shippedQty || item.qty || 0);
+      const receivedQty = Number(item.receivedQty || 0);
+      const goodQty = Number(item.goodQty || 0);
       const maxQty = Number(item.qty || 0);
-      return qty <= 0 || (maxQty > 0 && qty > maxQty);
+      return (
+        shippedQty <= 0 ||
+        receivedQty <= 0 ||
+        goodQty < 0 ||
+        (maxQty > 0 && shippedQty > maxQty) ||
+        receivedQty > shippedQty ||
+        goodQty > receivedQty
+      );
     });
     if (invalidItem) {
-      showAlert("error", "Qty tidak valid", `Qty terima ${invalidItem.itemName || "barang"} harus lebih dari 0 dan tidak melebihi qty PO.`);
+      showAlert("error", "Qty tidak valid", `Cek qty dikirim, diterima, dan baik untuk ${invalidItem.itemName || "barang"}.`);
       return;
     }
 
@@ -2821,12 +2926,24 @@ function submitGenericForm() {
       delete detailRecords[editingRecordCode];
     }
 
-    const items = draftReceiptItems.map((item, index) => ({
-      ...item,
-      noUrut: index + 1,
-      noUrutPo: Number(item.noUrutPo || index + 1),
-      status: getReceiptItemStatus(item)
-    }));
+    const items = draftReceiptItems.map((item, index) => {
+      const totals = getReceiptQuantityBreakdown(item);
+      const normalizedItem = {
+        ...item,
+        shippedQty: String(totals.shippedQty),
+        receivedQty: String(totals.receivedQty),
+        goodQty: String(totals.goodQty),
+        damagedQty: String(totals.damagedQty),
+        shortQty: String(totals.shortQty),
+        returnProcessQty: String(totals.returnProcessQty),
+        noUrut: index + 1,
+        noUrutPo: Number(item.noUrutPo || index + 1)
+      };
+      return {
+        ...normalizedItem,
+        status: getReceiptItemStatus(normalizedItem)
+      };
+    });
     const status = getReceiptAggregateStatus(items);
     const record = {
       header: {
@@ -2912,8 +3029,8 @@ function handlePengajuanApprovalAction(action, code) {
   }
 
   if (action === "approve_division") {
-    movePengajuanStatus(record, "menunggu_persetujuan_kepala_akunting");
-    showPengajuanActionResult(code, "Pengajuan disetujui Kadiv", `${code} masuk ke approval Kepala Akunting.`);
+    advancePengajuanApproval(record);
+    showPengajuanActionResult(code, "Pengajuan disetujui", getPengajuanApprovalMessage(code, record.header.status));
     return;
   }
 
@@ -2924,14 +3041,26 @@ function handlePengajuanApprovalAction(action, code) {
   }
 
   if (action === "approve_head_accounting") {
-    movePengajuanStatus(record, "siap_procurement");
-    showPengajuanActionResult(code, "Pengajuan siap procurement", `${code} sudah dapat diproses Purchasing.`);
+    advancePengajuanApproval(record);
+    showPengajuanActionResult(code, "Pengajuan disetujui", getPengajuanApprovalMessage(code, record.header.status));
     return;
   }
 
   if (action === "reject_head_accounting") {
     rejectPengajuan(record, "kepala_akunting");
     showPengajuanActionResult(code, "Pengajuan ditolak", `${code} dihentikan oleh Kepala Akunting.`);
+    return;
+  }
+
+  if (action === "approve_head_purchasing") {
+    advancePengajuanApproval(record);
+    showPengajuanActionResult(code, "Pengajuan siap procurement", `${code} sudah dapat diproses Purchasing.`);
+    return;
+  }
+
+  if (action === "reject_head_purchasing") {
+    rejectPengajuan(record, "kepala_purchasing");
+    showPengajuanActionResult(code, "Pengajuan ditolak", `${code} dihentikan oleh Kepala Purchasing.`);
   }
 }
 
@@ -2940,10 +3069,42 @@ function canRunPengajuanAction(action, status) {
     approve_division: hasAccess("pengajuan.approve_divisi") && status === "menunggu_persetujuan_divisi",
     reject_division: hasAccess("pengajuan.approve_divisi") && status === "menunggu_persetujuan_divisi",
     approve_head_accounting: hasAccess("pengajuan.approve_akunting") && status === "menunggu_persetujuan_kepala_akunting",
-    reject_head_accounting: hasAccess("pengajuan.approve_akunting") && status === "menunggu_persetujuan_kepala_akunting"
+    reject_head_accounting: hasAccess("pengajuan.approve_akunting") && status === "menunggu_persetujuan_kepala_akunting",
+    approve_head_purchasing: hasAccess("procurement.approve") && status === "menunggu_persetujuan_kepala_purchasing",
+    reject_head_purchasing: hasAccess("procurement.approve") && status === "menunggu_persetujuan_kepala_purchasing"
   };
 
   return Boolean(actionRules[action]);
+}
+
+function getPengajuanApprovalStages() {
+  return [
+    { status: "menunggu_persetujuan_divisi", access: "pengajuan.approve_divisi", rejectedStage: "kepala_divisi" },
+    { status: "menunggu_persetujuan_kepala_akunting", access: "pengajuan.approve_akunting", rejectedStage: "kepala_akunting" },
+    { status: "menunggu_persetujuan_kepala_purchasing", access: "procurement.approve", rejectedStage: "kepala_purchasing" }
+  ];
+}
+
+function advancePengajuanApproval(record) {
+  const stages = getPengajuanApprovalStages();
+  const currentIndex = stages.findIndex((stage) => stage.status === record?.header?.status);
+  let nextIndex = currentIndex + 1;
+
+  while (nextIndex < stages.length && hasAccess(stages[nextIndex].access)) {
+    nextIndex += 1;
+  }
+
+  movePengajuanStatus(record, stages[nextIndex]?.status || "siap_procurement");
+}
+
+function getPengajuanApprovalMessage(code, status) {
+  const messages = {
+    menunggu_persetujuan_kepala_akunting: `${code} masuk ke approval Kepala Akunting.`,
+    menunggu_persetujuan_kepala_purchasing: `${code} masuk ke approval Kepala Purchasing.`,
+    siap_procurement: `${code} sudah dapat diproses Purchasing.`
+  };
+
+  return messages[status] || `${code} masuk ke tahap berikutnya.`;
 }
 
 function movePengajuanStatus(record, status) {
@@ -2986,7 +3147,8 @@ function handlePenawaranApprovalAction(action, code) {
       ...quote,
       status: quote.selected ? "disetujui" : "ditolak"
     }));
-    showPenawaranActionResult(code, "Penawaran disetujui", `${code} siap menjadi dasar pembuatan PO.`);
+    record.header.generatedPo = record.header.generatedPo || getNextWorkflowReference("PO");
+    showPenawaranActionResult(code, "Penawaran disetujui", `PO ${record.header.generatedPo} dibuat otomatis dari penawaran terpilih.`);
     return;
   }
 
@@ -3037,19 +3199,12 @@ function handlePoApprovalAction(action, code) {
   if (action === "approve_po") {
     record.header.status = "disetujui";
     showPoActionResult(code, "PO disetujui", `${code} sudah terbit dan detail PO terkunci.`);
-    return;
-  }
-
-  if (action === "reject_po") {
-    record.header.status = "dibatalkan";
-    showPoActionResult(code, "PO dibatalkan", `${code} dihentikan oleh Kepala Purchasing.`);
   }
 }
 
 function canRunPoAction(action, status) {
   const actionRules = {
-    approve_po: hasAccess("procurement.approve") && status === "menunggu_persetujuan_purchasing",
-    reject_po: hasAccess("procurement.approve") && status === "menunggu_persetujuan_purchasing"
+    approve_po: hasAccess("procurement.approve") && status === "menunggu_persetujuan_purchasing"
   };
 
   return Boolean(actionRules[action]);
@@ -3136,7 +3291,8 @@ function getReceiptAggregateStatus(items = []) {
 }
 
 function getReceiptItemStatus(item) {
-  if (item.condition && item.condition !== "sesuai") {
+  const totals = getReceiptQuantityBreakdown(item);
+  if (totals.returnProcessQty > 0) {
     return "bermasalah";
   }
 
@@ -3190,16 +3346,22 @@ function prependProcurementPembelianRow(record) {
   const firstDetail = details[0] || {};
   const code = header.code || record.code || po.no_po || firstDetail.no_po || "-";
   const totalJumlah = sumPurchaseOrderQty(details);
-  const totalDiterima = receipt.qty_diterima || sumPurchaseReceivedQty(details);
+  const totalBaik = receipt.qty_baik || sumPurchaseGoodQty(details);
+  const unit = firstDetail.satuan || firstDetail.unit || "";
+  if (Number(totalBaik || 0) <= 0) {
+    return;
+  }
+
   const row = document.createElement("tr");
   row.className = "master-slave-row is-active";
   row.innerHTML = `
-    <td>${escapeHtml(po.tgl_po || header.poDate || "-")}</td>
+    <td>${escapeHtml(firstDetail.no_pengajuan || header.requestCode || "-")}</td>
+    <td>${escapeHtml(firstDetail.tgl_pengajuan || header.requestDate || "-")}</td>
+    <td>${escapeHtml(firstDetail.nama_divisi || header.division || "-")}</td>
     <td>${escapeHtml(po.no_po || header.noPo || "-")}</td>
-    <td>${escapeHtml(firstDetail.nama_vendor || header.vendor || "-")}</td>
-    <td>${escapeHtml(getPurchaseOrderTotal(details, header.poValue))}</td>
-    <td>${escapeHtml(String(totalJumlah || "-"))}</td>
-    <td>${escapeHtml(String(totalDiterima || "0"))}</td>
+    <td>${escapeHtml(firstDetail.uraian || firstDetail.name || "-")}</td>
+    <td>${escapeHtml(`${totalJumlah || "-"} ${unit}`.trim())}</td>
+    <td>${escapeHtml(`${totalBaik || "0"} ${unit}`.trim())}</td>
     <td>
       <button class="table-action" type="button" data-detail="true" data-code="${escapeHtml(code)}" data-status="${escapeHtml(
         po.status || header.status || ""
@@ -3232,7 +3394,7 @@ function prependProcurementPenawaranRow(record) {
     <td>${escapeHtml(header.requestCode)}</td>
     <td>${escapeHtml(header.need)}</td>
     <td>${escapeHtml(getQuoteSummary(quotes))}</td>
-    <td>${escapeHtml(bestQuote.unitPrice || "-")}</td>
+    <td>${escapeHtml(bestQuote.unitPrice ? getQuotePriceIncludePpn(bestQuote) : "-")}</td>
     <td><span class="status-chip ${getStatusChipClass(header.status)}">${escapeHtml(header.status)}</span></td>
     <td>
       <button class="table-action" type="button" data-detail="true" data-code="${escapeHtml(header.requestCode)}" data-status="${escapeHtml(header.status)}">
@@ -3974,6 +4136,152 @@ function buildBarangDetailMarkup(record) {
   `;
 }
 
+function buildJasaDetailMarkup(record) {
+  const status = String(record.header.status || "");
+  const serviceType = String(record.header.serviceProcurementType || "");
+  const serviceTypeLabel = serviceType === "rutin" ? "Jasa Rutin" : serviceType === "tidak_rutin" ? "Jasa Tidak Rutin" : "-";
+  const attachments = normalizeServiceAttachments(record.header.serviceAttachments || []);
+  const approvalRows = getPengajuanApprovalSteps(record)
+    .map(
+      (step) => `
+        <div class="approval-step" data-kind="${escapeHtml(step.kind || "pending")}">
+          <div class="approval-person">${escapeHtml(step.title)}</div>
+          <div class="approval-track"><span class="approval-dot"></span></div>
+          <div class="approval-state">${escapeHtml(step.text)}</div>
+        </div>
+      `
+    )
+    .join("");
+  const serviceRows = (record.services || [])
+    .map(
+      (item, index) => `
+        <tr>
+          <td>${escapeHtml(item.no || index + 1)}</td>
+          <td>${escapeHtml(item.description || "-")}</td>
+          <td>${escapeHtml(item.cost || "-")}</td>
+          <td>${escapeHtml(item.vendor || "-")}</td>
+          <td>${escapeHtml(item.location || "-")}</td>
+          <td>${escapeHtml(item.notes || "-")}</td>
+        </tr>
+      `
+    )
+    .join("") || `
+      <tr>
+        <td colspan="6" class="empty-table-cell">Belum ada detail jasa.</td>
+      </tr>
+    `;
+  const attachmentRows = attachments
+    .map(
+      (attachment, index) => `
+        <tr>
+          <td>${escapeHtml(index + 1)}</td>
+          <td>${escapeHtml(attachment.name)}</td>
+          <td>${escapeHtml(attachment.format || "-")}</td>
+        </tr>
+      `
+    )
+    .join("") || `
+      <tr>
+        <td colspan="3" class="empty-table-cell">Tidak ada lampiran.</td>
+      </tr>
+    `;
+
+  return `
+    <div class="modal-detail-stack detail-modal-fill">
+      <section class="approval-strip" aria-label="Alur approval">
+        <div class="approval-flow approval-flow-horizontal">
+          ${approvalRows}
+        </div>
+      </section>
+
+      <section class="form-section detail-summary-compact">
+        <div class="form-section-head">
+          <strong>Data Pengajuan Jasa</strong>
+        </div>
+        <div class="detail-list">
+          <div class="detail-row">
+            <div class="detail-label">No Pengajuan</div>
+            <div class="detail-value">${escapeHtml(record.header.code || "-")}</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">Divisi</div>
+            <div class="detail-value">${escapeHtml(record.header.division || "-")}</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">Jenis Pengadaan</div>
+            <div class="detail-value">${escapeHtml(serviceTypeLabel)}</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">Prioritas</div>
+            <div class="detail-value">${escapeHtml(record.header.priority || "-")}</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">Tanggal</div>
+            <div class="detail-value">${escapeHtml(record.header.submitDate || "-")}</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">Max Tgl Beli</div>
+            <div class="detail-value">${escapeHtml(record.header.targetDate || "-")}</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">Status</div>
+            <div class="detail-value">
+              <span class="status-chip ${getStatusChipClass(status)}">${escapeHtml(status || "-")}</span>
+            </div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">Kebutuhan Jasa</div>
+            <div class="detail-value">${escapeHtml(record.header.serviceNeed || "-")}</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">Alasan</div>
+            <div class="detail-value">${escapeHtml(record.header.reason || "-")}</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="form-section detail-table-section">
+        <div class="form-section-head">
+          <strong>Detail Jasa</strong>
+        </div>
+        <div class="table-wrap detail-table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>No Detail</th>
+                <th>Uraian Jasa / Pekerjaan</th>
+                <th>Biaya</th>
+                <th>Vendor / Penyedia</th>
+                <th>Lokasi</th>
+                <th>Keterangan</th>
+              </tr>
+            </thead>
+            <tbody>${serviceRows}</tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="form-section">
+        <div class="form-section-head">
+          <strong>Lampiran</strong>
+        </div>
+        <div class="table-wrap table-wrap-compact">
+          <table>
+            <thead>
+              <tr>
+                <th>No</th>
+                <th>Dokumen</th>
+                <th>Format</th>
+              </tr>
+            </thead>
+            <tbody>${attachmentRows}</tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  `;
+}
+
 function getPengajuanApprovalSteps(record) {
   const status = String(record?.header?.status || "");
 
@@ -3981,7 +4289,8 @@ function getPengajuanApprovalSteps(record) {
     return [
       { kind: "success", title: "Pemohon", text: "Disimpan" },
       { kind: "warning", title: "Kepala Divisi", text: "Pending" },
-      { kind: "", title: "Kepala Akunting", text: "Menunggu" }
+      { kind: "", title: "Kepala Akunting", text: "Menunggu" },
+      { kind: "", title: "Kepala Purchasing", text: "Menunggu" }
     ];
   }
 
@@ -3989,7 +4298,17 @@ function getPengajuanApprovalSteps(record) {
     return [
       { kind: "success", title: "Pemohon", text: "Disimpan" },
       { kind: "success", title: "Kepala Divisi", text: "Approved" },
-      { kind: "warning", title: "Kepala Akunting", text: "Pending" }
+      { kind: "warning", title: "Kepala Akunting", text: "Pending" },
+      { kind: "", title: "Kepala Purchasing", text: "Menunggu" }
+    ];
+  }
+
+  if (status === "menunggu_persetujuan_kepala_purchasing") {
+    return [
+      { kind: "success", title: "Pemohon", text: "Disimpan" },
+      { kind: "success", title: "Kepala Divisi", text: "Approved" },
+      { kind: "success", title: "Kepala Akunting", text: "Approved" },
+      { kind: "warning", title: "Kepala Purchasing", text: "Pending" }
     ];
   }
 
@@ -3997,25 +4316,29 @@ function getPengajuanApprovalSteps(record) {
     return [
       { kind: "success", title: "Pemohon", text: "Disimpan" },
       { kind: "success", title: "Kepala Divisi", text: "Approved" },
-      { kind: "success", title: "Kepala Akunting", text: "Approved" }
+      { kind: "success", title: "Kepala Akunting", text: "Approved" },
+      { kind: "success", title: "Kepala Purchasing", text: "Approved" }
     ];
   }
 
   if (status === "ditolak") {
     const rejectedStage = String(record?.header?.rejectedStage || "kepala_divisi");
     const rejectedByHeadAccounting = rejectedStage === "kepala_akunting";
+    const rejectedByHeadPurchasing = rejectedStage === "kepala_purchasing";
 
     return [
       { kind: "success", title: "Pemohon", text: "Disimpan" },
-      { kind: rejectedByHeadAccounting ? "success" : "error", title: "Kepala Divisi", text: rejectedByHeadAccounting ? "Approved" : "Ditolak" },
-      { kind: rejectedByHeadAccounting ? "error" : "", title: "Kepala Akunting", text: rejectedByHeadAccounting ? "Ditolak" : "-" }
+      { kind: rejectedByHeadAccounting || rejectedByHeadPurchasing ? "success" : "error", title: "Kepala Divisi", text: rejectedByHeadAccounting || rejectedByHeadPurchasing ? "Approved" : "Ditolak" },
+      { kind: rejectedByHeadPurchasing ? "success" : rejectedByHeadAccounting ? "error" : "", title: "Kepala Akunting", text: rejectedByHeadPurchasing ? "Approved" : rejectedByHeadAccounting ? "Ditolak" : "-" },
+      { kind: rejectedByHeadPurchasing ? "error" : "", title: "Kepala Purchasing", text: rejectedByHeadPurchasing ? "Ditolak" : "-" }
     ];
   }
 
   return [
     { kind: "review", title: "Pemohon", text: status || "-" },
     { kind: "", title: "Kepala Divisi", text: "-" },
-    { kind: "", title: "Kepala Akunting", text: "-" }
+    { kind: "", title: "Kepala Akunting", text: "-" },
+    { kind: "", title: "Kepala Purchasing", text: "-" }
   ];
 }
 
@@ -4107,6 +4430,10 @@ function getPengajuanActionsForRole(status) {
     menunggu_persetujuan_kepala_akunting: [
       { action: "reject_head_accounting", label: "tolak", variant: "secondary-button danger-button" },
       { action: "approve_head_accounting", label: "approve", variant: "primary-button" }
+    ],
+    menunggu_persetujuan_kepala_purchasing: [
+      { action: "reject_head_purchasing", label: "tolak", variant: "secondary-button danger-button" },
+      { action: "approve_head_purchasing", label: "approve", variant: "primary-button" }
     ]
   };
 
@@ -4177,7 +4504,6 @@ function renderPoApprovalActions(record) {
 function getPoActionsForRole(status) {
   const allActions = {
     menunggu_persetujuan_purchasing: [
-      { action: "reject_po", label: "tolak", variant: "secondary-button danger-button" },
       { action: "approve_po", label: "approve", variant: "primary-button" }
     ]
   };
@@ -4222,11 +4548,14 @@ function renderReturApprovalActions(record) {
 
   const status = String(record?.header?.status || "");
   const actions = getReturActionsForRole(status);
+  const editDocumentAction = canEditReturnSupport(record)
+    ? `<button class="secondary-button" type="button" data-edit-draft-record="${escapeHtml(record.header.code)}">Edit Dokumen</button>`
+    : "";
   const receiptAction = status === "siap_penerimaan" && hasAccess("penerimaan.manage")
     ? `<a class="primary-button" href="./penerimaan-barang.html">Input Penerimaan</a>`
     : "";
 
-  detailStatusActions.innerHTML = [renderActionButtons(record, actions), receiptAction].filter(Boolean).join("");
+  detailStatusActions.innerHTML = [editDocumentAction, renderActionButtons(record, actions), receiptAction].filter(Boolean).join("");
 }
 
 function getReturActionsForRole(status) {
@@ -4310,6 +4639,7 @@ function openDraftItemDialog(index = -1) {
     const item = draftRequestItems[draftItemEditIndex];
     applySelectedItem(item);
     setFieldValue(getField("qty"), item.qty);
+    setFieldValue(getField("estimate"), parseCurrencyValue(item.estimate || 0) || "");
     setFieldValue(getField("attachment"), item.attachment === "-" ? "" : item.attachment);
     setFieldValue(getField("notes"), item.notes === "-" ? "" : item.notes);
 
@@ -4357,6 +4687,7 @@ function saveDraftItem() {
   const itemCode = String(getField("itemCode")?.value || "").trim();
   const itemName = String(getField("itemName")?.value || "").trim();
   const qty = String(getField("qty")?.value || "").trim();
+  const estimateValue = String(getField("estimate")?.value || "").trim();
   const selectedMasterItem = masterItems.find((item) => item.code === itemCode);
 
   if (!itemCode || !itemName) {
@@ -4368,6 +4699,12 @@ function saveDraftItem() {
   if (!qty || Number(qty) <= 0) {
     showAlert("error", "Qty belum valid", "Isi qty item dengan angka lebih dari 0.");
     getField("qty")?.focus();
+    return;
+  }
+
+  if (!estimateValue || Number(estimateValue) < 0) {
+    showAlert("error", "Estimasi belum valid", "Isi estimasi harga item dengan angka minimal 0.");
+    getField("estimate")?.focus();
     return;
   }
 
@@ -4392,7 +4729,7 @@ function saveDraftItem() {
     classification: String(getField("itemClassification")?.value || "").trim() || "-",
     status: selectedMasterItem?.status || "aktif",
     editableMasterFields: Boolean(selectedMasterItem?.editableMasterFields),
-    estimate: "-",
+    estimate: formatRupiah(Number(estimateValue) || 0),
     attachment: String(getField("attachment")?.value || "").trim() || "-",
     notes: String(getField("notes")?.value || "").trim() || "-"
   };
@@ -4443,7 +4780,7 @@ function renderDraftItems() {
   if (!draftRequestItems.length) {
     draftItemsTableBody.innerHTML = `
       <tr>
-        <td colspan="10" class="draft-empty-cell">
+        <td colspan="11" class="draft-empty-cell">
           Belum ada item di daftar. Klik <strong>Tambah Item</strong> untuk mulai mengisi detail.
         </td>
       </tr>
@@ -4462,6 +4799,7 @@ function renderDraftItems() {
           <td>${escapeHtml(item.brand)}</td>
           <td>${escapeHtml(item.type)}</td>
           <td>${escapeHtml(item.classification)}</td>
+          <td>${escapeHtml(item.estimate || "-")}</td>
           <td>${escapeHtml(item.attachment)}</td>
           <td>${escapeHtml(item.notes)}</td>
           <td>
@@ -4478,6 +4816,46 @@ function renderDraftItems() {
 
 function getServiceField(name) {
   return serviceItemForm?.querySelector(`[data-service-field="${name}"]`);
+}
+
+function getServiceAttachmentFields() {
+  return parseServiceAttachmentText(getField("serviceAttachments")?.value || "");
+}
+
+function setServiceAttachmentFields(attachments = []) {
+  const text = normalizeServiceAttachments(attachments)
+    .map((attachment) => `${attachment.name}${attachment.format ? ` | ${attachment.format}` : ""}`)
+    .join("\n");
+  setFieldValue(getField("serviceAttachments"), text);
+}
+
+function parseServiceAttachmentText(value = "") {
+  return String(value)
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const [name, format] = line.split("|").map((part) => part.trim());
+      return {
+        name,
+        format: format || getFileFormat(name)
+      };
+    })
+    .filter((attachment) => attachment.name);
+}
+
+function normalizeServiceAttachments(attachments = []) {
+  return (Array.isArray(attachments) ? attachments : [])
+    .map((attachment) => ({
+      name: String(attachment.name || attachment.nama || "").trim(),
+      format: String(attachment.format || attachment.tipe || getFileFormat(attachment.name || attachment.nama || "")).trim()
+    }))
+    .filter((attachment) => attachment.name);
+}
+
+function getFileFormat(name = "") {
+  const extension = String(name).split(".").pop();
+  return extension && extension !== name ? extension.toUpperCase() : "";
 }
 
 function openServiceItemDialog(index = -1) {
@@ -4613,6 +4991,7 @@ function openQuoteItemDialog(index = -1) {
     setFieldValue(getQuoteField("vendorMaster"), item.vendorCode || getVendorCodeByName(item.vendor));
     setFieldValue(getQuoteField("newVendorName"), vendorSource === "new_master" ? item.vendor : "");
     setFieldValue(getQuoteField("newVendorNpwp"), item.vendorNpwp || "");
+    setFieldValue(getQuoteField("vendorUp"), item.vendorUp || "");
     setFieldValue(getQuoteField("newVendorEmail"), item.vendorEmail || "");
     setFieldValue(getQuoteField("newVendorPhone"), item.vendorPhone || "");
     setFieldValue(getQuoteField("newVendorUrl"), item.vendorUrl || "");
@@ -4620,7 +4999,11 @@ function openQuoteItemDialog(index = -1) {
     setFieldValue(getQuoteField("vendorOneTime"), vendorSource === "one_time" ? item.vendor : "");
     setFieldValue(getQuoteField("vendorOneTimeNote"), item.vendorNote || "");
     setFieldValue(getQuoteField("unitPrice"), item.unitPrice || "");
+    setFieldValue(getQuoteField("shippingCost"), item.shippingCost || "");
+    setFieldValue(getQuoteField("discount"), item.discount || "");
     setFieldValue(getQuoteField("paymentMethod"), item.paymentMethod || "");
+    setFieldValue(getQuoteField("paymentNote"), item.paymentNote || "");
+    setFieldValue(getQuoteField("deliveryCategory"), item.deliveryCategory || "tidak_ada");
     setFieldValue(getQuoteField("delivery"), item.delivery || "");
     setFieldValue(getQuoteField("leadTime"), item.leadTime || "");
 
@@ -4652,6 +5035,7 @@ function openQuoteItemDialog(index = -1) {
   }
 
   updateQuoteVendorMode();
+  syncPaymentMethodNote({ keepExisting: quoteItemEditIndex >= 0 });
   openManagedModal(quoteItemBackdrop, quoteItemCard, getQuoteField("requestItem"));
 }
 
@@ -4670,7 +5054,7 @@ function populateQuoteRequestItemOptions() {
     ${options
       .map(
         (item) =>
-          `<option value="${escapeHtml(item.code)}">${escapeHtml(item.name)} - ${escapeHtml(item.qty)} ${escapeHtml(item.unit)}</option>`
+          `<option value="${escapeHtml(item.code)}">${escapeHtml(item.name)} - ${escapeHtml(item.qty)} ${escapeHtml(item.unit)} - budget ${escapeHtml(item.budget || "-")}</option>`
       )
       .join("")}
   `;
@@ -4717,6 +5101,23 @@ function updateQuoteVendorMode() {
   if (source === "one_time") {
     getQuoteField("vendorOneTime")?.setAttribute("required", "required");
   }
+}
+
+function syncPaymentMethodNote(options = {}) {
+  const noteField = getQuoteField("paymentNote");
+  const method = String(getQuoteField("paymentMethod")?.value || "").trim();
+  if (!noteField || (options.keepExisting && noteField.value)) {
+    return;
+  }
+
+  const noteMap = {
+    "TRF-001": "Transfer setelah dokumen lengkap",
+    "COD-001": "Bayar saat barang diterima",
+    "TOP-014": "Transfer term 14 hari",
+    "TOP-030": "Transfer term 30 hari"
+  };
+
+  noteField.value = noteMap[method] || "";
 }
 
 function inferQuoteVendorSource(vendorName = "") {
@@ -4823,8 +5224,11 @@ function formatRupiah(value) {
 }
 
 function getQuotePriceIncludePpn(item) {
-  const price = parseCurrencyValue(item.unitPrice);
-  return item.taxIncluded ? formatRupiah(Math.round(price * 1.11)) : item.unitPrice;
+  const netPrice = Math.max(
+    0,
+    parseCurrencyValue(item.unitPrice) + parseCurrencyValue(item.shippingCost) - parseCurrencyValue(item.discount)
+  );
+  return item.taxIncluded ? formatRupiah(Math.round(netPrice * 1.11)) : formatRupiah(netPrice);
 }
 
 function saveQuoteItem() {
@@ -4860,11 +5264,18 @@ function saveQuoteItem() {
     itemName: requestItem.name,
     itemQty: requestItem.qty,
     itemUnit: requestItem.unit,
+    itemCategory: requestItem.category || "-",
+    itemBudget: requestItem.budget || requestItem.estimate || "-",
     ...vendorPayload,
+    vendorUp: String(getQuoteField("vendorUp")?.value || "").trim(),
     unitPrice: String(getQuoteField("unitPrice")?.value || "").trim(),
+    shippingCost: String(getQuoteField("shippingCost")?.value || "").trim() || "Rp0",
+    discount: String(getQuoteField("discount")?.value || "").trim() || "Rp0",
     taxIncluded: draftQuoteItems[quoteItemEditIndex]?.taxIncluded || false,
     tax: draftQuoteItems[quoteItemEditIndex]?.taxIncluded ? "hitung_ppn_11" : "harga_sudah_include_ppn",
     paymentMethod: String(getQuoteField("paymentMethod")?.value || "").trim(),
+    paymentNote: String(getQuoteField("paymentNote")?.value || "").trim(),
+    deliveryCategory: String(getQuoteField("deliveryCategory")?.value || "tidak_ada").trim() || "tidak_ada",
     delivery: String(getQuoteField("delivery")?.value || "").trim() || "-",
     leadTime: String(getQuoteField("leadTime")?.value || "").trim() || "-",
     selected: Boolean(draftQuoteItems[quoteItemEditIndex]?.selected)
@@ -4960,7 +5371,7 @@ function renderQuoteItems() {
   if (!draftQuoteItems.length) {
     quoteItemsTableBody.innerHTML = `
       <tr>
-        <td colspan="10" class="empty-table-cell">Belum ada item penawaran.</td>
+        <td colspan="15" class="empty-table-cell">Belum ada item penawaran.</td>
       </tr>
     `;
     return;
@@ -4970,9 +5381,9 @@ function renderQuoteItems() {
     .map((group) => {
       const groupHeader = `
         <tr class="table-group-row">
-          <td colspan="10">
+          <td colspan="15">
             <strong>${escapeHtml(group.name)}</strong>
-            <span>${escapeHtml(group.qty)} ${escapeHtml(group.unit)} - ${group.items.length} penawaran vendor</span>
+            <span>${escapeHtml(group.qty)} ${escapeHtml(group.unit)} - budget ${escapeHtml(group.budget)} - ${group.items.length} penawaran vendor</span>
           </td>
         </tr>
       `;
@@ -4987,9 +5398,18 @@ function renderQuoteItems() {
               <div class="cell-stack">
                 <strong>${escapeHtml(item.vendor)}</strong>
                 <span>${escapeHtml(getQuoteVendorSourceLabel(item))}</span>
+                <span>UP: ${escapeHtml(item.vendorUp || "-")}</span>
+              </div>
+            </td>
+            <td>
+              <div class="cell-stack">
+                <strong>${escapeHtml(item.itemBudget || "-")}</strong>
+                <span>${escapeHtml(item.itemCategory || "-")}</span>
               </div>
             </td>
             <td>${escapeHtml(item.unitPrice)}</td>
+            <td>${escapeHtml(item.shippingCost || "Rp0")}</td>
+            <td>${escapeHtml(item.discount || "Rp0")}</td>
             <td>
               <button
                 class="mini-toggle"
@@ -5003,6 +5423,8 @@ function renderQuoteItems() {
             </td>
             <td>${escapeHtml(getQuotePriceIncludePpn(item))}</td>
             <td>${escapeHtml(item.paymentMethod)}</td>
+            <td>${escapeHtml(item.paymentNote || "-")}</td>
+            <td>${escapeHtml(getDeliveryCategoryLabel(item.deliveryCategory))}</td>
             <td>${escapeHtml(item.delivery)}</td>
             <td>${escapeHtml(item.leadTime)}</td>
             <td>
@@ -5045,6 +5467,7 @@ function getQuoteItemGroups(quotes = []) {
         name: item.itemName || "-",
         qty: item.itemQty || "-",
         unit: item.itemUnit || "",
+        budget: item.itemBudget || "-",
         items: []
       };
       groups.push(group);
@@ -5068,6 +5491,16 @@ function getQuoteVendorSourceLabel(item = {}) {
   }
 
   return "sekali pakai";
+}
+
+function getDeliveryCategoryLabel(value = "") {
+  const labels = {
+    loco: "loco",
+    franco: "franco",
+    tidak_ada: "tidak ada"
+  };
+
+  return labels[value] || "tidak ada";
 }
 
 function renderPoOfferPicker() {
@@ -5433,7 +5866,7 @@ function getSelectedReceiptPickerItem() {
 function openReceiptItemInputDialog(key) {
   selectedReceiptItemKeys = new Set([key]);
   renderReceiptPickerSelection();
-  openManagedModal(receiptItemInputBackdrop, receiptItemInputCard, receiptPickerQty);
+  openManagedModal(receiptItemInputBackdrop, receiptItemInputCard, receiptPickerReceivedQty);
 }
 
 function renderReceiptPickerSelection() {
@@ -5445,19 +5878,25 @@ function renderReceiptPickerSelection() {
   if (!item) {
     receiptPickerSelectedInfo.innerHTML = `<span>Pilih barang yang datang dari daftar PO.</span>`;
     setFieldValue(receiptPickerNotes, "");
-    if (receiptPickerQty) {
-      receiptPickerQty.removeAttribute("max");
-    }
+    [receiptPickerReceivedQty, receiptPickerGoodQty].forEach((field) => field?.removeAttribute("max"));
+    resetReceiptQuantityFields();
     return;
   }
 
   const existing = draftReceiptItems.find((receiptItem) => getReceiptItemKey(receiptItem) === getReceiptItemKey(item));
-  setFieldValue(receiptPickerQty, existing?.receivedQty || item.qty || "");
-  setFieldValue(receiptPickerCondition, existing?.condition || "sesuai");
+  const shippedQty = item.qty || "";
+  const receivedQty = existing?.receivedQty || shippedQty;
+  const goodQty = existing?.goodQty || receivedQty;
+  setFieldValue(receiptPickerReceivedQty, receivedQty);
+  setFieldValue(receiptPickerGoodQty, goodQty);
   setFieldValue(receiptPickerNotes, existing?.notes === "-" ? "" : existing?.notes || "");
-  if (receiptPickerQty) {
-    receiptPickerQty.max = String(item.qty || "");
+  if (receiptPickerReceivedQty) {
+    receiptPickerReceivedQty.max = String(shippedQty || item.qty || "");
   }
+  if (receiptPickerGoodQty) {
+    receiptPickerGoodQty.max = String(receivedQty || shippedQty || item.qty || "");
+  }
+  updateReceiptQuantityPreview();
 
   receiptPickerSelectedInfo.innerHTML = `
     <div>
@@ -5465,11 +5904,64 @@ function renderReceiptPickerSelection() {
       <span>${escapeHtml(item.noPo || "-")} - ${escapeHtml(item.vendor || "-")}</span>
     </div>
     <div class="selected-reference-meta">
-      <span>Qty Ref: ${escapeHtml(item.qty || "-")} ${escapeHtml(item.unit || "")}</span>
+      <span>Qty PO: ${escapeHtml(item.qty || "-")} ${escapeHtml(item.unit || "")}</span>
       <span>No Pengajuan: ${escapeHtml(item.requestCode || "-")}</span>
       ${item.returnCode ? `<span>Retur: ${escapeHtml(item.returnCode)}</span>` : ""}
     </div>
   `;
+}
+
+function resetReceiptQuantityFields() {
+  setFieldValue(receiptPickerReceivedQty, "");
+  setFieldValue(receiptPickerGoodQty, "");
+  setTextContent(receiptPickerDamagedQty, "0");
+  setTextContent(receiptPickerShortQty, "0");
+  setTextContent(receiptPickerReturnQty, "0");
+}
+
+function getActiveReceiptPoQty() {
+  const item = getSelectedReceiptPickerItem();
+  return item?.qty || 0;
+}
+
+function getReceiptQuantityBreakdown(item = {}) {
+  const shippedQty = Number(item.shippedQty || item.qty || 0);
+  const receivedQty = Number(item.receivedQty || 0);
+  const goodQty = Number(item.goodQty || receivedQty || 0);
+  const damagedQty = Math.max(receivedQty - goodQty, 0);
+  const shortQty = Math.max(shippedQty - receivedQty, 0);
+  const returnProcessQty = damagedQty + shortQty;
+
+  return {
+    shippedQty,
+    receivedQty,
+    goodQty,
+    damagedQty,
+    shortQty,
+    returnProcessQty
+  };
+}
+
+function formatReceiptQty(value) {
+  return new Intl.NumberFormat("id-ID", { maximumFractionDigits: 2 }).format(Number(value) || 0);
+}
+
+function updateReceiptQuantityPreview() {
+  const totals = getReceiptQuantityBreakdown({
+    shippedQty: getActiveReceiptPoQty(),
+    receivedQty: receiptPickerReceivedQty?.value,
+    goodQty: receiptPickerGoodQty?.value
+  });
+  setTextContent(receiptPickerDamagedQty, formatReceiptQty(totals.damagedQty));
+  setTextContent(receiptPickerShortQty, formatReceiptQty(totals.shortQty));
+  setTextContent(receiptPickerReturnQty, formatReceiptQty(totals.returnProcessQty));
+
+  if (receiptPickerReceivedQty && getActiveReceiptPoQty()) {
+    receiptPickerReceivedQty.max = String(getActiveReceiptPoQty());
+  }
+  if (receiptPickerGoodQty && receiptPickerReceivedQty?.value) {
+    receiptPickerGoodQty.max = String(receiptPickerReceivedQty.value);
+  }
 }
 
 function applySelectedReceiptItems() {
@@ -5485,19 +5977,37 @@ function applySelectedReceiptItems() {
     return false;
   }
 
-  const receivedQty = String(receiptPickerQty?.value || "").trim();
-  const qty = Number(receivedQty);
+  const shippedQty = String(item.qty || "").trim();
+  const receivedQty = String(receiptPickerReceivedQty?.value || "").trim();
+  const goodQty = String(receiptPickerGoodQty?.value || "").trim();
+  const shipped = Number(shippedQty);
+  const received = Number(receivedQty);
+  const good = Number(goodQty);
   const maxQty = Number(item.qty || 0);
-  if (qty <= 0 || (maxQty > 0 && qty > maxQty)) {
-    showAlert("error", "Jumlah tidak valid", "Jumlah diterima harus lebih dari 0 dan tidak boleh melebihi qty PO.");
-    receiptPickerQty?.focus();
+  if (shipped <= 0 || (maxQty > 0 && shipped > maxQty)) {
+    showAlert("error", "Qty PO tidak valid", "Qty PO dari detail PO tidak valid.");
+    return false;
+  }
+  if (received <= 0 || received > shipped) {
+    showAlert("error", "Qty tidak valid", "Qty diterima harus lebih dari 0 dan tidak boleh melebihi qty dikirim.");
+    receiptPickerReceivedQty?.focus();
+    return false;
+  }
+  if (good < 0 || good > received) {
+    showAlert("error", "Qty tidak valid", "Qty baik tidak boleh lebih besar dari qty diterima.");
+    receiptPickerGoodQty?.focus();
     return false;
   }
 
+  const totals = getReceiptQuantityBreakdown({ shippedQty, receivedQty, goodQty });
   const nextItem = {
     ...item,
+    shippedQty,
     receivedQty,
-    condition: String(receiptPickerCondition?.value || "sesuai"),
+    goodQty,
+    damagedQty: String(totals.damagedQty),
+    shortQty: String(totals.shortQty),
+    returnProcessQty: String(totals.returnProcessQty),
     notes: String(receiptPickerNotes?.value || "").trim() || "-"
   };
   const existingIndex = draftReceiptItems.findIndex((receiptItem) => getReceiptItemKey(receiptItem) === selectedKey);
@@ -5545,7 +6055,7 @@ function renderReceiptItems() {
   if (!draftReceiptItems.length) {
     receiptItemsTableBody.innerHTML = `
       <tr>
-        <td colspan="8" class="empty-table-cell">Belum ada barang dipilih.</td>
+        <td colspan="12" class="empty-table-cell">Belum ada barang dipilih.</td>
       </tr>
     `;
     return;
@@ -5554,6 +6064,7 @@ function renderReceiptItems() {
   receiptItemsTableBody.innerHTML = draftReceiptItems
     .map((item, index) => {
       const key = getReceiptItemKey(item);
+      const totals = getReceiptQuantityBreakdown(item);
       return `
         <tr>
           <td data-label="No">${index + 1}</td>
@@ -5569,9 +6080,13 @@ function renderReceiptItems() {
               <span>${escapeHtml(item.requestCode || "-")}</span>
             </div>
           </td>
-          <td data-label="Qty Ref">${escapeHtml(item.qty || "-")} ${escapeHtml(item.unit || "")}</td>
-          <td data-label="Qty Terima">${escapeHtml(item.receivedQty || "-")} ${escapeHtml(item.unit || "")}</td>
-          <td data-label="Kondisi"><span class="status-chip ${getStatusChipClass(item.condition || "sesuai")}">${escapeHtml(item.condition || "sesuai")}</span></td>
+          <td data-label="Qty PO">${escapeHtml(item.qty || "-")} ${escapeHtml(item.unit || "")}</td>
+          <td data-label="Dikirim">${escapeHtml(formatReceiptQty(totals.shippedQty))} ${escapeHtml(item.unit || "")}</td>
+          <td data-label="Diterima">${escapeHtml(formatReceiptQty(totals.receivedQty))} ${escapeHtml(item.unit || "")}</td>
+          <td data-label="Baik">${escapeHtml(formatReceiptQty(totals.goodQty))} ${escapeHtml(item.unit || "")}</td>
+          <td data-label="Rusak">${escapeHtml(formatReceiptQty(totals.damagedQty))}</td>
+          <td data-label="Kurang">${escapeHtml(formatReceiptQty(totals.shortQty))}</td>
+          <td data-label="Retur">${escapeHtml(formatReceiptQty(totals.returnProcessQty))}</td>
           <td data-label="Catatan">${escapeHtml(item.notes || "-")}</td>
           <td data-label="Aksi">
             <div class="table-action-group">
@@ -5611,11 +6126,6 @@ function removeReceiptItem(key) {
   renderReceiptItems();
 }
 
-function getReceiptConditionSummary(items = []) {
-  const conditions = Array.from(new Set(items.map((item) => item.condition || "sesuai")));
-  return conditions.length === 1 ? conditions[0] : `${conditions.length} kondisi`;
-}
-
 function sumPoSubtotal(items = []) {
   return items.reduce((total, item) => total + parseCurrencyValue(item.subtotal || item.totalPrice || item.price || 0), 0);
 }
@@ -5628,140 +6138,31 @@ function formatRupiah(value) {
   }).format(Number(value) || 0);
 }
 
-function buildJasaDetailMarkup(record) {
-  const status = String(record.header.status || "");
-  const serviceRows = (record.services || [])
-    .map(
-      (item, index) => `
-        <tr>
-          <td>${escapeHtml(item.no || index + 1)}</td>
-          <td>${escapeHtml(item.description)}</td>
-          <td>${escapeHtml(item.cost)}</td>
-          <td>${escapeHtml(item.vendor || "-")}</td>
-          <td>${escapeHtml(item.location || "-")}</td>
-          <td>${escapeHtml(item.notes || "-")}</td>
-        </tr>
-      `
-    )
-    .join("") || `
-      <tr>
-        <td colspan="6" class="empty-table-cell">Belum ada detail jasa.</td>
-      </tr>
-    `;
-  const approvalRows = getPengajuanApprovalSteps(record)
-    .map(
-      (step) => `
-        <div class="approval-step" data-kind="${escapeHtml(step.kind || "pending")}">
-          <div class="approval-person">${escapeHtml(step.title)}</div>
-          <div class="approval-track"><span class="approval-dot"></span></div>
-          <div class="approval-state">${escapeHtml(step.text)}</div>
-        </div>
-      `
-    )
-    .join("");
-
-  return `
-    <div class="modal-detail-stack detail-modal-fill">
-      <section class="approval-strip" aria-label="Alur approval">
-        <div class="approval-flow approval-flow-horizontal">
-          ${approvalRows}
-        </div>
-      </section>
-
-      <section class="form-section detail-summary-compact">
-        <div class="form-section-head">
-          <strong>Data Pengajuan</strong>
-        </div>
-        <div class="detail-list">
-          <div class="detail-row">
-            <div class="detail-label">No Pengajuan</div>
-            <div class="detail-value">${escapeHtml(record.header.code)}</div>
-          </div>
-          <div class="detail-row">
-            <div class="detail-label">Divisi</div>
-            <div class="detail-value">${escapeHtml(record.header.division)}</div>
-          </div>
-          <div class="detail-row">
-            <div class="detail-label">Jenis Pengajuan</div>
-            <div class="detail-value">${escapeHtml(record.header.requestType || "jasa")}</div>
-          </div>
-          <div class="detail-row">
-            <div class="detail-label">Jenis Pengadaan</div>
-            <div class="detail-value">${escapeHtml(record.header.serviceProcurementType || "-")}</div>
-          </div>
-          <div class="detail-row">
-            <div class="detail-label">Prioritas</div>
-            <div class="detail-value">${escapeHtml(record.header.priority)}</div>
-          </div>
-          <div class="detail-row">
-            <div class="detail-label">Tanggal</div>
-            <div class="detail-value">${escapeHtml(record.header.submitDate)}</div>
-          </div>
-          <div class="detail-row">
-            <div class="detail-label">Max Tgl Beli</div>
-            <div class="detail-value">${escapeHtml(record.header.targetDate)}</div>
-          </div>
-          <div class="detail-row">
-            <div class="detail-label">Status</div>
-            <div class="detail-value">
-              <span class="status-chip ${getStatusChipClass(status)}">${escapeHtml(status)}</span>
-            </div>
-          </div>
-          <div class="detail-row">
-            <div class="detail-label">Alasan</div>
-            <div class="detail-value">${escapeHtml(record.header.reason)}</div>
-          </div>
-          <div class="detail-row">
-            <div class="detail-label">Kebutuhan Jasa</div>
-            <div class="detail-value">${escapeHtml(record.header.serviceNeed || "-")}</div>
-          </div>
-        </div>
-      </section>
-
-      <section class="form-section detail-table-section">
-        <div class="form-section-head">
-          <strong>Detail Jasa</strong>
-        </div>
-        <div class="table-wrap detail-table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>No Detail</th>
-                <th>Uraian Jasa / Pekerjaan</th>
-                <th>Biaya</th>
-                <th>Vendor / Penyedia</th>
-                <th>Lokasi</th>
-                <th>Keterangan</th>
-              </tr>
-            </thead>
-            <tbody>${serviceRows}</tbody>
-          </table>
-        </div>
-      </section>
-    </div>
-  `;
-}
-
 function buildProcurementPembelianMarkup(record) {
   const po = record.purchase_order_head || record.header || {};
-  const details = record.purchase_order_detail || record.items || [];
+  const details = (record.purchase_order_detail || record.items || []).filter((item) =>
+    Number(item.jumlah_baik ?? item.jumlah_diterima ?? item.qty_baik ?? 0) > 0
+  );
   const receipt = record.penerimaan_barang || {};
-  const returned = record.retur_barang || {};
   const firstDetail = details[0] || {};
   const noPo = po.no_po || record.header?.noPo || "-";
   const noPengajuan = firstDetail.no_pengajuan || record.header?.requestCode || "-";
-  const vendor = firstDetail.nama_vendor || record.header?.vendor || "-";
-  const totalPembelian = getPurchaseOrderTotal(details, record.header?.poValue);
+  const tglPengajuan = firstDetail.tgl_pengajuan || record.header?.requestDate || "-";
+  const divisi = firstDetail.nama_divisi || record.header?.division || "-";
+  const totalPengajuan = sumPurchaseOrderQty(details);
+  const totalBaik = receipt.qty_baik || sumPurchaseGoodQty(details);
+  const unit = firstDetail.satuan || firstDetail.unit || "";
   const itemRows = details
     .map(
       (item) => `
         <tr>
+          <td>${escapeHtml(item.no_pengajuan || "-")}</td>
+          <td>${escapeHtml(item.tgl_pengajuan || tglPengajuan)}</td>
           <td>${escapeHtml(item.nama_divisi || "-")}</td>
           <td>${escapeHtml(item.uraian || item.name || "-")}</td>
+          <td>${escapeHtml(item.no_po || noPo)}</td>
           <td>${escapeHtml(item.jumlah || item.qty || "-")} ${escapeHtml(item.satuan || item.unit || "")}</td>
-          <td>${escapeHtml(item.jumlah_diterima || receipt.qty_diterima || "0")}</td>
-          <td>${escapeHtml(item.jumlah_retur || returned.qty_retur || "0")}</td>
-          <td>${escapeHtml(item.subtotal || "-")}</td>
+          <td>${escapeHtml(item.jumlah_baik || receipt.qty_baik || item.jumlah_diterima || receipt.qty_diterima || "0")}</td>
         </tr>
       `
     )
@@ -5774,28 +6175,28 @@ function buildProcurementPembelianMarkup(record) {
         </div>
         <div class="detail-list">
           <div class="detail-row">
-            <div class="detail-label">No PO</div>
-            <div class="detail-value">${escapeHtml(noPo)}</div>
-          </div>
-          <div class="detail-row">
             <div class="detail-label">No Pengajuan</div>
             <div class="detail-value">${escapeHtml(noPengajuan)}</div>
           </div>
           <div class="detail-row">
-            <div class="detail-label">Vendor</div>
-            <div class="detail-value">${escapeHtml(vendor)}</div>
+            <div class="detail-label">Tanggal Pengajuan</div>
+            <div class="detail-value">${escapeHtml(tglPengajuan)}</div>
           </div>
           <div class="detail-row">
-            <div class="detail-label">Tanggal PO</div>
-            <div class="detail-value">${escapeHtml(po.tgl_po || record.header?.poDate || "-")}</div>
+            <div class="detail-label">Divisi</div>
+            <div class="detail-value">${escapeHtml(divisi)}</div>
           </div>
           <div class="detail-row">
-            <div class="detail-label">Nilai</div>
-            <div class="detail-value">${escapeHtml(totalPembelian)}</div>
+            <div class="detail-label">No PO</div>
+            <div class="detail-value">${escapeHtml(noPo)}</div>
           </div>
           <div class="detail-row">
-            <div class="detail-label">Catatan PO</div>
-            <div class="detail-value">${escapeHtml(po.catatan || record.header?.notes || "-")}</div>
+            <div class="detail-label">Jumlah Pengajuan</div>
+            <div class="detail-value">${escapeHtml(`${totalPengajuan || "-"} ${unit}`.trim())}</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">Jumlah Diterima</div>
+            <div class="detail-value">${escapeHtml(`${totalBaik || "0"} ${unit}`.trim())}</div>
           </div>
         </div>
       </section>
@@ -5808,15 +6209,16 @@ function buildProcurementPembelianMarkup(record) {
           <table>
             <thead>
               <tr>
+                <th>No Pengajuan</th>
+                <th>Tgl Pengajuan</th>
                 <th>Divisi</th>
                 <th>Nama Barang</th>
-                <th>Jumlah</th>
+                <th>No PO</th>
+                <th>Jumlah Pengajuan</th>
                 <th>Jumlah Diterima</th>
-                <th>Jumlah Retur</th>
-                <th>Nilai</th>
               </tr>
             </thead>
-            <tbody>${itemRows || `<tr><td colspan="6" class="empty-table-cell">Belum ada item.</td></tr>`}</tbody>
+            <tbody>${itemRows || `<tr><td colspan="7" class="empty-table-cell">Belum ada item.</td></tr>`}</tbody>
           </table>
         </div>
       </section>
@@ -5834,8 +6236,8 @@ function sumPurchaseOrderQty(details = []) {
   return (details || []).reduce((sum, item) => sum + (Number(item.jumlah || item.qty) || 0), 0);
 }
 
-function sumPurchaseReceivedQty(details = []) {
-  return (details || []).reduce((sum, item) => sum + (Number(item.jumlah_diterima) || 0), 0);
+function sumPurchaseGoodQty(details = []) {
+  return (details || []).reduce((sum, item) => sum + (Number(item.jumlah_baik ?? item.jumlah_diterima) || 0), 0);
 }
 
 function buildProcurementPenawaranMarkup(record) {
@@ -5858,9 +6260,9 @@ function buildProcurementPenawaranMarkup(record) {
         .map((group) => {
           const groupHeader = `
             <tr class="table-group-row">
-              <td colspan="8">
+              <td colspan="13">
                 <strong>${escapeHtml(group.name)}</strong>
-                <span>${escapeHtml(group.qty)} ${escapeHtml(group.unit)} - ${group.items.length} penawaran vendor</span>
+                <span>${escapeHtml(group.qty)} ${escapeHtml(group.unit)} - budget ${escapeHtml(group.budget)} - ${group.items.length} penawaran vendor</span>
               </td>
             </tr>
           `;
@@ -5871,9 +6273,18 @@ function buildProcurementPenawaranMarkup(record) {
                   <div class="cell-stack">
                     <strong>${escapeHtml(quote.vendor)}</strong>
                     <span>${escapeHtml(getQuoteVendorSourceLabel(quote))}</span>
+                    <span>UP: ${escapeHtml(quote.vendorUp || "-")}</span>
+                  </div>
+                </td>
+                <td>
+                  <div class="cell-stack">
+                    <strong>${escapeHtml(quote.itemBudget || "-")}</strong>
+                    <span>${escapeHtml(quote.itemCategory || "-")}</span>
                   </div>
                 </td>
                 <td>${escapeHtml(quote.unitPrice || "-")}</td>
+                <td>${escapeHtml(quote.shippingCost || "Rp0")}</td>
+                <td>${escapeHtml(quote.discount || "Rp0")}</td>
                 <td>
                   <span class="mini-toggle" data-active="${quote.taxIncluded ? "true" : "false"}">
                     <span></span>
@@ -5881,6 +6292,8 @@ function buildProcurementPenawaranMarkup(record) {
                 </td>
                 <td>${escapeHtml(getQuotePriceIncludePpn(quote))}</td>
                 <td>${escapeHtml(quote.paymentMethod || "-")}</td>
+                <td>${escapeHtml(quote.paymentNote || "-")}</td>
+                <td>${escapeHtml(getDeliveryCategoryLabel(quote.deliveryCategory))}</td>
                 <td>${escapeHtml(quote.delivery || "-")}</td>
                 <td>${escapeHtml(quote.leadTime || "-")}</td>
                 <td>
@@ -5907,7 +6320,7 @@ function buildProcurementPenawaranMarkup(record) {
     : ""
   || `
       <tr>
-        <td colspan="8" class="empty-table-cell">Belum ada penawaran vendor.</td>
+        <td colspan="13" class="empty-table-cell">Belum ada penawaran vendor.</td>
       </tr>
     `;
 
@@ -5937,6 +6350,10 @@ function buildProcurementPenawaranMarkup(record) {
             <div class="detail-value">${escapeHtml(record.header.status)}</div>
           </div>
           <div class="detail-row">
+            <div class="detail-label">PO Otomatis</div>
+            <div class="detail-value">${escapeHtml(record.header.generatedPo || (record.header.status === "disetujui" ? "Dibuat otomatis" : "-"))}</div>
+          </div>
+          <div class="detail-row">
             <div class="detail-label">Kebutuhan</div>
             <div class="detail-value">${escapeHtml(record.header.need)}</div>
           </div>
@@ -5952,12 +6369,17 @@ function buildProcurementPenawaranMarkup(record) {
             <thead>
               <tr>
                 <th>Vendor</th>
+                <th>Budget</th>
                 <th>Harga (Rp)</th>
+                <th>Ongkir</th>
+                <th>Diskon</th>
                 <th>PPN</th>
                 <th>Harga Include PPN</th>
                 <th>Pembayaran</th>
+                <th>Ket. Bayar</th>
+                <th>Kategori Kirim</th>
                 <th>Pengiriman</th>
-                <th>Lead Time</th>
+                <th>Estimasi Datang</th>
                 <th>Barang Dipilih</th>
               </tr>
             </thead>
@@ -5983,25 +6405,43 @@ function buildProcurementPOMarkup(record) {
     .join("");
   const itemRows = (record.items || [])
     .map(
-      (item) => {
-        const normalizedItem = normalizePoDraftItem(item);
-        return `
+      (item) => `
           <tr>
-            <td>${escapeHtml(normalizedItem.requestCode || "-")}</td>
-            <td>${escapeHtml(normalizedItem.itemName || "-")}</td>
+            <td>${escapeHtml(item.requestCode || "-")}</td>
+            <td>${escapeHtml(item.quoteCode || record.header?.offerCode || "-")}</td>
             <td>
               <div class="cell-stack">
-                <strong>${escapeHtml(normalizedItem.qty || "-")}</strong>
-                <span>dari ${escapeHtml(normalizedItem.originalQty || normalizedItem.qty || "-")}</span>
+                <strong>${escapeHtml(item.itemName || "-")}</strong>
+                <span>${escapeHtml(item.itemCategory || "-")} / budget ${escapeHtml(item.itemBudget || "-")}</span>
               </div>
             </td>
-            <td>${escapeHtml(normalizedItem.unit || "-")}</td>
-            <td>${escapeHtml(normalizedItem.unitPrice || normalizedItem.totalPrice || normalizedItem.price || "-")}</td>
-            <td>${escapeHtml(normalizedItem.subtotal || "-")}</td>
-            <td>${escapeHtml(normalizedItem.note || "-")}</td>
+            <td>
+              <div class="cell-stack">
+                <strong>${escapeHtml(item.qty || "-")}</strong>
+                <span>dari ${escapeHtml(item.originalQty || item.qty || "-")}</span>
+              </div>
+            </td>
+            <td>${escapeHtml(item.unit || "-")}</td>
+            <td>${escapeHtml(item.unitPrice || item.price || "-")}</td>
+            <td>${escapeHtml(item.shippingCost || "Rp0")}</td>
+            <td>${escapeHtml(item.discount || "Rp0")}</td>
+            <td>${escapeHtml(item.taxIncluded ? "PPN 11%" : "include")}</td>
+            <td>${escapeHtml(item.subtotal || item.totalPrice || "-")}</td>
+            <td>
+              <div class="cell-stack">
+                <strong>${escapeHtml(item.paymentMethod || "-")}</strong>
+                <span>${escapeHtml(item.paymentNote || "-")}</span>
+              </div>
+            </td>
+            <td>
+              <div class="cell-stack">
+                <strong>${escapeHtml(getDeliveryCategoryLabel(item.deliveryCategory))}</strong>
+                <span>${escapeHtml(item.delivery || "-")} / ${escapeHtml(item.leadTime || "-")}</span>
+              </div>
+            </td>
+            <td>${escapeHtml(item.note || "-")}</td>
           </tr>
-        `;
-      }
+        `
     )
     .join("");
 
@@ -6031,6 +6471,10 @@ function buildProcurementPOMarkup(record) {
             <div class="detail-value">${escapeHtml(record.header.vendor)}</div>
           </div>
           <div class="detail-row">
+            <div class="detail-label">UP Vendor</div>
+            <div class="detail-value">${escapeHtml(record.header.vendorUp || record.items?.[0]?.vendorUp || "-")}</div>
+          </div>
+          <div class="detail-row">
             <div class="detail-label">Tanggal PO</div>
             <div class="detail-value">${escapeHtml(record.header.poDate)}</div>
           </div>
@@ -6054,11 +6498,17 @@ function buildProcurementPOMarkup(record) {
             <thead>
               <tr>
                 <th>No Pengajuan</th>
+                <th>No Penawaran</th>
                 <th>Nama Barang</th>
                 <th>Qty Ref</th>
                 <th>Satuan</th>
-                <th>Harga Satuan</th>
+                <th>Harga</th>
+                <th>Ongkir</th>
+                <th>Diskon</th>
+                <th>PPN</th>
                 <th>Subtotal</th>
+                <th>Pembayaran</th>
+                <th>Pengiriman</th>
                 <th>Catatan</th>
               </tr>
             </thead>
@@ -6081,7 +6531,9 @@ function buildPenerimaanBarangMarkup(record) {
   const formattedTotalQty = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 2 }).format(totalQty);
   const itemRows = items
     .map(
-      (item, index) => `
+      (item, index) => {
+        const totals = getReceiptQuantityBreakdown(item);
+        return `
         <tr>
           <td>${escapeHtml(item.noUrut || index + 1)}</td>
           <td>
@@ -6092,12 +6544,17 @@ function buildPenerimaanBarangMarkup(record) {
           </td>
           <td>${escapeHtml(item.itemName || "-")}</td>
           <td>${escapeHtml(item.qty || "-")} ${escapeHtml(item.unit || "")}</td>
-          <td>${escapeHtml(item.receivedQty || "-")} ${escapeHtml(item.unit || "")}</td>
-          <td>${escapeHtml(item.condition || "-")}</td>
+          <td>${escapeHtml(formatReceiptQty(totals.shippedQty))} ${escapeHtml(item.unit || "")}</td>
+          <td>${escapeHtml(formatReceiptQty(totals.receivedQty))} ${escapeHtml(item.unit || "")}</td>
+          <td>${escapeHtml(formatReceiptQty(totals.goodQty))} ${escapeHtml(item.unit || "")}</td>
+          <td>${escapeHtml(formatReceiptQty(totals.damagedQty))}</td>
+          <td>${escapeHtml(formatReceiptQty(totals.shortQty))}</td>
+          <td>${escapeHtml(formatReceiptQty(totals.returnProcessQty))}</td>
           <td>${escapeHtml(item.notes || "-")}</td>
           <td><span class="status-chip ${getStatusChipClass(item.status || getReceiptItemStatus(item))}">${escapeHtml(item.status || getReceiptItemStatus(item))}</span></td>
         </tr>
-      `
+      `;
+      }
     )
     .join("");
 
@@ -6147,13 +6604,17 @@ function buildPenerimaanBarangMarkup(record) {
                 <th>Referensi PO</th>
                 <th>Nama Barang</th>
                 <th>Qty PO</th>
-                <th>Qty Terima</th>
-                <th>Kondisi</th>
+                <th>Dikirim</th>
+                <th>Diterima</th>
+                <th>Baik</th>
+                <th>Rusak</th>
+                <th>Kurang</th>
+                <th>Retur</th>
                 <th>Catatan</th>
                 <th>Status</th>
               </tr>
             </thead>
-            <tbody>${itemRows || `<tr><td colspan="8" class="empty-table-cell">Belum ada barang.</td></tr>`}</tbody>
+            <tbody>${itemRows || `<tr><td colspan="12" class="empty-table-cell">Belum ada barang.</td></tr>`}</tbody>
           </table>
         </div>
       </section>
@@ -6200,6 +6661,8 @@ function buildReturBarangMarkup(record) {
           <div class="detail-row"><div class="detail-label">Tanggal PO</div><div class="detail-value">${escapeHtml(header.poDate || firstItem.poDate || "-")}</div></div>
           <div class="detail-row"><div class="detail-label">Vendor</div><div class="detail-value">${escapeHtml(header.vendor || firstItem.vendor || "-")}</div></div>
           <div class="detail-row"><div class="detail-label">Divisi</div><div class="detail-value">${escapeHtml(header.division || firstItem.division || "-")}</div></div>
+          <div class="detail-row"><div class="detail-label">Dokumen Pendukung</div><div class="detail-value">${escapeHtml(header.supportDocument || "-")}</div></div>
+          <div class="detail-row"><div class="detail-label">Catatan Dokumen</div><div class="detail-value">${escapeHtml(header.supportNotes || "-")}</div></div>
           <div class="detail-row"><div class="detail-label">Status</div><div class="detail-value"><span class="status-chip ${getStatusChipClass(header.status)}">${escapeHtml(header.status || "-")}</span></div></div>
         </div>
       </section>
@@ -6218,7 +6681,9 @@ function buildReturBarangMarkup(record) {
                 <th>Barang Diretur</th>
                 <th>Qty Retur</th>
                 <th>Penerimaan</th>
-                <th>Kondisi Terima</th>
+                <th>Qty Baik</th>
+                <th>Rusak</th>
+                <th>Kurang</th>
                 <th>Alasan</th>
               </tr>
             </thead>
@@ -6243,11 +6708,13 @@ function buildReturBarangMarkup(record) {
                           <span>${escapeHtml(`${formatQuantity(item.receivedQty)} ${item.unit || ""}`)}</span>
                         </div>
                       </td>
-                      <td>${escapeHtml(item.condition || "-")}</td>
+                      <td>${escapeHtml(`${formatQuantity(item.goodQty)} ${item.unit || ""}`)}</td>
+                      <td>${escapeHtml(`${formatQuantity(item.damagedQty)} ${item.unit || ""}`)}</td>
+                      <td>${escapeHtml(`${formatQuantity(item.shortQty)} ${item.unit || ""}`)}</td>
                       <td>${escapeHtml(item.reason || "-")}</td>
                     </tr>
                   `).join("")
-                  : `<tr><td colspan="8" class="empty-table-cell">Belum ada barang diretur.</td></tr>`
+                  : `<tr><td colspan="10" class="empty-table-cell">Belum ada barang diretur.</td></tr>`
               }
             </tbody>
           </table>
@@ -6316,7 +6783,6 @@ function applyCreateDefaults() {
   if (detailViewType === "penerimaan-barang") {
     setFieldValue(getField("receiptDate"), formatDateDisplay(new Date()));
     setFieldValue(getField("receivedBy"), "USR-PUR-001 - Rani Purchasing");
-    setFieldValue(getField("condition"), "sesuai");
   }
 
   if (detailViewType === "retur-barang") {

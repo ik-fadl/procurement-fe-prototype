@@ -313,36 +313,25 @@
               <table>
               <thead>
                 <tr>
-                  <th>Tgl PO</th>
+                  <th>No Pengajuan</th>
+                  <th>Tgl Pengajuan</th>
+                  <th>Divisi</th>
                   <th>No PO</th>
-                  <th>Nama Vendor</th>
-                  <th>Total Nilai</th>
-                  <th>Total Jumlah</th>
-                  <th>Total Diterima</th>
+                  <th>Barang</th>
+                  <th>Jumlah Pengajuan</th>
+                  <th>Jumlah Diterima</th>
                   <th>View</th>
                 </tr>
               </thead>
               <tbody id="requestTableBody">
                 <tr class="master-slave-row is-active">
-                  <td>09 Jul 2026</td>
-                  <td>PO-2026-0188</td>
-                  <td>PT NetCom</td>
-                  <td>Rp32.600.000</td>
-                  <td>6</td>
-                  <td>0</td>
-                  <td>
-                    <button class="table-action" type="button" data-detail="true" data-code="PBL-2026-0007" data-status="menunggu_penerimaan">
-                      View
-                    </button>
-                  </td>
-                </tr>
-                <tr class="master-slave-row">
-                  <td>06 Jul 2026</td>
+                  <td>2026/PP/GA/07/0016</td>
+                  <td>02 Jul 2026</td>
+                  <td>General Affairs</td>
                   <td>PO-2026-0181</td>
-                  <td>PT Office Hub</td>
-                  <td>Rp18.400.000</td>
-                  <td>8</td>
-                  <td>8</td>
+                  <td>Meja Kerja Modular</td>
+                  <td>8 Set</td>
+                  <td>8 Set</td>
                   <td>
                     <button class="table-action" type="button" data-detail="true" data-code="PBL-2026-0006" data-status="diterima">
                       View
@@ -350,12 +339,13 @@
                   </td>
                 </tr>
                 <tr class="master-slave-row">
-                  <td>02 Jul 2026</td>
+                  <td>2026/PP/OPS/07/0010</td>
+                  <td>30 Jun 2026</td>
+                  <td>Operasional</td>
                   <td>PO-2026-0176</td>
-                  <td>PT Sarana Office</td>
-                  <td>Rp12.750.000</td>
-                  <td>10</td>
-                  <td>10</td>
+                  <td>Kursi Tamu Kantor</td>
+                  <td>10 Pcs</td>
+                  <td>9 Pcs</td>
                   <td>
                     <button class="table-action" type="button" data-detail="true" data-code="PBL-2026-0005" data-status="selesai">
                       View
@@ -393,34 +383,12 @@
 
     <script id="detailRecordsData" type="application/json">
       {
-        "PBL-2026-0007": {
-          "purchase_order_head": { "no_po": "PO-2026-0188", "tgl_po": "09 Jul 2026", "status": "disetujui", "catatan": "Menunggu penerimaan barang." },
-          "purchase_order_detail": [
-            { "no_po": "PO-2026-0188", "no_penawaran": "PNW-2026-0034", "no_pengajuan": "2026/PP/IT/07/0004", "nama_divisi": "IT Support", "nama_vendor": "PT NetCom", "uraian": "Access Point Dual Band", "jumlah": "4", "jumlah_diterima": "0", "jumlah_retur": "0", "satuan": "Unit", "harga_satuan": "Rp6.500.000", "subtotal": "Rp26.000.000", "status": "menunggu_penerimaan" },
-            { "no_po": "PO-2026-0188", "no_penawaran": "PNW-2026-0034", "no_pengajuan": "2026/PP/IT/07/0004", "nama_divisi": "IT Support", "nama_vendor": "PT NetCom", "uraian": "Managed Switch 24 Port", "jumlah": "2", "jumlah_diterima": "0", "jumlah_retur": "0", "satuan": "Unit", "harga_satuan": "Rp3.300.000", "subtotal": "Rp6.600.000", "status": "menunggu_penerimaan" }
-          ],
-          "penerimaan_barang": null,
-          "retur_barang": null,
-          "tagihan": null,
-          "permintaan_pembayaran": null,
-          "transaksi_pembayaran": null,
-          "lampiran_dokumen": [
-            { "no_lampiran": "LMP-PO-0188", "modul_lampiran": "purchase_order", "jenis_lampiran": "po", "nama_file": "PO-2026-0188.pdf", "status": "tersedia" },
-            { "no_lampiran": "LMP-PNW-0034", "modul_lampiran": "penawaran", "jenis_lampiran": "penawaran", "nama_file": "PNW-2026-0034.pdf", "status": "tersedia" }
-          ],
-          "histori_proses": [
-            { "tanggal": "04 Jul 2026", "modul": "pengajuan", "status": "siap_procurement", "catatan": "Pengajuan disetujui." },
-            { "tanggal": "08 Jul 2026", "modul": "penawaran", "status": "disetujui", "catatan": "Vendor terpilih PT NetCom." },
-            { "tanggal": "09 Jul 2026", "modul": "purchase_order_head", "status": "disetujui", "catatan": "PO terbit." }
-          ]
-        },
         "PBL-2026-0006": {
           "purchase_order_head": { "no_po": "PO-2026-0181", "tgl_po": "06 Jul 2026", "status": "disetujui", "catatan": "Barang sudah diterima." },
           "purchase_order_detail": [
-            { "no_po": "PO-2026-0181", "no_penawaran": "PNW-2026-0045", "no_pengajuan": "2026/PP/GA/07/0016", "nama_divisi": "General Affairs", "nama_vendor": "PT Office Hub", "uraian": "Meja Kerja Modular", "jumlah": "8", "jumlah_diterima": "8", "jumlah_retur": "0", "satuan": "Set", "harga_satuan": "Rp2.300.000", "subtotal": "Rp18.400.000", "status": "diterima" }
+            { "no_po": "PO-2026-0181", "no_penawaran": "PNW-2026-0045", "no_pengajuan": "2026/PP/GA/07/0016", "tgl_pengajuan": "02 Jul 2026", "nama_divisi": "General Affairs", "nama_vendor": "PT Office Hub", "uraian": "Meja Kerja Modular", "jumlah": "8", "jumlah_baik": "8", "satuan": "Set", "harga_satuan": "Rp2.300.000", "subtotal": "Rp18.400.000", "status": "diterima" }
           ],
-          "penerimaan_barang": { "no_penerimaan": "RCV-2026-0001", "no_urut": 1, "no_po": "PO-2026-0181", "no_urut_po": 1, "tgl_penerimaan": "16 Jul 2026", "user_terima": "USR-PUR-001", "qty_diterima": "8", "kondisi_barang": "sesuai", "status": "diterima", "catatan": "Barang sesuai." },
-          "retur_barang": null,
+          "penerimaan_barang": { "no_penerimaan": "RCV-2026-0001", "no_urut": 1, "no_po": "PO-2026-0181", "no_urut_po": 1, "tgl_penerimaan": "16 Jul 2026", "user_terima": "USR-PUR-001", "qty_baik": "8", "status": "diterima", "catatan": "Barang baik diterima." },
           "tagihan": null,
           "permintaan_pembayaran": null,
           "transaksi_pembayaran": null,
@@ -435,26 +403,23 @@
           ]
         },
         "PBL-2026-0005": {
-          "purchase_order_head": { "no_po": "PO-2026-0176", "tgl_po": "02 Jul 2026", "status": "selesai", "catatan": "Transaksi selesai dengan retur sebagian." },
+          "purchase_order_head": { "no_po": "PO-2026-0176", "tgl_po": "02 Jul 2026", "status": "selesai", "catatan": "Pembelian memuat qty barang baik yang diterima." },
           "purchase_order_detail": [
-            { "no_po": "PO-2026-0176", "no_penawaran": "PNW-2026-0028", "no_pengajuan": "2026/PP/OPS/07/0010", "nama_divisi": "Operasional", "nama_vendor": "PT Sarana Office", "uraian": "Kursi Tamu Kantor", "jumlah": "10", "jumlah_diterima": "10", "jumlah_retur": "1", "satuan": "Pcs", "harga_satuan": "Rp1.275.000", "subtotal": "Rp12.750.000", "status": "diterima" }
+            { "no_po": "PO-2026-0176", "no_penawaran": "PNW-2026-0028", "no_pengajuan": "2026/PP/OPS/07/0010", "tgl_pengajuan": "30 Jun 2026", "nama_divisi": "Operasional", "nama_vendor": "PT Sarana Office", "uraian": "Kursi Tamu Kantor", "jumlah": "10", "jumlah_baik": "9", "satuan": "Pcs", "harga_satuan": "Rp1.275.000", "subtotal": "Rp12.750.000", "status": "diterima" }
           ],
-          "penerimaan_barang": { "no_penerimaan": "RCV-2026-0002", "no_po": "PO-2026-0176", "tgl_penerimaan": "15 Jul 2026", "user_terima": "USR-PUR-001", "qty_diterima": "10", "kondisi_barang": "sesuai", "status": "selesai", "catatan": "Barang diterima." },
-          "retur_barang": { "no_retur": "RTR-2026-0001", "no_po": "PO-2026-0176", "qty_retur": "1", "alasan_retur": "Cacat fisik", "status": "selesai" },
+          "penerimaan_barang": { "no_penerimaan": "RCV-2026-0002", "no_po": "PO-2026-0176", "tgl_penerimaan": "15 Jul 2026", "user_terima": "USR-PUR-001", "qty_baik": "9", "status": "selesai", "catatan": "9 pcs barang baik diterima." },
           "tagihan": { "no_tagihan": "INV-SO-778", "kode_vendor": "VDR-0007", "tgl_tagihan": "15 Jul 2026", "tgl_jatuh_tempo": "30 Jul 2026", "nominal_tagihan": "Rp12.750.000", "status": "terbayar", "deskripsi_tagihan": "Tagihan PO-2026-0176." },
           "permintaan_pembayaran": { "no_permintaan_pembayaran": "PAYREQ-2026-0042", "sumber_pembayaran": "tagihan", "no_tagihan": "INV-SO-778", "nominal_diminta": "Rp12.750.000", "tgl_pengajuan": "15 Jul 2026", "status": "selesai", "perlu_persetujuan_direktur": false },
           "transaksi_pembayaran": { "no_transaksi": "PAY-2026-0042", "no_permintaan_pembayaran": "PAYREQ-2026-0042", "metode_pembayaran": "transfer", "tgl_bayar": "15 Jul 2026", "nominal_bayar": "Rp12.750.000", "kasir": "USR-FIN-001", "status": "berhasil", "referensi_bank": "BCA-77891" },
           "lampiran_dokumen": [
             { "no_lampiran": "LMP-PO-0176", "modul_lampiran": "purchase_order", "jenis_lampiran": "po", "nama_file": "PO-2026-0176.pdf", "status": "tersedia" },
             { "no_lampiran": "LMP-RCV-0002", "modul_lampiran": "penerimaan_barang", "jenis_lampiran": "penerimaan", "nama_file": "RCV-2026-0002.pdf", "status": "selesai" },
-            { "no_lampiran": "LMP-RTR-0001", "modul_lampiran": "retur_barang", "jenis_lampiran": "retur", "nama_file": "RTR-2026-0001.pdf", "status": "selesai" },
             { "no_lampiran": "LMP-INV-778", "modul_lampiran": "tagihan", "jenis_lampiran": "invoice", "nama_file": "INV-SO-778.pdf", "status": "terbayar" },
             { "no_lampiran": "LMP-PAY-0042", "modul_lampiran": "transaksi_pembayaran", "jenis_lampiran": "bukti_bayar", "nama_file": "PAY-2026-0042.pdf", "status": "tersedia" }
           ],
           "histori_proses": [
             { "tanggal": "02 Jul 2026", "modul": "purchase_order_head", "status": "selesai", "catatan": "PO dibuat." },
-            { "tanggal": "15 Jul 2026", "modul": "penerimaan_barang", "status": "selesai", "catatan": "Barang diterima." },
-            { "tanggal": "15 Jul 2026", "modul": "retur_barang", "status": "selesai", "catatan": "1 pcs diretur." },
+            { "tanggal": "15 Jul 2026", "modul": "penerimaan_barang", "status": "selesai", "catatan": "9 pcs barang baik diterima." },
             { "tanggal": "15 Jul 2026", "modul": "transaksi_pembayaran", "status": "berhasil", "catatan": "Pembayaran selesai." }
           ]
         }

@@ -424,19 +424,24 @@
                   <tr>
                     <th>Barang</th>
                     <th>Vendor</th>
+                    <th>Budget</th>
                     <th>Harga (Rp)</th>
+                    <th>Ongkir</th>
+                    <th>Diskon</th>
                     <th>PPN</th>
                     <th>Harga Include PPN</th>
                     <th>Pembayaran</th>
+                    <th>Ket. Bayar</th>
+                    <th>Kategori Kirim</th>
                     <th>Pengiriman</th>
-                    <th>Lead Time</th>
+                    <th>Estimasi Datang</th>
                     <th>Barang Dipilih</th>
                     <th>Aksi</th>
                   </tr>
                 </thead>
                 <tbody id="quoteItemsTableBody">
                   <tr>
-                    <td colspan="10" class="empty-table-cell">Belum ada item penawaran.</td>
+                    <td colspan="15" class="empty-table-cell">Belum ada item penawaran.</td>
                   </tr>
                 </tbody>
               </table>
@@ -615,16 +620,32 @@
                   <input data-quote-field="vendorOneTime" name="vendor_sekali_pakai" type="text" placeholder="Nama toko / penyedia" />
                 </label>
                 <label>
-                  <span>Kontak / Catatan</span>
+                  <span>Catatan Vendor</span>
                   <input data-quote-field="vendorOneTimeNote" name="vendor_sekali_pakai_catatan" type="text" placeholder="Opsional" />
                 </label>
               </div>
             </div>
 
+            <label>
+              <span>UP / Kontak Person Penawaran</span>
+              <input data-quote-field="vendorUp" name="up" type="text" placeholder="Nama kontak person pada penawaran ini" />
+            </label>
+
             <div class="form-grid">
               <label>
                 <span>Harga (Rp)</span>
                 <input data-quote-field="unitPrice" name="harga_satuan" type="text" required placeholder="Rp0" />
+              </label>
+              <label>
+                <span>Ongkir</span>
+                <input data-quote-field="shippingCost" name="ongkir" type="text" placeholder="Rp0" />
+              </label>
+            </div>
+
+            <div class="form-grid">
+              <label>
+                <span>Diskon</span>
+                <input data-quote-field="discount" name="diskon" type="text" placeholder="Rp0" />
               </label>
               <label>
                 <span>Metode Pembayaran</span>
@@ -638,7 +659,20 @@
               </label>
             </div>
 
+            <label>
+              <span>Keterangan Metode Pembayaran</span>
+              <input data-quote-field="paymentNote" name="keterangan_pembayaran" type="text" placeholder="Transfer term 30 hari" />
+            </label>
+
             <div class="form-grid">
+              <label>
+                <span>Kategori Pengiriman</span>
+                <select data-quote-field="deliveryCategory" name="kategori_pengiriman" required>
+                  <option value="tidak_ada">tidak ada</option>
+                  <option value="loco">loco</option>
+                  <option value="franco">franco</option>
+                </select>
+              </label>
               <label>
                 <span>Pengiriman</span>
                 <select data-quote-field="delivery" name="pengiriman">
@@ -650,9 +684,12 @@
                   <option value="digital">digital</option>
                 </select>
               </label>
+            </div>
+
+            <div class="form-grid">
               <label>
-                <span>Lead Time</span>
-                <input data-quote-field="leadTime" name="lead_time" type="date" />
+                <span>Estimasi Datang</span>
+                <input data-quote-field="leadTime" name="lead_time" type="text" placeholder="3 hari" />
               </label>
             </div>
           </section>
@@ -702,13 +739,20 @@
               "itemName": "Kursi Kerja Ergonomis",
               "itemQty": "6",
               "itemUnit": "Pcs",
+              "itemCategory": "Furniture",
+              "itemBudget": "Rp7.500.000",
               "vendor": "PT Sarana Office",
+              "vendorUp": "Rizky Pratama",
               "unitPrice": "Rp1.191.667",
+              "shippingCost": "Rp250.000",
+              "discount": "Rp100.000",
               "taxIncluded": true,
               "tax": "hitung_ppn_11",
               "paymentMethod": "TOP-030",
+              "paymentNote": "Transfer term 30 hari",
+              "deliveryCategory": "franco",
               "delivery": "dikirim_vendor",
-              "leadTime": "2026-07-20",
+              "leadTime": "4 hari",
               "selected": true
             },
             {
@@ -716,13 +760,20 @@
               "itemName": "Kursi Kerja Ergonomis",
               "itemQty": "6",
               "itemUnit": "Pcs",
+              "itemCategory": "Furniture",
+              "itemBudget": "Rp7.500.000",
               "vendor": "PT Furni Jaya",
+              "vendorUp": "Dian Kartika",
               "unitPrice": "Rp1.246.667",
+              "shippingCost": "Rp0",
+              "discount": "Rp50.000",
               "taxIncluded": true,
               "tax": "hitung_ppn_11",
               "paymentMethod": "TOP-014",
+              "paymentNote": "Transfer term 14 hari",
+              "deliveryCategory": "loco",
               "delivery": "dikirim_vendor",
-              "leadTime": "2026-07-19",
+              "leadTime": "3 hari",
               "selected": false
             }
           ]
@@ -740,13 +791,20 @@
               "itemName": "Maintenance Jaringan Berkala",
               "itemQty": "1",
               "itemUnit": "Paket",
+              "itemCategory": "Jasa IT",
+              "itemBudget": "Rp45.000.000",
               "vendor": "PT Infra Solusi",
+              "vendorUp": "Dewi Anggraeni",
               "unitPrice": "Rp44.800.000",
+              "shippingCost": "Rp0",
+              "discount": "Rp0",
               "taxIncluded": true,
               "tax": "hitung_ppn_11",
               "paymentMethod": "TOP-030",
+              "paymentNote": "Transfer term 30 hari",
+              "deliveryCategory": "tidak_ada",
               "delivery": "onsite",
-              "leadTime": "2026-07-29",
+              "leadTime": "7 hari",
               "selected": true
             },
             {
@@ -754,13 +812,20 @@
               "itemName": "Maintenance Jaringan Berkala",
               "itemQty": "1",
               "itemUnit": "Paket",
+              "itemCategory": "Jasa IT",
+              "itemBudget": "Rp45.000.000",
               "vendor": "PT NetCare",
+              "vendorUp": "Hendra Saputra",
               "unitPrice": "Rp46.250.000",
+              "shippingCost": "Rp0",
+              "discount": "Rp500.000",
               "taxIncluded": true,
               "tax": "hitung_ppn_11",
               "paymentMethod": "TOP-014",
+              "paymentNote": "Transfer term 14 hari",
+              "deliveryCategory": "tidak_ada",
               "delivery": "onsite",
-              "leadTime": "2026-07-25",
+              "leadTime": "5 hari",
               "selected": false
             }
           ]
@@ -770,7 +835,8 @@
             "quoteCode": "PNW-2026-0033",
             "requestCode": "2026/PP/IT/07/0004",
             "need": "Access point dan switch cabang baru",
-            "status": "disetujui"
+            "status": "disetujui",
+            "generatedPo": "PO-2026-0188"
           },
           "quotes": [
             {
@@ -778,13 +844,20 @@
               "itemName": "Access Point Dual Band",
               "itemQty": "4",
               "itemUnit": "Unit",
+              "itemCategory": "Jaringan",
+              "itemBudget": "Rp28.000.000",
               "vendor": "PT NetCom",
+              "vendorUp": "Hendra Kurniawan",
               "unitPrice": "Rp32.600.000",
+              "shippingCost": "Rp350.000",
+              "discount": "Rp0",
               "taxIncluded": true,
               "tax": "hitung_ppn_11",
               "paymentMethod": "TOP-030",
+              "paymentNote": "Transfer term 30 hari",
+              "deliveryCategory": "franco",
               "delivery": "dikirim_vendor",
-              "leadTime": "2026-07-22",
+              "leadTime": "5 hari",
               "selected": true
             },
             {
@@ -792,13 +865,20 @@
               "itemName": "Access Point Dual Band",
               "itemQty": "4",
               "itemUnit": "Unit",
+              "itemCategory": "Jaringan",
+              "itemBudget": "Rp28.000.000",
               "vendor": "PT Jaringan Prima",
+              "vendorUp": "Nadia Rahma",
               "unitPrice": "Rp34.100.000",
+              "shippingCost": "Rp250.000",
+              "discount": "Rp300.000",
               "taxIncluded": true,
               "tax": "hitung_ppn_11",
               "paymentMethod": "TOP-030",
+              "paymentNote": "Transfer term 30 hari",
+              "deliveryCategory": "loco",
               "delivery": "dikirim_vendor",
-              "leadTime": "2026-07-21",
+              "leadTime": "4 hari",
               "selected": false
             },
             {
@@ -806,13 +886,20 @@
               "itemName": "Managed Switch 24 Port",
               "itemQty": "2",
               "itemUnit": "Unit",
+              "itemCategory": "Jaringan",
+              "itemBudget": "Rp7.000.000",
               "vendor": "PT NetCom",
+              "vendorUp": "Hendra Kurniawan",
               "unitPrice": "Rp3.300.000",
+              "shippingCost": "Rp0",
+              "discount": "Rp0",
               "taxIncluded": true,
               "tax": "hitung_ppn_11",
               "paymentMethod": "TOP-030",
+              "paymentNote": "Transfer term 30 hari",
+              "deliveryCategory": "franco",
               "delivery": "dikirim_vendor",
-              "leadTime": "2026-07-22",
+              "leadTime": "5 hari",
               "selected": true
             }
           ]

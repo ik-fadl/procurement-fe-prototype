@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Master Kategori Pembayaran - Procurement UI Prototype</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body
+    data-theme="light"
+    data-entity-singular="Kategori Pembayaran"
+    data-entity-plural="Master Kategori Pembayaran"
+    data-default-role="purchasing"
+    data-master-crud="kategori-pembayaran"
+  >
+    <div class="app-shell">
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+          <div class="brand-word">Procurement</div>
+          <button class="collapse-button" type="button" aria-label="Tutup sidebar">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M10 7.4 8.6 6 2.6 12l6 6 1.4-1.4L6.4 13H22v-2H6.4L10 7.4Z" />
+            </svg>
+          </button>
+        </div>
+        <nav class="sidebar-nav"></nav>
+      </aside>
+
+      <main class="main-panel">
+        <header class="topbar">
+          <div class="topbar-left">
+            <button class="icon-button mobile-only" id="sidebarToggle" type="button" aria-label="Buka sidebar">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 7h16v2H4V7Zm0 8h16v2H4v-2Zm0-4h16v2H4v-2Z" />
+              </svg>
+            </button>
+            <label class="search-shell" aria-label="Cari kategori pembayaran">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="m15.5 14 5 5-1.5 1.5-5-5v-.8l-.3-.3A6 6 0 1 1 15.5 14ZM10 14a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" />
+              </svg>
+              <input type="text" placeholder="Cari kode atau nama pembayaran" />
+            </label>
+          </div>
+          <div class="topbar-right">
+            <button class="theme-toggle" id="themeToggle" type="button" aria-label="Ganti tema">
+              <svg class="theme-icon theme-icon-sun" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12Zm0-16h1v3h-1V2Zm0 17h1v3h-1v-3ZM2 11h3v1H2v-1Zm17 0h3v1h-3v-1Z" />
+              </svg>
+              <svg class="theme-icon theme-icon-moon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M14.7 2.2A8.8 8.8 0 1 0 21.8 15 7.4 7.4 0 0 1 14.7 2.2Z" />
+              </svg>
+            </button>
+            <button class="avatar-button" type="button" aria-label="Profil"><span class="avatar-photo">IF</span></button>
+          </div>
+        </header>
+
+        <section class="page-head">
+          <div>
+            <p class="eyebrow">MASTER</p>
+            <h2>Kategori Pembayaran</h2>
+          </div>
+          <div class="page-actions">
+            <button class="primary-button" id="openCreateModal" type="button">Tambah Kategori</button>
+          </div>
+        </section>
+
+        <section class="panel panel-table">
+          <div class="panel-head">
+            <div><h3>Daftar Kategori Pembayaran</h3></div>
+            <div class="toolbar"><span class="filter-chip">DBML: kategori_pembayaran</span></div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Kode Pembayaran</th>
+                  <th>Nama Pembayaran</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>TOP-014</td>
+                  <td>Termin 14 Hari</td>
+                  <td>
+                    <button class="table-action" type="button" data-edit="true" data-kode-pembayaran="TOP-014" data-nama-pembayaran="Termin 14 Hari">Edit</button>
+                  </td>
+                </tr>
+                <tr>
+                  <td>TOP-030</td>
+                  <td>Termin 30 Hari</td>
+                  <td>
+                    <button class="table-action" type="button" data-edit="true" data-kode-pembayaran="TOP-030" data-nama-pembayaran="Termin 30 Hari">Edit</button>
+                  </td>
+                </tr>
+                <tr>
+                  <td>COD</td>
+                  <td>Bayar Saat Terima</td>
+                  <td>
+                    <button class="table-action" type="button" data-edit="true" data-kode-pembayaran="COD" data-nama-pembayaran="Bayar Saat Terima">Edit</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div class="modal-backdrop" id="modalBackdrop" hidden aria-hidden="true">
+      <div class="modal-card modal-card-content-fit" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="modalTitle">
+        <div class="modal-head">
+          <div>
+            <p class="eyebrow" id="modalKicker">Tambah</p>
+            <h3 id="modalTitle">Tambah Kategori Pembayaran</h3>
+          </div>
+          <button class="icon-button tiny" id="closeModal" type="button" aria-label="Tutup modal">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m18.3 5.7-1-1L12 10 6.7 4.7l-1 1L11 11l-5.3 5.3 1 1L12 12l5.3 5.3 1-1L13 11l5.3-5.3Z" />
+            </svg>
+          </button>
+        </div>
+        <form class="modal-form" id="requestForm">
+          <section class="form-section">
+            <div class="form-grid">
+              <label>
+                <span>Kode Pembayaran</span>
+                <input data-field="kodePembayaran" data-primary-field name="kodePembayaran" type="text" placeholder="TOP-007" required />
+              </label>
+              <label>
+                <span>Nama Pembayaran</span>
+                <input data-field="namaPembayaran" name="namaPembayaran" type="text" placeholder="Termin 7 Hari" required />
+              </label>
+            </div>
+          </section>
+          <div class="modal-actions">
+            <button class="secondary-button" id="cancelModal" type="button">Batal</button>
+            <button class="primary-button" type="submit">Simpan</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="inline-alert" id="inlineAlert" hidden>
+      <div class="inline-alert-icon"></div>
+      <div><strong id="inlineAlertTitle">Status</strong><p id="inlineAlertText">Detail</p></div>
+      <button class="icon-button tiny" id="dismissAlert" type="button" aria-label="Tutup alert">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="m18.3 5.7-1-1L12 10 6.7 4.7l-1 1L11 11l-5.3 5.3 1 1L12 12l5.3 5.3 1-1L13 11l5.3-5.3Z" />
+        </svg>
+      </button>
+    </div>
+    <script src="./script.js"></script>
+  </body>
+</html>
