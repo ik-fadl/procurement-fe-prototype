@@ -101,6 +101,16 @@ const serviceItemTitle = document.getElementById("serviceItemTitle");
 const serviceItemKicker = document.getElementById("serviceItemKicker");
 const saveServiceItemButton = document.getElementById("saveServiceItemButton");
 const serviceItemsTableBody = document.getElementById("serviceItemsTableBody");
+const serviceActivityBackdrop = document.getElementById("serviceActivityBackdrop");
+const serviceActivityCard = serviceActivityBackdrop?.querySelector(".modal-card");
+const serviceActivityForm = document.getElementById("serviceActivityForm");
+const openServiceActivityModalButton = document.getElementById("openServiceActivityModal");
+const closeServiceActivityModal = document.getElementById("closeServiceActivityModal");
+const cancelServiceActivityModal = document.getElementById("cancelServiceActivityModal");
+const serviceActivityTitle = document.getElementById("serviceActivityTitle");
+const serviceActivityKicker = document.getElementById("serviceActivityKicker");
+const saveServiceActivityButton = document.getElementById("saveServiceActivityButton");
+const serviceActivityTableBody = document.getElementById("serviceActivityTableBody");
 const quoteItemBackdrop = document.getElementById("quoteItemBackdrop");
 const quoteItemCard = quoteItemBackdrop?.querySelector(".modal-card");
 const quoteItemForm = document.getElementById("quoteItemForm");
@@ -189,6 +199,7 @@ const closeQuickItemModal = document.getElementById("closeQuickItemModal");
 const cancelQuickItemModal = document.getElementById("cancelQuickItemModal");
 
 const detailRecords = parseJsonNode(detailRecordsDataNode, {});
+const generatedPoStorageKey = "procurement-generated-po-records";
 const masterItemsDataNode = document.getElementById("masterItemsData");
 let masterItems = parseJsonNode(masterItemsDataNode, []);
 let quoteMasterVendors = [
@@ -260,6 +271,10 @@ let draftRequestItems = [];
 let draftItemEditIndex = -1;
 let draftServiceItems = [];
 let serviceItemEditIndex = -1;
+let draftServiceActivities = [];
+let serviceActivityEditIndex = -1;
+let activeServiceLogRecordCode = "";
+let serviceLogStatusDrafts = {};
 let draftQuoteItems = [];
 let quoteItemEditIndex = -1;
 let activeDetailCode = "";
@@ -317,9 +332,11 @@ const roleAccessDefaults = {
     "penerimaan.manage",
     "retur.view",
     "retur.manage",
+    "jasa.view",
+    "jasa.manage",
     "report.view"
   ],
-  kepala_purchasing: ["dashboard.view", "pengajuan.view", "procurement.view", "procurement.approve", "report.view"],
+  kepala_purchasing: ["dashboard.view", "pengajuan.view", "procurement.view", "procurement.approve", "jasa.view", "report.view"],
   finance: ["dashboard.view", "payment.view", "payment.manage", "expense.manage", "report.view"],
   kasir: ["dashboard.view", "payment.view", "payment.manage", "expense.manage", "report.view"],
   kepala_finance: ["dashboard.view", "payment.view", "payment.manage", "payment.approve", "expense.manage", "report.view"],
@@ -417,9 +434,9 @@ const navModules = [
     title: "Jasa",
     access: "jasa.view",
     icon: "M4 6h16v12H4V6Zm3 3h10v2H7V9Zm0 4h7v2H7v-2Z",
-    roles: ["admin", "pemohon", "purchasing"],
+    roles: ["admin", "pemohon", "purchasing", "kepala_purchasing"],
     items: [
-      { label: "Monitoring", href: "", roles: ["admin", "pemohon", "purchasing"] }
+      { label: "Monitoring", href: "./monitor-jasa.html", roles: ["admin", "pemohon", "purchasing", "kepala_purchasing"] }
     ]
   },
   {
@@ -523,6 +540,8 @@ openCreateModal?.addEventListener("click", () => {
   setCreateMode();
   openManagedModal(createModalBackdrop, createModalCard, primaryField);
 });
+
+hydrateGeneratedPoRecords();
 
 document.querySelectorAll("[data-edit='true']").forEach((button) => {
   button.addEventListener("click", () => {
@@ -670,6 +689,19 @@ detailModalCard?.addEventListener("click", (event) => {
     return;
   }
 
+  const serviceLogButton = event.target.closest("[data-service-log-create]");
+  if (serviceLogButton && detailViewType === "monitor-jasa") {
+    activeServiceLogRecordCode = serviceLogButton.dataset.serviceLogCreate || activeDetailCode || "";
+    openServiceActivityDialog();
+    return;
+  }
+
+  const serviceLogSubmitButton = event.target.closest("[data-service-log-submit]");
+  if (serviceLogSubmitButton && detailViewType === "monitor-jasa") {
+    submitServiceLogChanges(serviceLogSubmitButton.dataset.serviceLogSubmit || activeDetailCode || "");
+    return;
+  }
+
   const approvalButton = event.target.closest("[data-approval-action]");
   if (!approvalButton) {
     return;
@@ -690,11 +722,28 @@ detailModalCard?.addEventListener("click", (event) => {
     return;
   }
 
+  if (detailViewType === "monitor-jasa") {
+    handleServiceWorkflowAction(approvalButton.dataset.approvalAction, approvalButton.dataset.approvalCode);
+    return;
+  }
+
   if (detailViewType === "retur-barang") {
     handleReturApprovalAction(approvalButton.dataset.approvalAction, approvalButton.dataset.approvalCode);
     return;
   }
 
+});
+
+detailModalCard?.addEventListener("change", (event) => {
+  const serviceLogStatusField = event.target.closest("[data-service-log-status]");
+  if (serviceLogStatusField && detailViewType === "monitor-jasa") {
+    stageServiceLogStatus(
+      serviceLogStatusField.dataset.serviceLogRecord || activeDetailCode || "",
+      Number(serviceLogStatusField.dataset.serviceLogStatus),
+      serviceLogStatusField.value,
+      serviceLogStatusField
+    );
+  }
 });
 
 itemPickerBackdrop?.addEventListener("click", (event) => {
@@ -712,6 +761,12 @@ draftItemBackdrop?.addEventListener("click", (event) => {
 serviceItemBackdrop?.addEventListener("click", (event) => {
   if (event.target === serviceItemBackdrop) {
     closeServiceItemDialog();
+  }
+});
+
+serviceActivityBackdrop?.addEventListener("click", (event) => {
+  if (event.target === serviceActivityBackdrop) {
+    closeServiceActivityDialog();
   }
 });
 
@@ -961,6 +1016,31 @@ serviceItemForm?.addEventListener("submit", (event) => {
 
 closeServiceItemModal?.addEventListener("click", closeServiceItemDialog);
 cancelServiceItemModal?.addEventListener("click", closeServiceItemDialog);
+
+openServiceActivityModalButton?.addEventListener("click", () => {
+  openServiceActivityDialog();
+});
+
+serviceActivityTableBody?.addEventListener("click", (event) => {
+  const editButton = event.target.closest("[data-edit-service-activity]");
+  if (editButton) {
+    openServiceActivityDialog(Number(editButton.dataset.editServiceActivity));
+    return;
+  }
+
+  const deleteButton = event.target.closest("[data-remove-service-activity]");
+  if (deleteButton) {
+    removeServiceActivity(Number(deleteButton.dataset.removeServiceActivity));
+  }
+});
+
+serviceActivityForm?.addEventListener("submit", (event) => {
+  event.preventDefault();
+  saveServiceActivity();
+});
+
+closeServiceActivityModal?.addEventListener("click", closeServiceActivityDialog);
+cancelServiceActivityModal?.addEventListener("click", closeServiceActivityDialog);
 
 openQuoteItemModalButton?.addEventListener("click", () => {
   if (detailViewType === "procurement-penawaran" && !String(getField("requestCode")?.value || "").trim()) {
@@ -1766,13 +1846,18 @@ function canCreateInCurrentContext() {
     detailViewType === "procurement-pembelian" ||
     detailViewType === "procurement-penawaran" ||
     detailViewType === "penerimaan-barang" ||
-    detailViewType === "retur-barang"
+    detailViewType === "retur-barang" ||
+    detailViewType === "monitor-jasa"
   ) {
     if (detailViewType === "penerimaan-barang") {
       return hasAccess("penerimaan.manage");
     }
 
     if (detailViewType === "retur-barang") {
+      return false;
+    }
+
+    if (detailViewType === "monitor-jasa") {
       return false;
     }
 
@@ -1847,6 +1932,8 @@ function setCreateMode() {
   draftItemEditIndex = -1;
   draftServiceItems = [];
   serviceItemEditIndex = -1;
+  draftServiceActivities = [];
+  serviceActivityEditIndex = -1;
   draftQuoteItems = [];
   quoteItemEditIndex = -1;
   selectedRequestNeed = "";
@@ -1868,6 +1955,7 @@ function setCreateMode() {
   applyCreateDefaults();
   renderDraftItems();
   renderServiceItems();
+  renderServiceActivities();
   renderQuoteItems();
   renderPoItems();
   renderReceiptItems();
@@ -1918,6 +2006,7 @@ function canEditPendingRecord(record) {
     "procurement-pembelian": ["menunggu_persetujuan_purchasing"],
     "procurement-penawaran": ["menunggu_persetujuan_purchasing"],
     "procurement-po": ["menunggu_persetujuan_purchasing"],
+    "monitor-jasa": [],
     "penerimaan-barang": [],
     "retur-barang": []
   };
@@ -1934,6 +2023,7 @@ function canEditPendingRecord(record) {
     detailViewType === "procurement-pembelian" ||
     detailViewType === "procurement-penawaran" ||
     detailViewType === "procurement-po" ||
+    detailViewType === "monitor-jasa" ||
     detailViewType === "penerimaan-barang"
   ) {
     if (detailViewType === "penerimaan-barang") {
@@ -1942,6 +2032,10 @@ function canEditPendingRecord(record) {
 
     if (detailViewType === "retur-barang") {
       return hasAccess("retur.manage");
+    }
+
+    if (detailViewType === "monitor-jasa") {
+      return hasAccess("jasa.manage");
     }
 
     return hasAccess("procurement.manage");
@@ -1973,6 +2067,8 @@ function prepareCreateModalForEdit(record, code) {
   draftItemEditIndex = -1;
   draftServiceItems = [];
   serviceItemEditIndex = -1;
+  draftServiceActivities = [];
+  serviceActivityEditIndex = -1;
   draftQuoteItems = [];
   quoteItemEditIndex = -1;
   selectedRequestNeed = "";
@@ -1998,6 +2094,7 @@ function prepareCreateModalForEdit(record, code) {
   fillDraftEditForm(record, code);
   renderDraftItems();
   renderServiceItems();
+  renderServiceActivities();
   renderQuoteItems();
   renderPoItems();
   renderReceiptItems();
@@ -2072,6 +2169,15 @@ function fillDraftEditForm(record, code) {
       status: item.status || getReceiptItemStatus(item)
     }));
     renderReceiptItems();
+    return;
+  }
+
+  if (detailViewType === "monitor-jasa") {
+    setFieldValue(getField("code"), header.code || code);
+    setFieldValue(getField("requestCode"), header.requestCode || "");
+    setFieldValue(getField("serviceDate"), header.serviceDate || formatDateDisplay(new Date()));
+    draftServiceActivities = (record.activities || []).map((item) => ({ ...item }));
+    renderServiceActivities();
   }
 }
 
@@ -2295,9 +2401,6 @@ function getRequestDetailItems(requestCode) {
     "2026/PP/GA/07/0016": [
       { code: "BRG-0021", name: "Kursi Kerja Ergonomis", category: "Furniture", qty: "6", unit: "Pcs", budget: "Rp7.500.000" }
     ],
-    "2026/PP/PUR/07/0009": [
-      { code: "JASA-0009", name: "Maintenance Jaringan Berkala", category: "Jasa IT", qty: "1", unit: "Paket", budget: "Rp45.000.000" }
-    ],
     "2026/PP/IT/07/0004": [
       { code: "BRG-0044", name: "Access Point Dual Band", category: "Jaringan", qty: "4", unit: "Unit", budget: "Rp28.000.000" },
       { code: "BRG-0045", name: "Managed Switch 24 Port", category: "Jaringan", qty: "2", unit: "Unit", budget: "Rp7.000.000" }
@@ -2308,6 +2411,34 @@ function getRequestDetailItems(requestCode) {
   };
 
   return detailMap[requestCode] || [];
+}
+
+function getServiceRequestReference(requestCode) {
+  const references = {
+    "2026/PP/PUR/07/0014": {
+      requestCode: "2026/PP/PUR/07/0014",
+      division: "PUR",
+      date: "09 Jul 2026",
+      need: "Instalasi ulang jaringan cabang dan konfigurasi access point.",
+      budget: "Rp28.500.000"
+    },
+    "2026/PP/PUR/07/0009": {
+      requestCode: "2026/PP/PUR/07/0009",
+      division: "PUR",
+      date: "06 Jul 2026",
+      need: "Maintenance jaringan berkala.",
+      budget: "Rp45.000.000"
+    },
+    "2026/PP/GA/07/0022": {
+      requestCode: "2026/PP/GA/07/0022",
+      division: "GA",
+      date: "13 Jul 2026",
+      need: "Perbaikan AC area produksi.",
+      budget: "Rp18.000.000"
+    }
+  };
+
+  return references[requestCode] || null;
 }
 
 function filterPoRequestPicker(query = "") {
@@ -2332,53 +2463,76 @@ function filterPoRequestPicker(query = "") {
 
 function getPoOffersForRequest(row) {
   const offerCode = row.dataset.selectPoOfferSource || "";
-  const baseOffer = {
-    quoteCode: offerCode,
-    requestCode: row.dataset.requestCode || "",
-    vendor: row.dataset.vendor || "",
-    price: row.dataset.price || "",
-    delivery: row.dataset.delivery || "-",
-    leadTime: row.dataset.leadTime || "-",
-    note: "Dari penawaran yang sudah disetujui."
-  };
 
   const offerMap = {
     "PNW-2026-0033": [
-      baseOffer,
       {
         quoteCode: "PNW-2026-0033",
-        requestCode: row.dataset.requestCode || "",
+        requestCode: "2026/PP/IT/07/0004",
+        itemName: "Access Point Dual Band",
+        qty: "4",
+        unit: "Unit",
         vendor: "PT NetCom",
-        price: "Rp3.663.000",
+        paymentMethod: "TOP-030",
+        unitPrice: "Rp36.574.500",
+        totalPrice: "Rp36.574.500",
+        subtotal: "Rp36.574.500",
+        delivery: "dikirim_vendor",
+        leadTime: "5 hari",
+        note: "Data barang terpilih dari penawaran yang sudah disetujui."
+      },
+      {
+        quoteCode: "PNW-2026-0033",
+        requestCode: "2026/PP/IT/07/0004",
+        itemName: "Managed Switch 24 Port",
+        qty: "2",
+        unit: "Unit",
+        vendor: "PT NetCom",
+        paymentMethod: "TOP-030",
+        unitPrice: "Rp3.663.000",
+        totalPrice: "Rp3.663.000",
+        subtotal: "Rp3.663.000",
         delivery: "dikirim_vendor",
         leadTime: "5 hari",
         note: "Data barang terpilih dari penawaran yang sudah disetujui."
       }
     ],
     "PNW-2026-0041": [
-      baseOffer,
       {
-        quoteCode: "PNW-2026-0042",
-        requestCode: row.dataset.requestCode || "",
-        vendor: "PT Office Hub",
-        price: "Rp7.450.000",
+        quoteCode: "PNW-2026-0041",
+        requestCode: "2026/PP/GA/07/0016",
+        itemName: "Kursi Kerja Ergonomis",
+        qty: "6",
+        unit: "Pcs",
+        vendor: "PT Sarana Office",
+        paymentMethod: "TOP-014",
+        unitPrice: "Rp1.191.667",
+        totalPrice: "Rp7.150.000",
+        subtotal: "Rp7.150.000",
         delivery: "dikirim_vendor",
         leadTime: "4 hari",
-        note: "Data barang terpilih dari penawaran yang sudah disetujui."
-      },
-      {
-        quoteCode: "PNW-2026-0043",
-        requestCode: row.dataset.requestCode || "",
-        vendor: "CV Karya Interior",
-        price: "Rp7.300.000",
-        delivery: "diambil",
-        leadTime: "3 hari",
         note: "Data barang terpilih dari penawaran yang sudah disetujui."
       }
     ]
   };
 
-  return offerMap[offerCode] || [baseOffer];
+  return offerMap[offerCode] || [
+    {
+      quoteCode: offerCode,
+      requestCode: row.dataset.requestCode || "",
+      itemName: "-",
+      qty: "1",
+      unit: "Unit",
+      vendor: row.dataset.vendor || "",
+      paymentMethod: "-",
+      unitPrice: row.dataset.price || "",
+      totalPrice: row.dataset.price || "",
+      subtotal: row.dataset.price || "",
+      delivery: row.dataset.delivery || "-",
+      leadTime: row.dataset.leadTime || "-",
+      note: "Dari penawaran yang sudah disetujui."
+    }
+  ];
 }
 
 function getSelectedPoOffers() {
@@ -2415,11 +2569,111 @@ function getSelectedPoOffers() {
       unit: "Pcs",
       vendor: "PT Sarana Office",
       paymentMethod: "TOP-014",
-      totalPrice: "Rp1.191.667",
-      subtotal: "Rp7.150.002",
+      totalPrice: "Rp7.150.000",
+      subtotal: "Rp7.150.000",
       note: "Penawaran berstatus terpilih."
     }
   ];
+}
+
+function getStoredGeneratedPoRecords() {
+  try {
+    const stored = JSON.parse(localStorage.getItem(generatedPoStorageKey) || "{}");
+    return stored && typeof stored === "object" ? stored : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveGeneratedPoRecord(record) {
+  const code = record?.header?.code;
+  if (!code) {
+    return;
+  }
+
+  const records = getStoredGeneratedPoRecords();
+  records[code] = record;
+  localStorage.setItem(generatedPoStorageKey, JSON.stringify(records));
+}
+
+function hydrateGeneratedPoRecords() {
+  if (detailViewType !== "procurement-po") {
+    return;
+  }
+
+  Object.entries(getStoredGeneratedPoRecords()).forEach(([code, record]) => {
+    if (!code || detailRecords[code]) {
+      return;
+    }
+
+    detailRecords[code] = record;
+    prependProcurementPORow(record);
+  });
+}
+
+function getNextGeneratedPoReference() {
+  const year = String(new Date().getFullYear());
+  const matcher = new RegExp(`^PO-${year}-(\\d+)$`, "i");
+  const poCodes = [
+    ...Object.keys(detailRecords),
+    ...Object.values(detailRecords).map((record) => record.header?.generatedPo),
+    ...Object.keys(getStoredGeneratedPoRecords())
+  ];
+  const nextNumber =
+    poCodes
+      .map((code) => {
+        const matched = String(code || "").match(matcher);
+        return matched ? Number(matched[1]) : NaN;
+      })
+      .filter((value) => Number.isFinite(value))
+      .reduce((max, value) => Math.max(max, value), 0) + 1;
+
+  return `PO-${year}-${String(nextNumber).padStart(4, "0")}`;
+}
+
+function buildGeneratedPoFromPenawaran(record) {
+  const selectedQuotes = (record.quotes || []).filter((quote) => quote.selected);
+  const code = record.header.generatedPo || getNextGeneratedPoReference();
+  const vendors = Array.from(new Set(selectedQuotes.map((quote) => quote.vendor).filter(Boolean)));
+  const vendorUps = Array.from(new Set(selectedQuotes.map((quote) => quote.vendorUp).filter(Boolean)));
+  return {
+    header: {
+      code,
+      offerCode: record.header.quoteCode || "-",
+      requestCode: record.header.requestCode || "-",
+      vendor: vendors.join(", ") || "-",
+      vendorUp: vendorUps.join(", ") || "-",
+      poDate: formatDateDisplay(new Date()),
+      status: "disetujui",
+      notes: `Dibuat otomatis dari penawaran ${record.header.quoteCode || "-"} yang disetujui Kepala Purchasing.`
+    },
+    items: selectedQuotes.map((quote) => ({
+      quoteCode: record.header.quoteCode || "-",
+      requestCode: record.header.requestCode || "-",
+      itemCode: quote.itemCode || "",
+      itemName: quote.itemName || "-",
+      qty: quote.itemQty || quote.qty || "1",
+      originalQty: quote.itemQty || quote.qty || "1",
+      unit: quote.itemUnit || quote.unit || "-",
+      itemCategory: quote.itemCategory || "-",
+      itemBudget: quote.itemBudget || "-",
+      vendor: quote.vendor || "-",
+      vendorUp: quote.vendorUp || "-",
+      unitPrice: quote.unitPrice || "Rp0",
+      shippingCost: quote.shippingCost || "Rp0",
+      discount: quote.discount || "Rp0",
+      taxIncluded: Boolean(quote.taxIncluded),
+      tax: quote.tax || "-",
+      paymentMethod: quote.paymentMethod || "-",
+      paymentNote: quote.paymentNote || "-",
+      deliveryCategory: quote.deliveryCategory || "tidak_ada",
+      delivery: quote.delivery || "-",
+      leadTime: quote.leadTime || "-",
+      totalPrice: getQuoteLineTotal(quote),
+      subtotal: getQuoteLineTotal(quote),
+      note: "Snapshot dari penawaran vendor terpilih."
+    }))
+  };
 }
 
 function getReceivablePoSources() {
@@ -3147,7 +3401,9 @@ function handlePenawaranApprovalAction(action, code) {
       ...quote,
       status: quote.selected ? "disetujui" : "ditolak"
     }));
-    record.header.generatedPo = record.header.generatedPo || getNextWorkflowReference("PO");
+    const generatedPo = buildGeneratedPoFromPenawaran(record);
+    record.header.generatedPo = generatedPo.header.code;
+    saveGeneratedPoRecord(generatedPo);
     showPenawaranActionResult(code, "Penawaran disetujui", `PO ${record.header.generatedPo} dibuat otomatis dari penawaran terpilih.`);
     return;
   }
@@ -3211,6 +3467,36 @@ function canRunPoAction(action, status) {
 }
 
 function showPoActionResult(code, title, message) {
+  const record = detailRecords[code];
+  updateRequestRowStatus(code, record.header.status);
+  renderDetailModal(record, code);
+  showAlert("success", title, message);
+}
+
+function handleServiceWorkflowAction(action, code) {
+  if (detailViewType !== "monitor-jasa" || !code) {
+    return;
+  }
+
+  const record = detailRecords[code];
+  if (!record || !hasAccess("jasa.manage")) {
+    showAlert("warning", "Akses dibatasi", `${getActiveRoleLabel()} tidak dapat menjalankan aksi ini.`);
+    return;
+  }
+
+  if (action === "finish_service" && record.header.status === "berjalan") {
+    applyServiceLogStatusDrafts(code);
+    record.activities = (record.activities || []).map((item) => ({
+      ...item,
+      status: "selesai"
+    }));
+    record.header.status = "selesai";
+    delete serviceLogStatusDrafts[code];
+    showServiceWorkflowResult(code, "Jasa selesai", `${code} siap diproses finance.`);
+  }
+}
+
+function showServiceWorkflowResult(code, title, message) {
   const record = detailRecords[code];
   updateRequestRowStatus(code, record.header.status);
   renderDetailModal(record, code);
@@ -3387,6 +3673,7 @@ function prependProcurementPenawaranRow(record) {
   const { header } = record;
   const quotes = record.quotes || [];
   const bestQuote = quotes[0] || {};
+  const selectedTotal = getSelectedQuoteTotal(quotes);
   const row = document.createElement("tr");
   row.className = "master-slave-row is-active";
   row.innerHTML = `
@@ -3394,7 +3681,7 @@ function prependProcurementPenawaranRow(record) {
     <td>${escapeHtml(header.requestCode)}</td>
     <td>${escapeHtml(header.need)}</td>
     <td>${escapeHtml(getQuoteSummary(quotes))}</td>
-    <td>${escapeHtml(bestQuote.unitPrice ? getQuotePriceIncludePpn(bestQuote) : "-")}</td>
+    <td>${escapeHtml(selectedTotal || (bestQuote.unitPrice ? getQuotePriceIncludePpn(bestQuote) : "-"))}</td>
     <td><span class="status-chip ${getStatusChipClass(header.status)}">${escapeHtml(header.status)}</span></td>
     <td>
       <button class="table-action" type="button" data-detail="true" data-code="${escapeHtml(header.requestCode)}" data-status="${escapeHtml(header.status)}">
@@ -3437,6 +3724,58 @@ function prependProcurementPORow(record) {
 
   mainTableBody.prepend(row);
   registerDetailButton(row.querySelector("[data-detail='true']"));
+}
+
+function prependServiceMonitorRow(record) {
+  if (!mainTableBody) {
+    return;
+  }
+
+  mainTableBody.querySelectorAll(".master-slave-row").forEach((row) => {
+    row.classList.remove("is-active");
+  });
+
+  const { header } = record;
+  const request = record.request || getServiceRequestReference(header.requestCode) || {};
+  const row = document.createElement("tr");
+  row.className = "master-slave-row is-active";
+  row.innerHTML = `
+    <td>${escapeHtml(header.code)}</td>
+    <td>${escapeHtml(header.requestCode || "-")}</td>
+    <td>${escapeHtml(header.division || request.division || "-")}</td>
+    <td>${escapeHtml(request.need || "-")}</td>
+    <td>${escapeHtml(record.activities?.length || 0)} log</td>
+    <td><span class="status-chip ${getStatusChipClass(header.status)}">${escapeHtml(header.status)}</span></td>
+    <td>
+      <button class="table-action" type="button" data-detail="true" data-code="${escapeHtml(header.code)}" data-status="${escapeHtml(header.status)}">
+        View
+      </button>
+    </td>
+  `;
+
+  mainTableBody.prepend(row);
+  registerDetailButton(row.querySelector("[data-detail='true']"));
+}
+
+function updateServiceMonitorRow(code, record) {
+  const button = Array.from(mainTableBody?.querySelectorAll("[data-detail='true']") || []).find(
+    (candidate) => candidate.dataset.code === code
+  );
+  const row = button?.closest("tr");
+  if (!row) {
+    return;
+  }
+
+  const cells = row.querySelectorAll("td");
+  if (cells[4]) {
+    cells[4].textContent = `${record.activities?.length || 0} log`;
+  }
+  if (cells[5]) {
+    cells[5].innerHTML = `<span class="status-chip ${getStatusChipClass(record.header.status)}">${escapeHtml(record.header.status)}</span>`;
+  }
+  if (button) {
+    button.dataset.status = record.header.status || "";
+  }
 }
 
 function prependPenerimaanBarangRow(record) {
@@ -3817,6 +4156,8 @@ function openManagedModal(backdrop, card, focusTarget) {
     return;
   }
 
+  const stackIndex = getOpenModalCount();
+  backdrop.style.zIndex = String(30 + stackIndex * 10);
   backdrop.hidden = false;
   backdrop.setAttribute("aria-hidden", "false");
   card.setAttribute("aria-hidden", "false");
@@ -3832,6 +4173,7 @@ function closeManagedModal(backdrop, card, form, options = {}) {
   }
 
   backdrop.hidden = true;
+  backdrop.style.zIndex = "";
   backdrop.setAttribute("aria-hidden", "true");
   card.setAttribute("aria-hidden", "true");
 
@@ -3844,6 +4186,10 @@ function closeManagedModal(backdrop, card, form, options = {}) {
   }
 }
 
+function getOpenModalCount() {
+  return getKnownModalBackdrops().filter((backdrop) => backdrop && !backdrop.hidden).length;
+}
+
 function closeAllModals(options = {}) {
   selectedPoOfferIndexes = new Set();
   selectedReceiptItemKeys = new Set();
@@ -3851,6 +4197,7 @@ function closeAllModals(options = {}) {
   closeManagedModal(detailModalBackdrop, detailModalCard, null, { resetForm: false });
   closeManagedModal(draftItemBackdrop, draftItemCard, draftItemForm, options);
   closeManagedModal(serviceItemBackdrop, serviceItemCard, serviceItemForm, options);
+  closeManagedModal(serviceActivityBackdrop, serviceActivityCard, serviceActivityForm, options);
   closeManagedModal(quoteItemBackdrop, quoteItemCard, quoteItemForm, options);
   closeManagedModal(requestPickerBackdrop, requestPickerCard, null, { resetForm: false });
   closeManagedModal(poRequestPickerBackdrop, poRequestPickerCard, null, { resetForm: false });
@@ -3867,11 +4214,16 @@ function closeAllModals(options = {}) {
 }
 
 function areAllModalsClosed() {
+  return getKnownModalBackdrops().every((backdrop) => !backdrop || backdrop.hidden);
+}
+
+function getKnownModalBackdrops() {
   return [
     createModalBackdrop,
     detailModalBackdrop,
     draftItemBackdrop,
     serviceItemBackdrop,
+    serviceActivityBackdrop,
     quoteItemBackdrop,
     requestPickerBackdrop,
     poRequestPickerBackdrop,
@@ -3885,7 +4237,7 @@ function areAllModalsClosed() {
     quickItemBackdrop,
     roleAccessBackdrop,
     userModalBackdrop
-  ].every((backdrop) => !backdrop || backdrop.hidden);
+  ];
 }
 
 function isModalOpen(backdrop) {
@@ -3997,6 +4349,12 @@ function renderDetailModal(record, code) {
   if (detailViewType === "procurement-po") {
     detailModalBody.innerHTML = buildProcurementPOMarkup(record);
     renderPoApprovalActions(record);
+    return;
+  }
+
+  if (detailViewType === "monitor-jasa") {
+    detailModalBody.innerHTML = buildServiceMonitorMarkup(record);
+    renderServiceWorkflowActions(record);
     return;
   }
 
@@ -4541,6 +4899,74 @@ function getPoApprovalSteps(record) {
   ];
 }
 
+function renderServiceWorkflowActions(record) {
+  if (!detailStatusActions) {
+    return;
+  }
+
+  const status = String(record?.header?.status || "");
+  const actions = getServiceWorkflowActions(status);
+  const code = record?.header?.code || activeDetailCode || "";
+  const submitAction = hasAccess("jasa.manage") && status === "berjalan"
+    ? `<button class="primary-button" type="button" data-service-log-submit="${escapeHtml(code)}">Update</button>`
+    : "";
+  const logAction = hasAccess("jasa.manage") && status === "berjalan"
+    ? `<button class="secondary-button" type="button" data-service-log-create="${escapeHtml(code)}">Tambah Log</button>`
+    : "";
+  detailStatusActions.innerHTML = [
+    logAction,
+    submitAction,
+    ...actions.map(
+      (action) => `
+        <button
+          class="${escapeHtml(action.variant)}"
+          type="button"
+          data-approval-action="${escapeHtml(action.action)}"
+          data-approval-code="${escapeHtml(code)}"
+        >
+          ${escapeHtml(action.label)}
+        </button>
+      `
+    )
+  ].join("");
+}
+
+function getServiceWorkflowActions(status) {
+  const allActions = {
+    berjalan: [
+      { action: "finish_service", label: "Selesaikan Pengerjaan", variant: "secondary-button neutral-button" }
+    ]
+  };
+
+  return (allActions[status] || []).filter(() => hasAccess("jasa.manage"));
+}
+
+function getServiceWorkflowSteps(record) {
+  const status = String(record?.header?.status || "");
+
+  if (status === "berjalan") {
+    return [
+      { kind: "success", title: "Approval", text: "Selesai" },
+      { kind: "warning", title: "Pengerjaan", text: "Berjalan" },
+      { kind: "", title: "Finance", text: "-" }
+    ];
+  }
+
+  if (status === "selesai") {
+    return [
+      { kind: "success", title: "Approval", text: "Selesai" },
+      { kind: "success", title: "Pengerjaan", text: "Selesai" },
+      { kind: "success", title: "Finance", text: "Proses" }
+    ];
+  }
+
+  return [
+    { kind: "success", title: "Approval", text: "Selesai" },
+    { kind: "review", title: "Pengerjaan", text: status || "-" },
+    { kind: "", title: "Finance", text: "-" }
+  ];
+}
+
 function renderReturApprovalActions(record) {
   if (!detailStatusActions) {
     return;
@@ -4973,6 +5399,260 @@ function renderServiceItems() {
     .join("");
 }
 
+function getServiceActivityField(name) {
+  return serviceActivityForm?.querySelector(`[data-service-activity-field="${name}"]`);
+}
+
+function getServiceActivityPhoto(item = {}) {
+  return item.activityPhoto || item.output || "-";
+}
+
+function openServiceActivityDialog(index = -1) {
+  serviceActivityEditIndex = Number.isInteger(index) ? index : -1;
+  serviceActivityForm?.reset();
+  const sourceActivities = activeServiceLogRecordCode
+    ? detailRecords[activeServiceLogRecordCode]?.activities || []
+    : draftServiceActivities;
+
+  if (serviceActivityEditIndex >= 0 && sourceActivities[serviceActivityEditIndex]) {
+    const item = sourceActivities[serviceActivityEditIndex];
+    setFieldValue(getServiceActivityField("date"), item.date || "");
+    setFieldValue(getServiceActivityField("description"), item.description || "");
+    setFieldValue(getServiceActivityField("activityPhoto"), getServiceActivityPhoto(item));
+    setFieldValue(getServiceActivityField("status"), item.status || "berjalan");
+    setFieldValue(getServiceActivityField("notes"), item.notes || "");
+
+    if (serviceActivityKicker) {
+      serviceActivityKicker.textContent = activeServiceLogRecordCode ? "Edit Log" : "Edit Aktivitas";
+    }
+
+    if (serviceActivityTitle) {
+      serviceActivityTitle.textContent = activeServiceLogRecordCode ? "Edit Log Pengerjaan Jasa" : "Edit Aktivitas Jasa";
+    }
+
+    if (saveServiceActivityButton) {
+      saveServiceActivityButton.textContent = activeServiceLogRecordCode ? "Update Log" : "Update Aktivitas";
+    }
+  } else {
+    serviceActivityEditIndex = -1;
+    setFieldValue(getServiceActivityField("date"), formatDateDisplay(new Date()));
+    setFieldValue(getServiceActivityField("status"), "berjalan");
+
+    if (serviceActivityKicker) {
+      serviceActivityKicker.textContent = activeServiceLogRecordCode ? "Tambah Log" : "Tambah Aktivitas";
+    }
+
+    if (serviceActivityTitle) {
+      serviceActivityTitle.textContent = activeServiceLogRecordCode ? "Log Pengerjaan Jasa" : "Aktivitas Jasa";
+    }
+
+    if (saveServiceActivityButton) {
+      saveServiceActivityButton.textContent = activeServiceLogRecordCode ? "Simpan Log" : "Simpan Aktivitas";
+    }
+  }
+
+  openManagedModal(serviceActivityBackdrop, serviceActivityCard, getServiceActivityField("description"));
+}
+
+function closeServiceActivityDialog(options = {}) {
+  serviceActivityEditIndex = -1;
+  activeServiceLogRecordCode = "";
+  closeManagedModal(serviceActivityBackdrop, serviceActivityCard, serviceActivityForm, options);
+}
+
+function saveServiceActivity() {
+  if (serviceActivityForm && !serviceActivityForm.reportValidity()) {
+    return;
+  }
+
+  const item = {
+    date: String(getServiceActivityField("date")?.value || "").trim() || formatDateDisplay(new Date()),
+    description: String(getServiceActivityField("description")?.value || "").trim(),
+    activityPhoto: String(getServiceActivityField("activityPhoto")?.value || "").trim() || "-",
+    status: String(getServiceActivityField("status")?.value || "berjalan"),
+    notes: String(getServiceActivityField("notes")?.value || "").trim() || "-"
+  };
+
+  if (activeServiceLogRecordCode) {
+    saveServiceLogToRecord(activeServiceLogRecordCode, item, serviceActivityEditIndex);
+    closeServiceActivityDialog();
+    return;
+  }
+
+  if (serviceActivityEditIndex >= 0) {
+    draftServiceActivities[serviceActivityEditIndex] = item;
+  } else {
+    draftServiceActivities.push(item);
+  }
+
+  renderServiceActivities();
+  closeServiceActivityDialog();
+}
+
+function saveServiceLogToRecord(code, item, index = -1) {
+  const record = detailRecords[code];
+  if (!record || String(record.header?.status || "") === "selesai") {
+    showAlert("warning", "Log tidak bisa diubah", "Log dikunci setelah pengerjaan jasa berstatus selesai.");
+    return;
+  }
+
+  const activities = record.activities || [];
+  if (Number.isInteger(index) && index >= 0 && activities[index]) {
+    activities[index] = {
+      ...activities[index],
+      ...item
+    };
+  } else {
+    activities.push({
+      ...item,
+      no: `${code}-${String(activities.length + 1).padStart(2, "0")}`
+    });
+  }
+  record.activities = activities;
+  detailRecords[code] = record;
+  updateServiceMonitorRow(code, record);
+  renderDetailModal(record, code);
+  showAlert("success", "Log pengerjaan disimpan", `${code} memiliki ${activities.length} log pengerjaan.`);
+}
+
+function stageServiceLogStatus(code, index, status, field) {
+  const allowedStatuses = ["berjalan", "selesai"];
+  const record = detailRecords[code];
+  const activities = record?.activities || [];
+
+  if (!record || !Number.isInteger(index) || !activities[index] || !allowedStatuses.includes(status)) {
+    return;
+  }
+
+  if (String(record.header?.status || "") === "selesai") {
+    showAlert("warning", "Status log dikunci", "Log tidak bisa diubah setelah pengerjaan jasa selesai.");
+    renderDetailModal(record, code);
+    return;
+  }
+
+  if (String(activities[index].status || "") === "selesai") {
+    showAlert("warning", "Status log dikunci", "Log yang sudah selesai tidak dapat diubah.");
+    renderDetailModal(record, code);
+    return;
+  }
+
+  if (!serviceLogStatusDrafts[code]) {
+    serviceLogStatusDrafts[code] = {};
+  }
+
+  if (status === String(activities[index].status || "berjalan")) {
+    delete serviceLogStatusDrafts[code][index];
+  } else {
+    serviceLogStatusDrafts[code][index] = status;
+  }
+
+  if (field) {
+    field.className = `status-chip-select ${getStatusChipClass(status)}`;
+  }
+}
+
+function getDraftedServiceLogStatus(code, item, index) {
+  if (String(item.status || "") === "selesai") {
+    return "selesai";
+  }
+
+  return serviceLogStatusDrafts[code]?.[index] || item.status || "berjalan";
+}
+
+function applyServiceLogStatusDrafts(code) {
+  const record = detailRecords[code];
+  const drafts = serviceLogStatusDrafts[code] || {};
+  const activities = record?.activities || [];
+  let changed = 0;
+
+  if (!record || String(record.header?.status || "") === "selesai") {
+    return changed;
+  }
+
+  Object.entries(drafts).forEach(([indexKey, status]) => {
+    const index = Number(indexKey);
+    const item = activities[index];
+    if (!item || String(item.status || "") === "selesai") {
+      return;
+    }
+
+    if (["berjalan", "selesai"].includes(status) && item.status !== status) {
+      activities[index] = {
+        ...item,
+        status
+      };
+      changed += 1;
+    }
+  });
+
+  delete serviceLogStatusDrafts[code];
+  record.activities = activities;
+  detailRecords[code] = record;
+  return changed;
+}
+
+function submitServiceLogChanges(code) {
+  const record = detailRecords[code];
+  if (!record || String(record.header?.status || "") === "selesai") {
+    showAlert("warning", "Detail dikunci", "Data tidak bisa diperbarui setelah jasa selesai.");
+    return;
+  }
+
+  const changed = applyServiceLogStatusDrafts(code);
+  renderDetailModal(record, code);
+
+  if (!changed) {
+    showAlert("warning", "Tidak ada perubahan", "Ubah status log berjalan sebelum submit.");
+    return;
+  }
+
+  showAlert("success", "Detail diperbarui", `${changed} status log berhasil disubmit.`);
+}
+
+function removeServiceActivity(index) {
+  if (!Number.isInteger(index) || !draftServiceActivities[index]) {
+    return;
+  }
+
+  draftServiceActivities.splice(index, 1);
+  renderServiceActivities();
+}
+
+function renderServiceActivities() {
+  if (!serviceActivityTableBody) {
+    return;
+  }
+
+  if (!draftServiceActivities.length) {
+    serviceActivityTableBody.innerHTML = `
+      <tr>
+        <td colspan="6" class="empty-table-cell">Belum ada log pengerjaan jasa.</td>
+      </tr>
+    `;
+    return;
+  }
+
+  serviceActivityTableBody.innerHTML = draftServiceActivities
+    .map(
+      (item, index) => `
+        <tr>
+          <td>${index + 1}</td>
+          <td>${escapeHtml(item.date || "-")}</td>
+          <td>${escapeHtml(item.description || "-")}</td>
+          <td>${escapeHtml(getServiceActivityPhoto(item))}</td>
+          <td><span class="status-chip ${getStatusChipClass(item.status)}">${escapeHtml(item.status || "-")}</span></td>
+          <td>
+            <div class="table-action-group">
+              <button class="table-action" type="button" data-edit-service-activity="${index}">Edit</button>
+              <button class="table-action" type="button" data-remove-service-activity="${index}">Hapus</button>
+            </div>
+          </td>
+        </tr>
+      `
+    )
+    .join("");
+}
+
 function getQuoteField(name) {
   return quoteItemForm?.querySelector(`[data-quote-field="${name}"]`);
 }
@@ -5229,6 +5909,16 @@ function getQuotePriceIncludePpn(item) {
     parseCurrencyValue(item.unitPrice) + parseCurrencyValue(item.shippingCost) - parseCurrencyValue(item.discount)
   );
   return item.taxIncluded ? formatRupiah(Math.round(netPrice * 1.11)) : formatRupiah(netPrice);
+}
+
+function getQuoteLineTotal(item) {
+  return item.totalPrice || item.subtotal || getQuotePriceIncludePpn(item);
+}
+
+function getSelectedQuoteTotal(quotes = []) {
+  const selectedQuotes = quotes.filter((quote) => quote.selected);
+  const total = selectedQuotes.reduce((sum, quote) => sum + parseCurrencyValue(getQuoteLineTotal(quote)), 0);
+  return total > 0 ? formatRupiah(total) : "";
 }
 
 function saveQuoteItem() {
@@ -6524,6 +7214,132 @@ function buildProcurementPOMarkup(record) {
   `;
 }
 
+function renderServiceLogStatusCell(record, item, index, canManageLogs) {
+  const code = record.header.code || "";
+  const originalStatus = String(item.status || "berjalan");
+  const status = String(getDraftedServiceLogStatus(code, item, index));
+  const chipClass = getStatusChipClass(status);
+
+  if (!canManageLogs || originalStatus === "selesai") {
+    return `<span class="status-chip ${chipClass}">${escapeHtml(originalStatus || "-")}</span>`;
+  }
+
+  return `
+    <select
+      class="status-chip-select ${chipClass}"
+      data-service-log-record="${escapeHtml(code)}"
+      data-service-log-status="${index}"
+      aria-label="Ubah status log ${escapeHtml(item.no || index + 1)}"
+    >
+      <option value="berjalan"${status === "berjalan" ? " selected" : ""}>berjalan</option>
+      <option value="selesai"${status === "selesai" ? " selected" : ""}>selesai</option>
+    </select>
+  `;
+}
+
+function buildServiceMonitorMarkup(record) {
+  const status = String(record.header.status || "");
+  const request = record.request || getServiceRequestReference(record.header.requestCode) || {};
+  const canManageLogs = hasAccess("jasa.manage") && status !== "selesai";
+  const emptyColspan = 6;
+  const stepRows = getServiceWorkflowSteps(record)
+    .map(
+      (step) => `
+        <div class="approval-step" data-kind="${escapeHtml(step.kind || "pending")}">
+          <div class="approval-person">${escapeHtml(step.title)}</div>
+          <div class="approval-track"><span class="approval-dot"></span></div>
+          <div class="approval-state">${escapeHtml(step.text)}</div>
+        </div>
+      `
+    )
+    .join("");
+  const activityRows = (record.activities || [])
+    .map(
+      (item, index) => `
+        <tr>
+          <td>${escapeHtml(item.no || index + 1)}</td>
+          <td>${escapeHtml(item.date || "-")}</td>
+          <td>${escapeHtml(item.description || "-")}</td>
+          <td>${escapeHtml(getServiceActivityPhoto(item))}</td>
+          <td>${escapeHtml(item.notes || "-")}</td>
+          <td>${renderServiceLogStatusCell(record, item, index, canManageLogs)}</td>
+        </tr>
+      `
+    )
+    .join("") || `
+      <tr>
+        <td colspan="${emptyColspan}" class="empty-table-cell">Belum ada log pengerjaan jasa.</td>
+      </tr>
+    `;
+
+  return `
+    <div class="modal-detail-stack detail-modal-fill">
+      <section class="approval-strip" aria-label="Alur jasa">
+        <div class="approval-flow approval-flow-horizontal approval-flow-compact">
+          ${stepRows}
+        </div>
+      </section>
+
+      <section class="form-section detail-summary-compact">
+        <div class="form-section-head">
+          <strong>Data Pengerjaan Jasa</strong>
+        </div>
+        <div class="detail-list">
+          <div class="detail-row">
+            <div class="detail-label">No Jasa</div>
+            <div class="detail-value">${escapeHtml(record.header.code || "-")}</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">No Pengajuan</div>
+            <div class="detail-value">${escapeHtml(record.header.requestCode || "-")}</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">Divisi</div>
+            <div class="detail-value">${escapeHtml(record.header.division || request.division || "-")}</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">Tgl Mulai</div>
+            <div class="detail-value">${escapeHtml(record.header.serviceDate || "-")}</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">Status</div>
+            <div class="detail-value"><span class="status-chip ${getStatusChipClass(status)}">${escapeHtml(status || "-")}</span></div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">Kebutuhan</div>
+            <div class="detail-value">${escapeHtml(request.need || "-")}</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">Estimasi Biaya</div>
+            <div class="detail-value">${escapeHtml(request.budget || "-")}</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="form-section detail-table-section">
+        <div class="form-section-head">
+          <strong>Log Pengerjaan</strong>
+        </div>
+        <div class="table-wrap detail-table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>No</th>
+                <th>Tanggal</th>
+                <th>Log</th>
+                <th>Foto Aktivitas</th>
+                <th>Catatan</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>${activityRows}</tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  `;
+}
+
 function buildPenerimaanBarangMarkup(record) {
   const items = record.items || [];
   const status = getReceiptAggregateStatus(items);
@@ -6749,6 +7565,10 @@ function getPrimaryDraftValue() {
     return getNextWorkflowReference("RCV");
   }
 
+  if (detailViewType === "monitor-jasa") {
+    return getNextWorkflowReference("JSA");
+  }
+
   if (detailViewType === "retur-barang") {
     return getNextWorkflowReference("RTR");
   }
@@ -6788,6 +7608,10 @@ function applyCreateDefaults() {
   if (detailViewType === "retur-barang") {
     setFieldValue(getField("returnDate"), formatDateDisplay(new Date()));
     clearSelectedReturnItem();
+  }
+
+  if (detailViewType === "monitor-jasa") {
+    setFieldValue(getField("serviceDate"), formatDateDisplay(new Date()));
   }
 
   if (entitySingular.toLowerCase() !== "barang") {

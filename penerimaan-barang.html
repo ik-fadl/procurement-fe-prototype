@@ -170,11 +170,23 @@
                   <td>16 Jul 2026</td>
                   <td>2 barang</td>
                   <td>PO-2026-0188</td>
-                  <td>6</td>
+                  <td>5</td>
+                  <td>Rani Purchasing</td>
+                  <td><span class="status-chip danger">bermasalah</span></td>
+                  <td>
+                    <button class="table-action" type="button" data-detail="true" data-code="RCV-2026-0001" data-status="bermasalah">View</button>
+                  </td>
+                </tr>
+                <tr class="master-slave-row">
+                  <td>RCV-2026-0003</td>
+                  <td>16 Jul 2026</td>
+                  <td>1 barang</td>
+                  <td>PO-2026-0181</td>
+                  <td>8</td>
                   <td>Rani Purchasing</td>
                   <td><span class="status-chip success">diterima</span></td>
                   <td>
-                    <button class="table-action" type="button" data-detail="true" data-code="RCV-2026-0001" data-status="diterima">View</button>
+                    <button class="table-action" type="button" data-detail="true" data-code="RCV-2026-0003" data-status="diterima">View</button>
                   </td>
                 </tr>
                 <tr class="master-slave-row">
@@ -396,7 +408,7 @@
             "code": "RCV-2026-0001",
             "receiptDate": "16 Jul 2026",
             "receivedBy": "USR-PUR-001 - Rani Purchasing",
-            "status": "diterima"
+            "status": "bermasalah"
           },
           "items": [
             {
@@ -416,7 +428,7 @@
               "unit": "Unit",
               "status": "diterima",
               "notes": "Kemasan utuh.",
-              "subtotal": "Rp26.000.000"
+              "subtotal": "Rp36.574.500"
             },
             {
               "noUrut": 2,
@@ -427,15 +439,44 @@
               "itemName": "Managed Switch 24 Port",
               "qty": "2",
               "shippedQty": "2",
-              "receivedQty": "2",
-              "goodQty": "2",
+              "receivedQty": "1",
+              "goodQty": "1",
+              "damagedQty": "0",
+              "shortQty": "1",
+              "returnProcessQty": "1",
+              "unit": "Unit",
+              "status": "bermasalah",
+              "notes": "1 unit belum terkirim dari qty PO.",
+              "subtotal": "Rp3.663.000"
+            }
+          ]
+        },
+        "RCV-2026-0003": {
+          "header": {
+            "code": "RCV-2026-0003",
+            "receiptDate": "16 Jul 2026",
+            "receivedBy": "USR-PUR-001 - Rani Purchasing",
+            "status": "diterima"
+          },
+          "items": [
+            {
+              "noUrut": 1,
+              "noPo": "PO-2026-0181",
+              "noUrutPo": 1,
+              "vendor": "PT Office Hub",
+              "requestCode": "2026/PP/GA/07/0016",
+              "itemName": "Meja Kerja Modular",
+              "qty": "8",
+              "shippedQty": "8",
+              "receivedQty": "8",
+              "goodQty": "8",
               "damagedQty": "0",
               "shortQty": "0",
               "returnProcessQty": "0",
-              "unit": "Unit",
+              "unit": "Set",
               "status": "diterima",
-              "notes": "Segel perangkat lengkap.",
-              "subtotal": "Rp6.600.000"
+              "notes": "Barang baik diterima.",
+              "subtotal": "Rp18.400.000"
             }
           ]
         },

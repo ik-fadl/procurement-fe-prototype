@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Monitor Jasa - Procurement UI Prototype</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body
+    data-theme="light"
+    data-entity-singular="Penyelesaian Jasa"
+    data-entity-plural="Monitoring Jasa"
+    data-detail-view="monitor-jasa"
+    data-default-role="purchasing"
+  >
+    <div class="app-shell">
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+          <div class="brand-word">bold</div>
+          <button class="collapse-button" type="button" aria-label="Collapse sidebar">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M10 7.4 8.6 6 2.6 12l6 6 1.4-1.4L6.4 13H22v-2H6.4L10 7.4Z" />
+            </svg>
+          </button>
+        </div>
+        <nav class="sidebar-nav"></nav>
+      </aside>
+
+      <main class="main-panel">
+        <header class="topbar">
+          <div class="topbar-left">
+            <button class="icon-button mobile-only" id="sidebarToggle" type="button" aria-label="Toggle sidebar">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 7h16v2H4V7Zm0 8h16v2H4v-2Zm0-4h16v2H4v-2Z" />
+              </svg>
+            </button>
+            <label class="search-shell" aria-label="Search">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="m15.5 14 5 5-1.5 1.5-5-5v-.8l-.3-.3A6 6 0 1 1 15.5 14ZM10 14a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" />
+              </svg>
+              <input type="text" placeholder="Cari no jasa, no pengajuan, vendor, atau status" />
+            </label>
+          </div>
+          <div class="topbar-right">
+            <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle theme">
+              <svg class="theme-icon theme-icon-sun" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12Zm0-16h1v3h-1V2Zm0 17h1v3h-1v-3ZM2 11h3v1H2v-1Zm17 0h3v1h-3v-1ZM4.9 18.4l.7.7 2.1-2.1-.7-.7-2.1 2.1Zm11.2-11.2.7.7 2.1-2.1-.7-.7-2.1 2.1ZM4.9 5.6l2.1 2.1.7-.7-2.1-2.1-.7.7Zm11.2 11.2 2.1 2.1.7-.7-2.1-2.1-.7.7Z" />
+              </svg>
+              <svg class="theme-icon theme-icon-moon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M14.7 2.2A8.8 8.8 0 1 0 21.8 15 7.4 7.4 0 0 1 14.7 2.2Z" />
+              </svg>
+            </button>
+            <button class="avatar-button" type="button" aria-label="Profile">
+              <span class="avatar-photo">PR</span>
+            </button>
+          </div>
+        </header>
+
+        <section class="page-head">
+          <div>
+            <h2>Monitor Jasa</h2>
+          </div>
+          <div class="page-actions">
+            <button class="secondary-button" type="button">Filter Status</button>
+          </div>
+        </section>
+
+        <section class="panel panel-table">
+          <div class="panel-head">
+            <div>
+              <h3>Pengerjaan Jasa</h3>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>No Jasa</th>
+                  <th>No Pengajuan</th>
+                  <th>Divisi</th>
+                  <th>Kebutuhan</th>
+                  <th>Log</th>
+                  <th>Status</th>
+                  <th>View</th>
+                </tr>
+              </thead>
+              <tbody id="requestTableBody">
+                <tr class="master-slave-row is-active">
+                  <td>JSA-2026-0003</td>
+                  <td>2026/PP/PUR/07/0009</td>
+                  <td>PUR</td>
+                  <td>Maintenance jaringan berkala</td>
+                  <td>3 log</td>
+                  <td><span class="status-chip review">berjalan</span></td>
+                  <td>
+                    <button class="table-action" type="button" data-detail="true" data-code="JSA-2026-0003" data-status="berjalan">
+                      View
+                    </button>
+                  </td>
+                </tr>
+                <tr class="master-slave-row">
+                  <td>JSA-2026-0002</td>
+                  <td>2026/PP/GA/07/0022</td>
+                  <td>GA</td>
+                  <td>Perbaikan AC area produksi</td>
+                  <td>2 log</td>
+                  <td><span class="status-chip success">selesai</span></td>
+                  <td>
+                    <button class="table-action" type="button" data-detail="true" data-code="JSA-2026-0002" data-status="selesai">
+                      View
+                    </button>
+                  </td>
+                </tr>
+                <tr class="master-slave-row">
+                  <td>JSA-2026-0001</td>
+                  <td>2026/PP/PUR/07/0014</td>
+                  <td>PUR</td>
+                  <td>Instalasi ulang jaringan cabang</td>
+                  <td>4 log</td>
+                  <td><span class="status-chip success">selesai</span></td>
+                  <td>
+                    <button class="table-action" type="button" data-detail="true" data-code="JSA-2026-0001" data-status="selesai">
+                      View
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div class="modal-backdrop" id="serviceActivityBackdrop" hidden aria-hidden="true">
+      <div class="modal-card" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="serviceActivityTitle">
+        <div class="modal-head">
+          <div>
+            <p class="eyebrow" id="serviceActivityKicker">Tambah Log</p>
+            <h3 id="serviceActivityTitle">Log Pengerjaan Jasa</h3>
+          </div>
+          <button class="icon-button tiny" id="closeServiceActivityModal" type="button" aria-label="Close modal">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m18.3 5.7-1-1L12 10 6.7 4.7l-1 1L11 11l-5.3 5.3 1 1L12 12l5.3 5.3 1-1L13 11l5.3-5.3Z" />
+            </svg>
+          </button>
+        </div>
+
+        <form class="modal-form" id="serviceActivityForm">
+          <section class="form-section">
+            <div class="form-grid">
+              <label>
+                <span>Tanggal</span>
+                <input data-service-activity-field="date" name="tgl_aktivitas" type="text" readonly />
+              </label>
+              <label>
+                <span>Status</span>
+                <select data-service-activity-field="status" name="status">
+                  <option value="berjalan">berjalan</option>
+                  <option value="selesai">selesai</option>
+                </select>
+              </label>
+            </div>
+            <label class="field-span-2">
+              <span>Log Pengerjaan</span>
+              <textarea data-service-activity-field="description" name="uraian_aktivitas" rows="4" required placeholder="Catatan pekerjaan yang dilakukan"></textarea>
+            </label>
+            <label class="field-span-2">
+              <span>Foto Aktivitas</span>
+              <input data-service-activity-field="activityPhoto" name="foto_aktivitas" type="text" placeholder="foto-aktivitas.jpg" />
+            </label>
+            <label class="field-span-2">
+              <span>Catatan</span>
+              <textarea data-service-activity-field="notes" name="catatan" rows="3" placeholder="Catatan log"></textarea>
+            </label>
+          </section>
+          <div class="modal-actions">
+            <button class="secondary-button" id="cancelServiceActivityModal" type="button">Batal</button>
+            <button class="primary-button" id="saveServiceActivityButton" type="submit">Simpan Log</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="modal-backdrop" id="detailModalBackdrop" hidden aria-hidden="true">
+      <div class="modal-card modal-card-wide" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="modalTitle">
+        <div class="modal-head">
+          <div>
+            <p class="eyebrow" id="modalKicker">Detail</p>
+            <h3 id="modalTitle">Detail Monitor Jasa</h3>
+          </div>
+          <button class="icon-button tiny" id="closeDetailModal" type="button" aria-label="Close modal">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m18.3 5.7-1-1L12 10 6.7 4.7l-1 1L11 11l-5.3 5.3 1 1L12 12l5.3 5.3 1-1L13 11l5.3-5.3Z" />
+            </svg>
+          </button>
+        </div>
+        <div class="modal-form" id="detailModalBody"></div>
+        <div class="modal-actions">
+          <div class="detail-status-actions" id="detailStatusActions"></div>
+          <button class="secondary-button" id="cancelDetailModal" type="button">Tutup</button>
+        </div>
+      </div>
+    </div>
+
+    <script id="detailRecordsData" type="application/json">
+      {
+        "JSA-2026-0003": {
+          "header": {
+            "code": "JSA-2026-0003",
+            "requestCode": "2026/PP/PUR/07/0009",
+            "division": "PUR",
+            "serviceDate": "15 Jul 2026",
+            "status": "berjalan"
+          },
+          "request": {
+            "requestCode": "2026/PP/PUR/07/0009",
+            "division": "PUR",
+            "date": "06 Jul 2026",
+            "need": "Maintenance jaringan berkala.",
+            "budget": "Rp45.000.000"
+          },
+          "activities": [
+            { "no": "JSA-2026-0003-01", "date": "15 Jul 2026", "description": "Kickoff dan konfirmasi scope pekerjaan.", "activityPhoto": "foto-kickoff.jpg", "status": "selesai", "notes": "Scope disepakati." },
+            { "no": "JSA-2026-0003-02", "date": "16 Jul 2026", "description": "Pemeriksaan access point dan backup konfigurasi.", "activityPhoto": "foto-pemeriksaan-ap.jpg", "status": "selesai", "notes": "Tidak ada perangkat rusak." },
+            { "no": "JSA-2026-0003-03", "date": "17 Jul 2026", "description": "Preventive maintenance switch core.", "activityPhoto": "-", "status": "berjalan", "notes": "Menunggu window maintenance malam." }
+          ]
+        },
+        "JSA-2026-0002": {
+          "header": {
+            "code": "JSA-2026-0002",
+            "requestCode": "2026/PP/GA/07/0022",
+            "division": "GA",
+            "serviceDate": "14 Jul 2026",
+            "status": "selesai"
+          },
+          "request": {
+            "requestCode": "2026/PP/GA/07/0022",
+            "division": "GA",
+            "date": "13 Jul 2026",
+            "need": "Perbaikan AC area produksi.",
+            "budget": "Rp18.000.000"
+          },
+          "activities": [
+            { "no": "JSA-2026-0002-01", "date": "14 Jul 2026", "description": "Pemeriksaan unit AC dan penggantian komponen.", "activityPhoto": "foto-perbaikan.jpg", "status": "selesai", "notes": "Area produksi kembali normal." },
+            { "no": "JSA-2026-0002-02", "date": "14 Jul 2026", "description": "Uji fungsi setelah perbaikan.", "activityPhoto": "foto-uji-ac.jpg", "status": "selesai", "notes": "Siap dicek finance." }
+          ]
+        },
+        "JSA-2026-0001": {
+          "header": {
+            "code": "JSA-2026-0001",
+            "requestCode": "2026/PP/PUR/07/0014",
+            "division": "PUR",
+            "serviceDate": "12 Jul 2026",
+            "status": "selesai"
+          },
+          "request": {
+            "requestCode": "2026/PP/PUR/07/0014",
+            "division": "PUR",
+            "date": "09 Jul 2026",
+            "need": "Instalasi ulang jaringan cabang dan konfigurasi access point.",
+            "budget": "Rp28.500.000"
+          },
+          "activities": [
+            { "no": "JSA-2026-0001-01", "date": "12 Jul 2026", "description": "Survey lokasi cabang.", "activityPhoto": "foto-survey-cabang.jpg", "status": "selesai", "notes": "Rute kabel final." },
+            { "no": "JSA-2026-0001-02", "date": "13 Jul 2026", "description": "Penarikan kabel dan konfigurasi AP.", "activityPhoto": "foto-instalasi-ap.jpg", "status": "selesai", "notes": "Selesai di dua cabang." },
+            { "no": "JSA-2026-0001-03", "date": "14 Jul 2026", "description": "UAT koneksi.", "activityPhoto": "foto-uat-network.jpg", "status": "selesai", "notes": "User cabang sudah test." },
+            { "no": "JSA-2026-0001-04", "date": "14 Jul 2026", "description": "Serah terima hasil pekerjaan.", "activityPhoto": "foto-serah-terima.jpg", "status": "selesai", "notes": "Siap finance process." }
+          ]
+        }
+      }
+    </script>
+
+    <div class="inline-alert" id="inlineAlert" hidden>
+      <div class="inline-alert-icon"></div>
+      <div>
+        <strong id="inlineAlertTitle">Status</strong>
+        <p id="inlineAlertText">Alert detail</p>
+      </div>
+      <button class="icon-button tiny" id="dismissAlert" type="button" aria-label="Dismiss alert">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="m18.3 5.7-1-1L12 10 6.7 4.7l-1 1L11 11l-5.3 5.3 1 1L12 12l5.3 5.3 1-1L13 11l5.3-5.3Z" />
+        </svg>
+      </button>
+    </div>
+
+    <script src="./script.js"></script>
+  </body>
+</html>

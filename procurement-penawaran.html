@@ -338,24 +338,11 @@
                   </td>
                 </tr>
                 <tr class="master-slave-row">
-                  <td>PNW-2026-0037</td>
-                  <td>2026/PP/PUR/07/0009</td>
-                  <td>Maintenance jaringan berkala</td>
-                  <td>1 item / 2 vendor</td>
-                  <td>Rp44.800.000</td>
-                  <td><span class="status-chip waiting">menunggu_persetujuan_purchasing</span></td>
-                  <td>
-                    <button class="table-action" type="button" data-detail="true" data-code="2026/PP/PUR/07/0009" data-status="menunggu_persetujuan_purchasing">
-                      View
-                    </button>
-                  </td>
-                </tr>
-                <tr class="master-slave-row">
                   <td>PNW-2026-0033</td>
                   <td>2026/PP/IT/07/0004</td>
                   <td>Access point dan switch cabang baru</td>
                   <td>2 item / 3 vendor</td>
-                  <td>Rp32.600.000</td>
+                  <td>Rp40.237.500</td>
                   <td><span class="status-chip success">disetujui</span></td>
                   <td>
                     <button class="table-action" type="button" data-detail="true" data-code="2026/PP/IT/07/0004" data-status="disetujui">
@@ -495,14 +482,6 @@
                     <td>GA</td>
                     <td>12 Jul 2026</td>
                     <td>Kursi kerja ergonomis back office</td>
-                    <td><span class="status-chip success">siap_procurement</span></td>
-                    <td><button class="table-action" type="button">Pilih</button></td>
-                  </tr>
-                  <tr data-select-request="2026/PP/PUR/07/0009" data-need="Maintenance jaringan berkala" data-division="PUR" data-date="06 Jul 2026">
-                    <td><strong>2026/PP/PUR/07/0009</strong></td>
-                    <td>PUR</td>
-                    <td>06 Jul 2026</td>
-                    <td>Maintenance jaringan berkala</td>
                     <td><span class="status-chip success">siap_procurement</span></td>
                     <td><button class="table-action" type="button">Pilih</button></td>
                   </tr>
@@ -680,7 +659,6 @@
                   <option value="diambil">diambil</option>
                   <option value="dikirim_vendor">dikirim_vendor</option>
                   <option value="ekspedisi">ekspedisi</option>
-                  <option value="onsite">onsite</option>
                   <option value="digital">digital</option>
                 </select>
               </label>
@@ -746,6 +724,8 @@
               "unitPrice": "Rp1.191.667",
               "shippingCost": "Rp250.000",
               "discount": "Rp100.000",
+              "totalPrice": "Rp7.150.000",
+              "subtotal": "Rp7.150.000",
               "taxIncluded": true,
               "tax": "hitung_ppn_11",
               "paymentMethod": "TOP-030",
@@ -778,58 +758,6 @@
             }
           ]
         },
-        "2026/PP/PUR/07/0009": {
-          "header": {
-            "quoteCode": "PNW-2026-0037",
-            "requestCode": "2026/PP/PUR/07/0009",
-            "need": "Maintenance jaringan berkala",
-            "status": "menunggu_persetujuan_purchasing"
-          },
-          "quotes": [
-            {
-              "itemCode": "JASA-0009",
-              "itemName": "Maintenance Jaringan Berkala",
-              "itemQty": "1",
-              "itemUnit": "Paket",
-              "itemCategory": "Jasa IT",
-              "itemBudget": "Rp45.000.000",
-              "vendor": "PT Infra Solusi",
-              "vendorUp": "Dewi Anggraeni",
-              "unitPrice": "Rp44.800.000",
-              "shippingCost": "Rp0",
-              "discount": "Rp0",
-              "taxIncluded": true,
-              "tax": "hitung_ppn_11",
-              "paymentMethod": "TOP-030",
-              "paymentNote": "Transfer term 30 hari",
-              "deliveryCategory": "tidak_ada",
-              "delivery": "onsite",
-              "leadTime": "7 hari",
-              "selected": true
-            },
-            {
-              "itemCode": "JASA-0009",
-              "itemName": "Maintenance Jaringan Berkala",
-              "itemQty": "1",
-              "itemUnit": "Paket",
-              "itemCategory": "Jasa IT",
-              "itemBudget": "Rp45.000.000",
-              "vendor": "PT NetCare",
-              "vendorUp": "Hendra Saputra",
-              "unitPrice": "Rp46.250.000",
-              "shippingCost": "Rp0",
-              "discount": "Rp500.000",
-              "taxIncluded": true,
-              "tax": "hitung_ppn_11",
-              "paymentMethod": "TOP-014",
-              "paymentNote": "Transfer term 14 hari",
-              "deliveryCategory": "tidak_ada",
-              "delivery": "onsite",
-              "leadTime": "5 hari",
-              "selected": false
-            }
-          ]
-        },
         "2026/PP/IT/07/0004": {
           "header": {
             "quoteCode": "PNW-2026-0033",
@@ -851,6 +779,8 @@
               "unitPrice": "Rp32.600.000",
               "shippingCost": "Rp350.000",
               "discount": "Rp0",
+              "totalPrice": "Rp36.574.500",
+              "subtotal": "Rp36.574.500",
               "taxIncluded": true,
               "tax": "hitung_ppn_11",
               "paymentMethod": "TOP-030",
@@ -893,6 +823,8 @@
               "unitPrice": "Rp3.300.000",
               "shippingCost": "Rp0",
               "discount": "Rp0",
+              "totalPrice": "Rp3.663.000",
+              "subtotal": "Rp3.663.000",
               "taxIncluded": true,
               "tax": "hitung_ppn_11",
               "paymentMethod": "TOP-030",
@@ -923,4 +855,3 @@
     <script src="./script.js"></script>
   </body>
 </html>
-

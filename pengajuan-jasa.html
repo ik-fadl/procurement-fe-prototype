@@ -333,14 +333,14 @@
                   <td>normal</td>
                   <td>09 Jul 2026</td>
                   <td>22 Jul 2026</td>
-                  <td><span class="status-chip waiting">menunggu_persetujuan_divisi</span></td>
+                  <td><span class="status-chip success">siap_procurement</span></td>
                   <td>
                     <button
                       class="table-action"
                       type="button"
                       data-detail="true"
                       data-code="2026/PP/PUR/07/0014"
-                      data-status="menunggu_persetujuan_divisi"
+                      data-status="siap_procurement"
                     >
                       View
                     </button>
@@ -371,14 +371,33 @@
                   <td>normal</td>
                   <td>06 Jul 2026</td>
                   <td>18 Jul 2026</td>
-                  <td><span class="status-chip info">menunggu_persetujuan_kepala_akunting</span></td>
+                  <td><span class="status-chip success">siap_procurement</span></td>
                   <td>
                     <button
                       class="table-action"
                       type="button"
                       data-detail="true"
                       data-code="2026/PP/PUR/07/0009"
-                      data-status="menunggu_persetujuan_kepala_akunting"
+                      data-status="siap_procurement"
+                    >
+                      View
+                    </button>
+                  </td>
+                </tr>
+                <tr class="master-slave-row">
+                  <td>2026/PP/GA/07/0022</td>
+                  <td>General Affairs</td>
+                  <td>urgent</td>
+                  <td>13 Jul 2026</td>
+                  <td>20 Jul 2026</td>
+                  <td><span class="status-chip success">siap_procurement</span></td>
+                  <td>
+                    <button
+                      class="table-action"
+                      type="button"
+                      data-detail="true"
+                      data-code="2026/PP/GA/07/0022"
+                      data-status="siap_procurement"
                     >
                       View
                     </button>
@@ -637,8 +656,8 @@
               { "name": "foto-kondisi-awal.jpg", "format": "JPG" },
               { "name": "sow-instalasi-jaringan.docx", "format": "DOCX" }
             ],
-            "status": "menunggu_persetujuan_divisi",
-            "statusKind": "waiting"
+            "status": "siap_procurement",
+            "statusKind": "success"
           },
           "services": [
             {
@@ -652,14 +671,19 @@
           ],
           "approval": [
             {
-              "kind": "warning",
+              "kind": "success",
               "title": "Kepala Divisi",
-              "text": "Pengajuan jasa selalu masuk lebih dulu ke persetujuan divisi."
+              "text": "Approved."
             },
             {
-              "kind": "",
+              "kind": "success",
               "title": "Kepala Akunting",
-              "text": "Memberi keputusan akhir sebelum masuk ke procurement dan vendor."
+              "text": "Approved."
+            },
+            {
+              "kind": "success",
+              "title": "Kepala Purchasing",
+              "text": "Siap dikerjakan."
             }
           ]
         },
@@ -713,8 +737,8 @@
               { "name": "quotation-maintenance.pdf", "format": "PDF" },
               { "name": "checklist-preventive-maintenance.xlsx", "format": "XLSX" }
             ],
-            "status": "menunggu_persetujuan_kepala_akunting",
-            "statusKind": "info"
+            "status": "siap_procurement",
+            "statusKind": "success"
           },
           "services": [
             {
@@ -730,8 +754,51 @@
             {
               "kind": "success",
               "title": "Kepala Divisi",
-              "text": "Pengajuan disetujui dan diteruskan ke Kepala Akunting."
+              "text": "Approved."
+            },
+            {
+              "kind": "success",
+              "title": "Kepala Akunting",
+              "text": "Approved."
+            },
+            {
+              "kind": "success",
+              "title": "Kepala Purchasing",
+              "text": "Siap dikerjakan."
             }
+          ]
+        },
+        "2026/PP/GA/07/0022": {
+          "header": {
+            "code": "2026/PP/GA/07/0022",
+            "division": "GA",
+            "requestType": "jasa",
+            "priority": "urgent",
+            "submitDate": "13 Jul 2026",
+            "targetDate": "20 Jul 2026",
+            "reason": "AC area produksi tidak stabil dan mengganggu aktivitas operator.",
+            "serviceNeed": "Perbaikan AC area produksi.",
+            "serviceAttachments": [
+              { "name": "foto-kondisi-ac.jpg", "format": "JPG" },
+              { "name": "estimasi-perbaikan.pdf", "format": "PDF" }
+            ],
+            "status": "siap_procurement",
+            "statusKind": "success"
+          },
+          "services": [
+            {
+              "no": "2026/PP/GA/07/0022-J01",
+              "description": "Pemeriksaan AC, penggantian komponen rusak, dan pengujian suhu area produksi.",
+              "cost": "Rp18.000.000",
+              "vendor": "CV Prima Teknik",
+              "location": "Area produksi",
+              "notes": "Butuh pengerjaan maksimal dua hari."
+            }
+          ],
+          "approval": [
+            { "kind": "success", "title": "Kepala Divisi", "text": "Approved." },
+            { "kind": "success", "title": "Kepala Akunting", "text": "Approved." },
+            { "kind": "success", "title": "Kepala Purchasing", "text": "Siap dikerjakan." }
           ]
         }
       }
